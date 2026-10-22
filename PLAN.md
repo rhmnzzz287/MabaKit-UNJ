@@ -2,12 +2,12 @@
 
 Revisi: 22 Oktober 2026. Rencana tugas kecil dari [docs/PRD.md](docs/PRD.md) dan [docs/SCHEMA.md](docs/SCHEMA.md), sesuai alur kerja [AGENT.md](AGENT.md). Setiap tugas selesai hanya setelah test yang dijalankan lolos dan hasilnya dicatat di bawah. Keputusan D01-D08 BRD belum ada: bagian yang membutuhkannya tetap diblokir, bukan dikodekan dengan tebakan. Bagian sandbox boleh lanjut dengan data SIMULASI.
 
-Status tugas: `[ ]` belum, `[x]` selesai dengan bukti.
+Status tugas: `[ ]` belum, `[x]` selesai dengan bukti. Terkini: `git log` 07bd3e1 (baseline docs) dan 4f29705 (scaffold); `npm run typecheck` exit 0, `npx vitest run` 1 passed, `npm run build` exit 0 pada 22 Oktober 2026.
 
 ## Fase 1: fondasi repo
 
-- [ ] T1. Git init, baseline commit (docs + AGENT.md + rencana ini), CI minimal (typecheck + test exit 0). Bukti: log commit dan job CI.
-- [ ] T2. Scaffold Vite React TS + Tailwind, path alias, ESLint/Prettier. Bukti: `npm run build` exit 0.
+- [x] T1. Git init, baseline commit (docs + AGENT.md + rencana ini), CI minimal (typecheck + test exit 0). Bukti: log commit dan job CI.
+- [x] T2. Scaffold Vite React TS + Tailwind, path alias, ESLint/Prettier. Bukti: `npm run build` exit 0.
 
 ## Fase 2: kontrak database
 
