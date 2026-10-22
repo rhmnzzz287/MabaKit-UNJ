@@ -1,0 +1,4 @@
+# Salin ke .dev.vars untuk demo lokal. Jangan commit nilai asli.
+DEMO_SECRET=ganti-di-lokal
+STAFF_DEMO_CODE=kode-staf-demo
+ADMIN_DEMO_CODE=kode-admin-demo

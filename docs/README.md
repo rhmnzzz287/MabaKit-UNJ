@@ -1,6 +1,6 @@
 # MabaKit: tujuan project dan indeks
 
-Revisi: 22 Oktober 2026. Status: spesifikasi target demo presentasi dosen. Saat ini baru scaffold React; bukan toko produksi atau integrasi pembayaran yang selesai.
+Revisi: 22 Oktober 2026. Status: demo lokal berjalan di Worker + D1 dengan pembayaran simulasi. Belum dideploy dan bukan toko produksi; tidak ada uang nyata.
 
 ## Tujuan
 
@@ -20,6 +20,20 @@ Booking/reservasi tidak termasuk produk atau roadmap: tanpa kalender, slot, kuot
 - Sesi tamu demo di Worker/D1, bukan akun produksi. Role staf/admin tetap dibatasi server.
 
 Tidak ada resource cloud atau deployment yang dibuat melalui penyelarasan dokumen. Paket, kuota, domain, billing dan secret cloud dikonfirmasi sebelum aktivasi. Tidak menjamin seluruh layanan gratis.
+
+## Menjalankan demo lokal
+
+Prasyarat: Node 22 dan npm. Semua perintah dari akar repo.
+
+```
+npm install
+npm run db:migrate:local
+npm run db:seed:local
+cp .dev.vars.example .dev.vars   # isi kode staf/admin lokal, jangan commit
+npm run dev:worker               # build lalu wrangler dev di http://127.0.0.1:8787
+```
+
+Reset data demo: hapus `.wrangler/state`, ulangi migrasi dan seed. Verifikasi: `npm test`, `npm run typecheck`, `npm run typecheck:worker`, `npm run build`. Kode staf/admin hanya untuk demo lokal dan tidak boleh dipakai di deployment publik.
 
 ## Urutan baca
 
