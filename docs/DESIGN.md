@@ -9,14 +9,14 @@ Browser: React + TypeScript + Vite + Tailwind CSS
   localStorage cart, API relative /api/*, cookie sesi demo
         |
 Cloudflare Worker
-  Static Assets: dist/ + foto demo berizin
+  Static Assets: frontend/dist/ + foto demo berizin
   API: katalog, sesi, checkout, simulasi pembayaran, invoice, staf/admin
         |
 Cloudflare D1 binding DB
   SQLite relational, prepared queries, atomic DB.batch(), guard SQL
 ```
 
-Satu deployment Worker melayani API dan static assets. Source UI src/, server worker/, migrasi db/migrations/. Wrangler untuk dev, migrasi dan deployment. API `/api/*` harus diarahkan ke Worker sebelum SPA fallback; route API tak dikenal menghasilkan JSON 404, bukan index.html. Route UI mendukung refresh via SPA fallback.
+Satu deployment Worker melayani API dan static assets. Source UI frontend/src/, server backend/src/, migrasi backend/db/migrations/. Wrangler untuk dev, migrasi dan deployment. API `/api/*` harus diarahkan ke Worker sebelum SPA fallback; route API tak dikenal menghasilkan JSON 404, bukan index.html. Route UI mendukung refresh via SPA fallback.
 
 D1 hanya diakses Worker, tidak dari SDK browser. Sesi cookie HttpOnly dengan token hash di D1; role operator diprovisioning terpercaya, bukan pilihan pengguna. SQL guard dan batch menjadi otoritas mutasi. Tidak ada transaksi interaktif yang menunggu keputusan JavaScript di antara statement.
 

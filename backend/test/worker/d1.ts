@@ -6,6 +6,8 @@ type DatabaseSync = InstanceType<typeof DatabaseSync>;
 
 type Row = Record<string, unknown>;
 
+const DEFAULT_MIGRATION = path.resolve(import.meta.dirname, "../../db/migrations/0001_init.sql");
+
 function isReadStatement(sql: string): boolean {
   const head = sql.trim().toUpperCase();
   return head.startsWith("SELECT") || head.startsWith("WITH") || head.includes(" RETURNING ");
@@ -49,10 +51,10 @@ class Statement {
 export class TestD1 {
   private readonly db: DatabaseSync;
 
-  constructor(migrationPath = "db/migrations/0001_init.sql") {
+  constructor(migrationPath = DEFAULT_MIGRATION) {
     this.db = new DatabaseSync(":memory:");
     this.db.exec("PRAGMA foreign_keys = ON;");
-    this.db.exec(readFileSync(path.resolve(migrationPath), "utf8"));
+    this.db.exec(readFileSync(migrationPath, "utf8"));
   }
 
   prepare(sql: string): Statement {

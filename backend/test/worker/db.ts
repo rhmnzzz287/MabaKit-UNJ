@@ -8,7 +8,7 @@ type DatabaseSync = InstanceType<typeof DatabaseSync>;
 export function openDb(): DatabaseSync {
   const db = new DatabaseSync(":memory:");
   db.exec("PRAGMA foreign_keys = ON;");
-  db.exec(readFileSync(path.resolve("db/migrations/0001_init.sql"), "utf8"));
+  db.exec(readFileSync(path.resolve(import.meta.dirname, "../../db/migrations/0001_init.sql"), "utf8"));
   return db;
 }
 

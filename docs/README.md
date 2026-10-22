@@ -29,11 +29,17 @@ Prasyarat: Node 22 dan npm. Semua perintah dari akar repo.
 npm install
 npm run db:migrate:local
 npm run db:seed:local
-cp .dev.vars.example .dev.vars   # isi kode staf/admin lokal, jangan commit
+cp backend/.dev.vars.example backend/.dev.vars   # isi kode staf/admin lokal, jangan commit
 npm run dev:worker               # build lalu wrangler dev di http://127.0.0.1:8787
 ```
 
-Reset data demo: hapus `.wrangler/state`, ulangi migrasi dan seed. Verifikasi: `npm test`, `npm run typecheck`, `npm run typecheck:worker`, `npm run build`. Kode staf/admin hanya untuk demo lokal dan tidak boleh dipakai di deployment publik.
+Reset data demo: hapus `backend/.wrangler/state`, ulangi migrasi dan seed. Verifikasi: `npm test`, `npm run typecheck`, `npm run typecheck:worker`, `npm run build`. Kode staf/admin hanya untuk demo lokal dan tidak boleh dipakai di deployment publik.
+
+## Struktur repo
+
+- `frontend/`: React + Vite + Tailwind (`src/`, `index.html`, konfigurasi Vite/Vitest/TS).
+- `backend/`: Worker API (`src/`), D1 (`db/`), test backend (`test/`), `wrangler.jsonc`, `.dev.vars.example`.
+- `docs/`: dokumen ini dan kontrak lain, di luar folder kode; `docs/reference/` menyimpan materi awal produk.
 
 ## Urutan baca
 

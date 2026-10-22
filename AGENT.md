@@ -2,6 +2,13 @@
 
 Revisi: 22 Oktober 2026. Target aktif demo presentasi dosen di Cloudflare, pembayaran dummy tanpa uang nyata. Panduan ini tidak menggantikan kontrak docs.
 
+## Struktur repo
+
+- `frontend/`: UI React/Vite/Tailwind, `src/`, `index.html`, `vite.config.ts`, `vitest.config.ts`, `tsconfig.json`.
+- `backend/`: Worker API (`src/`), D1 (`db/migrations/`, `db/seed.sql`), test backend (`test/`), `wrangler.jsonc`, `tsconfig.json`.
+- `docs/`: kontrak produk/arsitektur, di luar kedua folder kode; `docs/reference/` materi awal produk (PDF, catatan, gambar).
+- Akar repo: `AGENT.md`, `PLAN.md`, `package.json`, `.github/`.
+
 ## Baca sebelum bekerja
 
 1. docs/README.md: tujuan dan scope.
@@ -25,7 +32,7 @@ Konflik status/uang/akses diselesaikan di PRD/SCHEMA sebelum kode. Desain keputu
 
 ## Stack
 
-React + TypeScript + Vite + Tailwind CSS, Cloudflare Workers Static Assets untuk frontend; Workers API same-origin untuk backend; D1 binding DB untuk database. src/ UI, worker/ server, db/migrations/ SQL. Foto awal Static Assets; R2 ditunda sampai upload perlu. Tidak menambah vendor/database/ORM/KV/Queues/Durable Objects tanpa kebutuhan terukur.
+React + TypeScript + Vite + Tailwind CSS, Cloudflare Workers Static Assets untuk frontend; Workers API same-origin untuk backend; D1 binding DB untuk database. frontend/src/ UI, backend/src/ server, backend/db/migrations/ SQL. Foto awal Static Assets; R2 ditunda sampai upload perlu. Tidak menambah vendor/database/ORM/KV/Queues/Durable Objects tanpa kebutuhan terukur.
 
 D1 SQLite: ID TEXT UUID server, timestamp INTEGER Unix ms UTC ditampilkan WIB, uang INTEGER safe integer rupiah. Prepared queries, FK/CHECK/UNIQUE dan atomic DB.batch(). Tidak ada RLS, database RPC, row/advisory lock atau transaksi JavaScript interaktif.
 

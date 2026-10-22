@@ -104,4 +104,4 @@ READY dan claim tidak mengurangi stok lagi. Race claim diserialisasi oleh SQL gu
 
 Uji lokal SQLite/D1 lalu staging D1 nyata: foreign keys, constraint/trigger, rollback seluruh batch, race SKU terakhir, paket berbagi komponen, key sama/beda, duplicate check, expiry vs check, invoice unik/immutable, claim dua staf, akses sesi lain dan endpoint demo tertutup pada non-demo. Batas batch/query D1 diperiksa terhadap 20 baris × 20 komponen maksimum; jika batas tak cukup, kecilkan batas produk/checkout secara eksplisit, jangan memecah transaksi stok menjadi commit parsial.
 
-Migrations di db/migrations/, versioned, seed SIMULASI terpisah. Wrangler environment/database terpisah. Backup/restore dan uji akses dibutuhkan sebelum demo publik yang menyimpan data; gerbang produksi tambahan di [RELEASE.md](RELEASE.md).
+Migrations di backend/db/migrations/, versioned, seed SIMULASI terpisah. Wrangler environment/database terpisah. Backup/restore dan uji akses dibutuhkan sebelum demo publik yang menyimpan data; gerbang produksi tambahan di [RELEASE.md](RELEASE.md).

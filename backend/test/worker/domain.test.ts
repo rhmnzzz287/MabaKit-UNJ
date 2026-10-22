@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { normalizePhone } from "../../worker/domain/phone";
-import { validateCheckout } from "../../worker/domain/checkout";
+import { normalizePhone } from "../../src/domain/phone";
+import { validateCheckout } from "../../src/domain/checkout";
 
 describe("normalizePhone", () => {
   test.each([

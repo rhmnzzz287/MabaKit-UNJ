@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, describe, expect, test, vi } from "vitest";
-import worker from "../../worker/index";
+import worker from "../../src/index";
 import { TestD1 } from "./d1";
 import { seed } from "./db";
 

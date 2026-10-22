@@ -8,7 +8,7 @@ MabaKit toko perlengkapan PKKMB, bukan marketplace atau kanal resmi kampus. Book
 
 Dipertimbangkan: Cloudflare penuh, Cloudflare dengan database eksternal, serta Cloudflare dengan Firebase. Pemilik memilih Cloudflare penuh agar frontend, backend dan database memakai satu platform. Database eksternal menambah vendor; Firebase mengubah relasi paket/stok menjadi model dokumen dan menambah platform.
 
-Target: React/Vite/Tailwind pada Workers Static Assets, API same-origin di Workers, database D1 relasional SQLite. Foto demo memakai Static Assets; R2 ditunda sampai upload perlu. Source src/, worker/, db/migrations/. Wrangler untuk local dev/migration/deploy, binding DB tidak masuk browser. Resource cloud/deploy/billing belum diotorisasi oleh dokumen ini.
+Target: React/Vite/Tailwind pada Workers Static Assets, API same-origin di Workers, database D1 relasional SQLite. Foto demo memakai Static Assets; R2 ditunda sampai upload perlu. Source frontend/src/, backend/src/, backend/db/migrations/. Wrangler untuk local dev/migration/deploy, binding DB tidak masuk browser. Resource cloud/deploy/billing belum diotorisasi oleh dokumen ini.
 
 ## Pivot presentasi
 

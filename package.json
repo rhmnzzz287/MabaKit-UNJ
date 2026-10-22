@@ -4,15 +4,17 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "dev:worker": "npm run build && wrangler dev",
-    "db:migrate:local": "wrangler d1 execute mabakit-demo --local --file=db/migrations/0001_init.sql",
-    "db:seed:local": "wrangler d1 execute mabakit-demo --local --file=db/seed.sql",
-    "typecheck:worker": "tsc -p tsconfig.worker.json"
+    "dev": "vite --config frontend/vite.config.ts",
+    "build": "vite build --config frontend/vite.config.ts",
+    "preview": "vite preview --config frontend/vite.config.ts",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "vitest run --config frontend/vitest.config.ts",
+    "test:backend": "vitest run --config backend/vitest.config.ts",
+    "typecheck": "tsc -p frontend/tsconfig.json && tsc -p backend/tsconfig.json",
+    "typecheck:worker": "tsc -p backend/tsconfig.json",
+    "dev:worker": "npm run build && cd backend && wrangler dev",
+    "db:migrate:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/migrations/0001_init.sql",
+    "db:seed:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/seed.sql"
   },
   "dependencies": {
     "react": "^19.3.1",

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import worker from "../../worker/index";
-import type { Env } from "../../worker/http";
+import worker from "../../src/index";
+import type { Env } from "../../src/http";
 
 function env(assetBody = "<html>spa</html>"): Env {
   return {
