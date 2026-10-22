@@ -7,7 +7,7 @@ Status tugas: `[ ]` belum, `[x]` selesai dengan bukti. Terkini: `git log` 07bd3e
 ## Fase 1: fondasi repo
 
 - [x] T1. Git init, baseline commit (docs + AGENT.md + rencana ini), CI minimal (typecheck + test exit 0). Bukti: log commit dan job CI.
-- [x] T2. Scaffold Vite React TS + Tailwind, path alias, ESLint/Prettier. Bukti: `npm run build` exit 0.
+- [x] T2. Scaffold Vite React TS + Tailwind + path alias + vitest; tanpa ESLint/Prettier. Bukti: `npm run typecheck` exit 0, vitest 1 passed, `npm run build` exit 0. Skipped: ESLint/Prettier, tambah saat pola berulang menimbulkan review friction.
 
 ## Fase 2: kontrak database
 
