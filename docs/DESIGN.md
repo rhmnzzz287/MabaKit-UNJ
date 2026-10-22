@@ -1,91 +1,85 @@
 # Design dan arsitektur: MabaKit
 
-Revisi: 22 Oktober 2026. Arah desain melanjutkan draf hijau kampus; bukan klaim identitas resmi UNJ. Kontrak perilaku [PRD.md](PRD.md), data [SCHEMA.md](SCHEMA.md). Semua ketentuan visual di sini masih target implementasi, belum bukti audit UI.
+Revisi: 22 Oktober 2026. Target aktif demo presentasi dosen di Cloudflare. Kontrak [PRD.md](PRD.md) dan [SCHEMA.md](SCHEMA.md); belum bukti UI siap. Booking/reservasi, kalender dan pilihan slot tidak termasuk produk.
 
-Tujuan layar: membantu pembeli menemukan perlengkapan PKKMB, memeriksa harga/spesifikasi, membeli dan mengikuti status penyerahan. Tidak ada antarmuka booking/reservasi, kalender, pilihan slot, kuota kunjungan atau reschedule. Pengambilan adalah pemenuhan pembelian, bukan layanan janji temu.
-
-## 1. Arsitektur minimum
+## 1. Arsitektur
 
 ```text
 Browser: React + TypeScript + Vite + Tailwind CSS
-  Supabase Auth email OTP
-  Katalog publik dan baca order sendiri melalui SDK + RLS
-  Keranjang lokal; pembayaran melalui Midtrans Snap
-           |
-Supabase: PostgreSQL + RLS + transactional RPC + Storage foto
-  Edge create-payment: JWT owner, checkout server, request Snap
-  Edge payment-webhook: signature, Status API, transisi atomik
-  Scheduled reconcile-payments: status provider, expiry, recovery
-           |
-Midtrans: satu merchant, satu environment per deployment
+  localStorage cart, API relative /api/*, cookie sesi demo
+        |
+Cloudflare Worker
+  Static Assets: dist/ + foto demo berizin
+  API: katalog, sesi, checkout, simulasi pembayaran, invoice, staf/admin
+        |
+Cloudflare D1 binding DB
+  SQLite relational, prepared queries, atomic DB.batch(), guard SQL
 ```
 
-Tiga entrypoint server cukup: dua endpoint interaktif/provider dan satu job terjadwal. Fungsi bisnis atomik tinggal di PostgreSQL, bukan diduplikasi di browser dan Edge. Cron memanggil Edge job dengan secret dari vault/scheduler; service-role dan Server Key tidak tersedia melalui URL publik, build client atau log.
+Satu deployment Worker melayani API dan static assets. Source UI src/, server worker/, migrasi db/migrations/. Wrangler untuk dev, migrasi dan deployment. API `/api/*` harus diarahkan ke Worker sebelum SPA fallback; route API tak dikenal menghasilkan JSON 404, bukan index.html. Route UI mendukung refresh via SPA fallback.
 
-Hosting SPA di Vercel dengan fallback route, TLS, CSP yang sesuai domain Snap sandbox/production, dan redirect auth allowlist. Staging memakai Supabase dan merchant sandbox terpisah. Tidak ada Express/NestJS perantara, Realtime, Redis, queue broker, maupun microservices. Panggilan browser ke DB hanya untuk data yang memang boleh dibaca/diubah aktornya.
+D1 hanya diakses Worker, tidak dari SDK browser. Sesi cookie HttpOnly dengan token hash di D1; role operator diprovisioning terpercaya, bukan pilihan pengguna. SQL guard dan batch menjadi otoritas mutasi. Tidak ada transaksi interaktif yang menunggu keputusan JavaScript di antara statement.
 
-## 2. Design read dan alasan
+R2 ditunda; foto pilot memakai Static Assets. Saat upload/evidence perlu dibuat, tulis kontrak akses/ukuran/tipe/retensi dulu. Cron Triggers untuk rekonsiliasi gateway ditunda, sama seperti integrasi Midtrans/Xendit, OTP/email produksi dan MFA. Demo tidak memanggil gateway atau pengiriman email. Tidak perlu KV, Durable Objects, Queues, ORM atau Express.
 
-Audience: mahasiswa baru yang ingin melihat barang, harga dan cara pengambilan, juga wali/koordinator yang belum punya identitas mahasiswa. ENERGY 2, RHYTHM 2, MOTION 1. Bahasa Indonesia langsung dan operasional.
+Environment lokal, demo staging dan produksi memakai binding/database berbeda. Demo diberi mode DEMO server-side, tanpa secret merchant. Konfigurasi Wrangler menyimpan binding non-secret; token deploy dan secret operator hanya di environment/Workers Secrets, tidak VITE_* atau repo. Resource cloud, biaya, domain dan deployment memerlukan persetujuan terpisah.
 
-Identitas: foto barang asli berizin, spesifikasi bahan/warna/ukuran terlihat, isi paket menjadi daftar packing yang bisa diperiksa. Hijau digunakan untuk aksi dan identitas toko, bukan seluruh permukaan. Aksen emas hanya untuk informasi yang perlu perhatian. Tidak membuat halaman marketing panjang yang menunda katalog.
+## 2. Arah visual
+
+Audience mahasiswa baru, wali dan koordinator; bahasa Indonesia operasional. ENERGY 2, RHYTHM 2, MOTION 1. Identitas toko hijau dengan foto barang dan spesifikasi dekat harga, bukan klaim resmi kampus. Katalog langsung, tanpa halaman marketing panjang.
 
 | Keputusan | Alasan |
 |---|---|
-| Fakultas/prodi opsional, bukan gerbang wajib | Wali/koordinator dapat berbelanja; data tak terverifikasi tidak dipaksakan |
-| Foto dan spesifikasi dekat harga | Pembeli perlu membandingkan barang nyata, bukan janji kesesuaian tanpa bukti |
-| Paket menampilkan setiap komponen | Menghindari membeli paket yang isinya tidak dibutuhkan |
-| Satu CTA utama per tahap | Bedakan tambah keranjang, bayar, dan penyerahan fisik |
-| Snap resmi, bukan layar QRIS buatan sendiri | Biarkan provider menangani instruksi channel dan QR; kurangi duplikasi expiry/UI pembayaran |
-| Kode pickup lebih dulu daripada kamera | Tetap bekerja pada perangkat yang menolak izin kamera dan tanpa library scanner tambahan |
+| Satu CTA utama per tahap | Bedakan tambah keranjang, pilih metode, cek simulasi dan lihat invoice |
+| Isi paket sebagai daftar komponen | Pembeli memahami barang yang diterima |
+| Label SIMULASI persisten | Penonton tidak mengira demo menerima uang atau memverifikasi bank |
+| Invoice HTML responsif | Bukti alur digital tanpa dependency PDF atau email |
+| Satu lokasi/jam layanan | Menjelaskan pengambilan tanpa fitur booking |
+| Kode pickup, tanpa scanner | Demo bekerja tanpa izin kamera atau library tambahan |
 
-Tidak membuat ilustrasi, logo, foto, video atau testimoni sintetis. Aset baru memerlukan persetujuan dan sumber/izin. Tanpa aset valid, halaman development memakai placeholder berlabel, tidak dianggap siap publikasi.
+Tidak membuat logo, foto/testimoni sintetis atau statistik rekaan. Foto valid belum ada: placeholder berlabel. Spesifikasi dan harga fixture berlabel SIMULASI, bukan data produksi.
 
 ## 3. Token visual
 
-| Token | Nilai dan pemakaian |
+| Token | Nilai |
 |---|---|
-| Brand utama | `#047857`, CTA dengan teks putih; hover `#064e3b` |
-| Brand tint | `#f0fdf4`, latar penjelasan, tidak menggantikan label |
-| Accent text / background | `#92400e` pada `#fef3c7`, peringatan dengan ikon/teks |
-| Surface | `#ffffff`, latar halaman `#f8fafc` |
-| Text utama / sekunder | `#0f172a` / `#475569` pada permukaan terang |
-| Input boundary | `#64748b` pada putih untuk batas kontrol penting; `#cbd5e1` hanya pemisah dekoratif |
-| Error | `#b91c1c` pada putih, selalu disertai pesan |
-| Focus | outline `#0f172a` 2px, offset 3px; pastikan tidak terpotong |
-| Typography | Satu keluarga Plus Jakarta Sans self-host jika izin/asset tersedia; fallback `system-ui, sans-serif`. Body/input minimal 16px, line-height 1.5. Kode memakai `ui-monospace` saja |
-| Shape / spacing | Radius kontrol 8px, kartu 12px; spacing kelipatan 4px. Tidak semua elemen menjadi kartu |
+| Brand/hover | #047857 teks putih / #064e3b |
+| Tint | #f0fdf4 |
+| Peringatan | #92400e pada #fef3c7, disertai teks |
+| Surface/latar | #ffffff / #f8fafc |
+| Teks utama/sekunder | #0f172a / #475569 |
+| Input boundary | #64748b pada putih; #cbd5e1 dekoratif saja |
+| Error | #b91c1c pada putih, pesan tekstual |
+| Focus | #0f172a 2px offset 3px, tidak terpotong |
+| Typography | system-ui, sans-serif; Plus Jakarta Sans self-host hanya bila aset/izin tersedia; body/input >=16px, line-height 1.5 |
+| Radius/spacing | kontrol 8px, kartu 12px, spacing kelipatan 4px |
 
-Seluruh pasangan aktual termasuk disabled/hover/focus harus diukur saat UI tersedia: teks normal ≥4,5:1, teks besar dan batas kontrol penting ≥3:1. Nilai hex bukan bukti semua layar lolos AA.
+Kontras aktual wajib diukur: normal >=4,5:1, teks besar/kontrol penting >=3:1. Nilai hex bukan bukti audit.
 
-## 4. Layar dan kontrak interaksi
+## 4. Layar dan interaksi
 
-| Route | Konten, fokus utama, dan states |
+| Route | Konten dan states |
 |---|---|
-| `/` | Katalog langsung; pilih kategori/fakultas opsional. Foto, harga, ukuran/warna singkat, ketersediaan. Loading skeleton hanya saat memuat; empty filter dengan reset; error dengan coba lagi. Tidak ada fake stock countdown/testimoni. |
-| `/products/:id` | Foto, bahan, ukuran, varian, harga final, komponen paket, sumber panduan bila verified. CTA “Tambah ke keranjang”. Pilihan tidak lengkap diberi error dekat input; varian habis tidak dapat ditambahkan. |
-| `/cart` | Item dan jumlah, harga estimasi, komponen paket, total. CTA “Lanjut checkout”. Keranjang kosong menyediakan “Lihat katalog”; data lokal rusak dipulihkan dengan pesan. Menambah barang tidak mengalokasikan stok. |
-| `/login` | Email OTP; petunjuk cek email, kirim ulang dengan cooldown, ubah email. Error kedaluwarsa dan jaringan jelas. Setelah login kembali ke checkout tanpa menaruh secret di URL. |
-| `/checkout` | Nama pembeli/penerima, kontak, informasi lokasi/jam layanan WIB, kebijakan/total. Tidak ada pemilihan waktu. CTA “Konfirmasi dan bayar”. Sebut batas pembayaran 30 menit setelah order dibuat, bukan janji reservasi barang. Selama submit, cegah klik ganda dan pertahankan key. 409 menampilkan perubahan dan minta konfirmasi ulang. |
-| Snap modal | UI provider. Tutup popup tidak berarti batal; kembali ke order PENDING dengan “Lanjutkan pembayaran”. Callback sukses menampilkan pemeriksaan server, tidak konfirmasi lunas lokal. |
-| `/orders` dan `/orders/:id` | Order milik akun. Pisahkan status pembayaran dan fulfillment. PAID: “Pembayaran diterima. Pesanan sedang disiapkan.” READY: instruksi lokasi/jam layanan dari snapshot pesanan dan kode pickup dari endpoint owner. EXPIRED: instruksi order baru. REVIEW: “Pembayaran sedang diperiksa. Jangan bayar ulang.” Tombol bantuan terlihat. |
-| `/staff/orders` | Daftar operasional, filter status, detail packing snapshot. CTA “Tandai siap diambil” hanya PAID. Tidak menampilkan data pribadi yang tidak diperlukan. |
-| `/staff/pickup` | Input kode; lookup butuh login staf. Ringkasan penerima, barang/isi paket dan status. CTA “Konfirmasi penyerahan” dengan konfirmasi pemeriksaan barang/penerima serta pencatatan register handover pilot sesuai RELEASE. Sudah diambil menampilkan waktu dan staf, tanpa tombol penyerahan ulang. |
-| `/admin` | Katalog/varian, paket tetap, stok, informasi pengambilan toko, pause checkout, review payment, refund dan audit. Aksi sensitif memerlukan admin MFA; tidak ada tombol set PAID atau akses rahasia gateway. |
-| `/privacy`, `/terms`, `/help` | Kebijakan dan kontak yang disahkan D05-D06. Draft/konten dummy memblokir produksi, bukan disembunyikan di balik tautan mati. |
+| / | Katalog aktif, filter opsional fakultas/kategori, harga/varian/ketersediaan; loading, kosong dengan reset, error dengan retry |
+| /products/:id | Spesifikasi, foto, varian, harga, komponen paket; CTA Tambah ke keranjang; pilihan tidak lengkap error, stok habis tidak dapat ditambah |
+| /cart | Jumlah, estimasi, total; CTA Lanjut checkout; kosong menyediakan Lihat katalog; localStorage rusak dipulihkan dengan pesan |
+| /checkout | Form data fiktif, instruksi lokasi/jam SIMULASI, rincian harga, pilih metode transfer bank/e-wallet/QRIS simulasi. CTA Lanjut ke pembayaran simulasi membuat draft PENDING. Sesi tamu dibuat server, tidak meminta email OTP nyata |
+| /orders/:id/payment | Total dan metode dari server, banner SIMULASI, penjelasan tombol tidak memeriksa bank. CTA Cek status pembayaran. Loading mencegah double click; error tidak mengklaim sukses; expired menawarkan checkout baru; tidak ada QR/rekening nyata |
+| /orders dan /orders/:id | Sesi owner saja. Setelah cek sukses: Pesanan simulasi berhasil dibuat; PAID SIMULASI, sedang disiapkan, tautan invoice. READY baru menampilkan kode pickup. Refresh memulihkan status server, bukan membuat pesanan baru |
+| /orders/:id/invoice | Invoice digital HTML dari snapshot: nomor invoice/order, tanggal WIB, penerima, item/quantity/harga/subtotal/total/metode/status. Watermark SIMULASI, bukan bukti pembayaran nyata; bukan faktur pajak; tidak perlu PDF/email otomatis |
+| /staff/orders | Operator demo terproteksi, packing snapshot, filter status, Tandai siap hanya PAID |
+| /staff/pickup | Lookup kode dan konfirmasi penyerahan, autentikasi operator, sudah diambil tampil waktu/staf tanpa tombol klaim ulang |
+| /admin | Operator admin terproteksi; katalog/stok/instruksi/pause/audit. Tidak ada role dari browser, secret atau tombol mengaktifkan gateway |
+| /privacy, /terms, /help | Jelaskan demo, data fiktif dan batasan; tidak mengarang kontak/legalitas. Konten belum tersedia berlabel draft, produksi diblokir |
 
-Snapshot contoh untuk QA (bukan harga publik): `2 × SKU A Rp15.000` + `1 × Paket P Rp30.000` = `Rp60.000`. Tidak ada diskon Rp5.000 tanpa aturan. Lokasi dan jam layanan menggunakan fixture berlabel SIMULASI sampai D04 disetujui. Informasi ini disnapshot saat checkout; perubahan versi sebelum submit menghasilkan 409 dan persetujuan ulang. Perubahan setelah pembelian memerlukan pemberitahuan operator kepada pembeli terdampak, bukan menimpa snapshot diam-diam. Status READY tetap syarat pengambilan; jam buka bukan janji waktu selesai per pesanan.
+Demo tidak otomatis mengubah PAID menjadi READY. Sesi tamu hanya berlaku pada browser yang sama; jangan mengklaim riwayat lintas perangkat atau pemulihan akun tersedia. Penggantian sesi tidak memberi akses order lama. Aturan akses demo operator ditetapkan sebelum demo dipublikasikan; login produksi terpisah.
 
-## 5. Mobile, keyboard dan kegagalan
+## 5. Mobile, aksesibilitas dan kegagalan
 
-- Mulai 360px, uji 390px, 430px, 768px dan desktop 1280px; no horizontal overflow. Form satu kolom; katalog menyesuaikan ruang dan panjang nama, bukan memaksa tiga kolom.
-- CTA sticky memakai safe-area inset dan ruang bawah; jangan menutup input, error, fokus atau keyboard mobile. Target sentuh 48×48px termasuk hapus barang dan kontrol jumlah.
-- Label selalu terlihat; placeholder bukan label. Error terkait via `aria-describedby`, ringkasan error fokus setelah submit gagal. Status jaringan/payment memakai live region tanpa mengumumkan timer tiap detik.
-- Tombol/link semantik, urutan tab alami; dropdown native jika cukup. Modal mengunci fokus, Escape menutup bila aman, lalu fokus kembali. Jangan membuat modal nested di atas Snap.
-- Zoom 200%, teks panjang, barang tanpa foto, harga besar, order kosong dan jaringan lambat tidak merusak layout. Status bukan warna saja. Hormati `prefers-reduced-motion`; animasi hanya feedback pendek.
-- Refresh/putus internet saat bayar tidak menghasilkan order kedua; halaman memulihkan status dari server. Deadline ditampilkan dengan waktu absolut WIB; timer negatif tidak mengubah status DB.
-- Kode pickup adalah bearer credential sensitif; hanya pemilik dapat menerbitkan ulang, pengguna diperingatkan agar tidak membagikan publik. Hilang kode memakai login pemilik untuk rotasi, bukan pencarian NIM terbuka.
+Mulai 360px; uji 390/430/768/1280, zoom 200%, tanpa overflow. Form satu kolom, target sentuh 48px, CTA sticky tidak menutup input/fokus. Label terlihat, error aria-describedby, status live region, keyboard semantik dengan focus terlihat. Dialog Escape/focus return; reduced motion. Status bukan warna saja.
 
-## 6. Delivery gate
+Tidak ada tautan # dummy atau tombol tanpa aksi. Loading/empty/error/offline diperiksa. Retry konfirmasi menggunakan order/key sama; kegagalan DB menampilkan error, bukan invoice palsu lokal. Kode pickup sensitif, tanpa URL/log publik.
 
-Belum ada UI yang dapat diaudit. Jangan menandai PASS. Bukti wajib: kontras per pasangan nyata, keyboard/reader, zoom/mobile, status error/loading/empty, asset provenance, bahasa tanpa klaim fiktif, serta perilaku Snap/checkout/pickup. Pelacakan di [RELEASE.md](RELEASE.md).
+## 6. Verifikasi
+
+Belum ada bukti UI/backend demo selesai. Wajib build/typecheck/test, klik setiap kontrol, kontras, keyboard, mobile, refresh deep-link, cookie/CSRF/ownership, invoice snapshot dan race check/expiry. Uji staging Cloudflare terpisah dari lokal. Bukti di [RELEASE.md](RELEASE.md); tidak ada klaim gateway atau pembayaran nyata.

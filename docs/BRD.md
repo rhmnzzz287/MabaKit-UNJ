@@ -1,6 +1,6 @@
 # Business Requirements Document: MabaKit UNJ
 
-Revisi: 22 Oktober 2026. Status: baseline dokumentasi setelah penghapusan booking/reservasi; keputusan bisnis dan kesiapan operasional tetap memerlukan persetujuan pemilik.
+Revisi: 22 Oktober 2026. Target aktif: demo presentasi dosen, Cloudflare penuh dengan pembayaran simulasi dan invoice digital. Booking/reservasi tetap di luar scope. Keputusan bisnis produksi tetap memerlukan persetujuan pemilik.
 
 ## 1. Masalah, tujuan dan pelanggan
 
@@ -16,7 +16,8 @@ Sumber: `../MabaKit Define.md`. Angka simulasi pendapatan dan biaya pada sumber 
 
 | Tahap | Ruang lingkup | Syarat aktivasi |
 |---|---|---|
-| Rilis pertama | Katalog terkurasi, satuan, paket tetap, keranjang lokal, akun email OTP, checkout Midtrans Snap, pengambilan di satu lokasi, pengelolaan stok/pesanan, bukti pesanan dalam web, penyerahan dengan kode | Kontrak teknis diuji; keputusan D01-D08 lengkap |
+| Demo presentasi, aktif | Katalog, satuan/paket, keranjang lokal, sesi tamu demo, checkout, pilihan metode simulasi, tombol Cek status pembayaran, konfirmasi pesanan dan invoice digital HTML; pengambilan tanpa booking | Fixture SIMULASI, keamanan akses dan invariant D1 diuji; tidak menerima uang |
+| Produksi, ditunda | Akun pelanggan produksi, satu gateway Midtrans atau Xendit, rekonsiliasi, kebijakan/refund dan operasional nyata | Pemilik memutuskan lanjut setelah presentasi; kontrak gateway/sandbox serta keputusan D01-D08 lengkap |
 | Berikutnya | Paket rakitan khusus, kustomisasi berbayar, harga kolektif otomatis, pengiriman kurir | Harga, kapasitas kerja, aturan biaya, SLA dan kebijakan pembatalan disetujui |
 | Opsional | QR/kamera scanner, WhatsApp otomatis, PDF invoice, video/testimoni | Ada kebutuhan operasional dan aset/izin; kanal cadangan tersedia |
 
@@ -34,15 +35,17 @@ Pesanan besar melebihi batas checkout diarahkan ke kontak operator tanpa janji h
 - Setiap pembayaran belum cocok atau perlu refund masuk daftar tindak lanjut dengan pemilik kasus.
 - Ukur pesanan lunas, penyerahan selesai, kegagalan checkout, mismatch pembayaran, refund dan kontribusi transaksi. Target volume/konversi ditetapkan setelah baseline pilot; jangan menampilkan angka rekaan.
 
-Kontribusi transaksi = pendapatan barang dikurangi harga pokok, kemasan, fee gateway, tenaga langsung, subsidi dan biaya retur/refund yang relevan. Paket tidak otomatis lebih menguntungkan. Harga jual integer rupiah, termasuk biaya yang dibebankan kepada pembeli; fee gateway ditanggung toko pada rilis pertama. Perlakuan pajak wajib dikonfirmasi pemilik sebelum harga dipublikasikan.
+Kontribusi transaksi = pendapatan barang dikurangi harga pokok, kemasan, fee gateway, tenaga langsung, subsidi dan biaya retur/refund yang relevan. Paket tidak otomatis lebih menguntungkan. Harga jual integer rupiah. Demo memakai harga simulasi dan biaya pembayaran Rp0; tidak ada pendapatan atau settlement nyata. Untuk produksi, biaya yang dibebankan kepada pembeli harus jelas; usulan awal fee gateway ditanggung toko. Perlakuan pajak wajib dikonfirmasi pemilik sebelum harga dipublikasikan.
 
 ## 4. Keputusan bisnis wajib
 
-Semua keputusan berikut berstatus **BELUM DIKONFIRMASI**. Nama individu, bukti dan tanggal keputusan diisi pemilik sebelum go-live. Tenggat berarti gerbang, bukan tanggal fiktif.
+Frontend dipilih Cloudflare Workers Static Assets, backend Workers, database D1. Tidak ada asumsi semua layanan gratis; aktivasi cloud/billing terpisah dari persetujuan arsitektur.
+
+Keputusan berikut khusus gerbang produksi, bukan syarat memakai fixture lokal demo. Semua keputusan berikut berstatus **BELUM DIKONFIRMASI**. Nama individu, bukti dan tanggal keputusan diisi pemilik sebelum go-live. Tenggat berarti gerbang, bukan tanggal fiktif.
 
 | ID | Keputusan / bukti yang diperlukan | Penanggung jawab | Tenggat |
 |---|---|---|---|
-| D01 | Nama penjual/legalitas, rekening settlement, akun merchant Midtrans aktif, channel yang disetujui, izin merek/foto | Pemilik usaha | Sebelum aktivasi pembayaran produksi |
+| D01 | Nama penjual/legalitas, rekening settlement, provider gateway yang dipilih dan akun merchant aktif, channel yang disetujui, izin merek/foto | Pemilik usaha | Sebelum aktivasi pembayaran produksi |
 | D02 | SKU pilot, stok fisik, supplier, isi paket tetap, harga jual dan biaya, pajak serta margin | Pemilik + logistik | Sebelum publikasi katalog |
 | D03 | Fakultas/prodi dan ketentuan PKKMB tahun berjalan; sumber, tahun, tanggal verifikasi; jangan klaim resmi tanpa izin | Kurator | Sebelum publikasi checklist |
 | D04 | Satu lokasi pengambilan yang diizinkan, tanggal/jam layanan WIB, staf, kemampuan penyiapan dan prosedur barang belum diambil; tanpa jadwal pilihan pelanggan | Logistik | Sebelum membuka checkout |

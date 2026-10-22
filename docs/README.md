@@ -1,44 +1,39 @@
-# MabaKit: tujuan project dan indeks dokumen
+# MabaKit: tujuan project dan indeks
 
-Revisi: 22 Oktober 2026. Status: spesifikasi kandidat implementasi. Belum ada aplikasi, migrasi, pengujian integrasi, atau bukti kelayakan produksi.
+Revisi: 22 Oktober 2026. Status: spesifikasi target demo presentasi dosen. Saat ini baru scaffold React; bukan toko produksi atau integrasi pembayaran yang selesai.
 
-## Tujuan project
+## Tujuan
 
-MabaKit adalah website toko perlengkapan PKKMB untuk mahasiswa baru UNJ. Pembeli dapat memeriksa spesifikasi dan harga, memilih barang satuan atau paket sesuai kebutuhan, melihat total belanja, membayar, lalu mengikuti status pesanan sampai barang diserahkan. Orang tua/wali dan koordinator kelompok juga dapat berbelanja tanpa NIM.
+Website toko perlengkapan PKKMB mahasiswa baru UNJ: memeriksa spesifikasi/harga, membeli satuan/paket dan mengikuti pesanan hingga pengambilan. Wali dan koordinator dapat berbelanja tanpa NIM. MabaKit menjual barang sendiri, bukan marketplace atau kanal resmi kampus.
 
-Website menjual barang milik MabaKit sendiri, bukan marketplace atau kanal resmi kampus. Nilai utamanya adalah memperjelas pilihan perlengkapan dan menyelesaikan pembelian dalam satu tempat, bukan mengelola jadwal pelanggan.
+Target sekarang adalah bahan presentasi, bukan menerima uang. Alur: katalog, keranjang, checkout, total dan metode pembayaran simulasi, tombol Cek status pembayaran, konfirmasi pesanan, invoice digital HTML. Semua transaksi dan invoice berlabel SIMULASI, bukan bukti pembayaran nyata.
 
-## Cakupan rilis pertama
+Booking/reservasi tidak termasuk produk atau roadmap: tanpa kalender, slot, kuota kunjungan, booking fee atau reschedule. Pengambilan mengikuti lokasi/jam layanan setelah READY, bukan janji waktu individual.
 
-- Katalog, detail spesifikasi, varian dan paket tetap dengan isi yang jelas.
-- Keranjang lokal, login email OTP, checkout dan pembayaran Midtrans Snap.
-- Riwayat pesanan, status pembayaran, status penyiapan dan kode pengambilan.
-- Admin katalog/stok, staf penyiapan/penyerahan, serta tindak lanjut pembayaran dan refund.
-- Pengambilan barang di satu lokasi operasional dengan informasi jam layanan yang disahkan pemilik. Pembeli tidak memilih atau memesan waktu kedatangan.
+## Platform yang dipilih
 
-**Booking dan reservasi tidak termasuk cakupan project maupun roadmap.** Tidak ada kalender pemesanan, pemilihan slot, kuota kunjungan, booking fee, atau reschedule. Batas waktu pembayaran hanya mengatur transaksi belanja. Alokasi stok sementara saat pembayaran diproses adalah pengaman internal terhadap penjualan ganda, bukan layanan reservasi barang bagi pelanggan.
+- Frontend: React + TypeScript + Vite + Tailwind CSS, Cloudflare Workers Static Assets.
+- Backend: Cloudflare Workers, API same-origin /api/*.
+- Database: Cloudflare D1, SQLite relasional dengan prepared query, atomic batch dan SQL guards.
+- Foto demo: Static Assets berizin/placeholder berlabel; R2 ditunda sampai upload diperlukan.
+- Midtrans/Xendit, webhook, cron rekonsiliasi, email/OTP produksi dan MFA ditunda.
+- Sesi tamu demo di Worker/D1, bukan akun produksi. Role staf/admin tetap dibatasi server.
 
-Paket builder khusus, kustomisasi berbayar, harga kolektif otomatis dan kurir tetap kebutuhan pengembangan berikutnya sesuai sumber bisnis, setelah aturan operasionalnya tersedia. Membeli kombinasi sendiri sudah dapat dilakukan lewat barang satuan di keranjang.
+Tidak ada resource cloud atau deployment yang dibuat melalui penyelarasan dokumen. Paket, kuota, domain, billing dan secret cloud dikonfirmasi sebelum aktivasi. Tidak menjamin seluruh layanan gratis.
 
-## Urutan baca dan sumber kebenaran
+## Urutan baca
 
-1. [BRD.md](BRD.md): masalah pelanggan, tujuan bisnis, batas produk dan keputusan pemilik.
-2. [PRD.md](PRD.md): alur belanja, perilaku produk, pembayaran dan acceptance criteria.
-3. [SCHEMA.md](SCHEMA.md): kontrak data, transaksi, akses dan konsistensi stok.
-4. [DESIGN.md](DESIGN.md): arsitektur, layar, status dan aksesibilitas.
-5. [KISS.md](KISS.md): batas kompleksitas dan alasan penundaan fitur.
-6. [RELEASE.md](RELEASE.md): bukti pengujian dan operasional sebelum menerima uang nyata.
+1. [BRD.md](BRD.md): tujuan bisnis, fase demo dan keputusan pemilik.
+2. [PRD.md](PRD.md): kontrak produk aktif dan batas simulasi.
+3. [SCHEMA.md](SCHEMA.md): tabel D1, API, transaksi dan akses.
+4. [DESIGN.md](DESIGN.md): deployment, layar dan aksesibilitas.
+5. [KISS.md](KISS.md): batas kompleksitas.
+6. [RELEASE.md](RELEASE.md): bukti demo dan gerbang produksi terpisah.
 
-Konflik aturan uang, status atau akses harus diselesaikan di PRD dan SCHEMA sebelum kode dibuat. Contoh harga, lokasi dan jam layanan bukan data produksi.
+Panduan agen: [../AGENT.md](../AGENT.md). Rencana: [../PLAN.md](../PLAN.md). Desain keputusan: [superpowers/specs/2026-10-22-cloudflare-full-design.md](superpowers/specs/2026-10-22-cloudflare-full-design.md).
 
-Sumber awal berada di direktori induk: `MabaKit Define.md`, `My First Board.jpg`, dan `Foto Produk-MabaKit Define.pdf`. Sumber bisnis mencakup paket rakitan, kustomisasi dan pesanan kolektif; rollout bertahap tidak membuang kebutuhan tersebut. Foto produk bukan bukti ketentuan PKKMB tahun berjalan atau izin penggunaan logo kampus.
+PRD/SCHEMA mengatur kontrak aktif; desain keputusan merekam alasan dan batas. Konflik uang/status/akses diselesaikan sebelum kode. Sumber awal: ../MabaKit Define.md, ../My First Board.jpg, ../Foto Produk-MabaKit Define.pdf. Contoh bisnis bukan harga atau izin resmi.
 
-## Batas revisi ini dan gerbang berikutnya
+## Gerbang berikutnya
 
-Revisi ini menyelaraskan seluruh dokumen dengan arahan tanpa booking/reservasi. Kontrak slot, kapasitas jadwal dan counter booking dihapus dari checkout, data, layar, operasi dan uji. Pengaman harga, stok, pembayaran, akses dan penyerahan tetap wajib.
-
-**Mulai implementasi:** pemilik menyetujui baseline rilis pertama di BRD dan kontrak PRD/SCHEMA. Pengembangan sandbox boleh memakai fixture berlabel SIMULASI. Keputusan bisnis yang belum tersedia memblokir aktivasi fitur terkait dan peluncuran, bukan diisi dengan tebakan.
-
-**Mulai produksi:** seluruh butir wajib RELEASE memiliki bukti, penanggung jawab dan persetujuan peluncuran. Dokumen tidak menggantikan sandbox test, UAT, pemulihan backup atau aktivasi merchant.
-
-Belum ada izin membangun aplikasi atau deploy dalam revisi dokumentasi ini.
+Susun implementasi tugas kecil dari kontrak demo. Fixture selalu SIMULASI; tidak meminta data nyata saat presentasi. Keputusan D01-D08 memblokir aktivasi produksi terkait, bukan scaffold lokal. Bukti database D1, keamanan akses dan interaksi UI diperlukan sebelum menyatakan demo siap. Produksi butuh keputusan baru dan sandbox gateway; data DEMO tidak dipromosikan menjadi pembayaran sah.

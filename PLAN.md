@@ -1,36 +1,28 @@
-# Rencana implementasi MabaKit: rilis pertama
+# Rencana MabaKit: demo Cloudflare
 
-Revisi: 22 Oktober 2026. Rencana tugas kecil dari [docs/PRD.md](docs/PRD.md) dan [docs/SCHEMA.md](docs/SCHEMA.md), sesuai alur kerja [AGENT.md](AGENT.md). Setiap tugas selesai hanya setelah test yang dijalankan lolos dan hasilnya dicatat di bawah. Keputusan D01-D08 BRD belum ada: bagian yang membutuhkannya tetap diblokir, bukan dikodekan dengan tebakan. Bagian sandbox boleh lanjut dengan data SIMULASI.
+Revisi: 22 Oktober 2026. Menggantikan rencana Supabase/gateway produksi. Kontrak aktif docs/PRD.md dan docs/SCHEMA.md. Scope: demo presentasi dosen, pembayaran simulasi dan invoice digital HTML, tanpa booking/reservasi. Rencana tingkat fase; sebelum implementasi tiap tugas perlu check/command/hasil expected yang spesifik.
 
-Status tugas: `[ ]` belum, `[x]` selesai dengan bukti. Terkini: `git log` 07bd3e1 (baseline docs) dan 4f29705 (scaffold); `npm run typecheck` exit 0, `npx vitest run` 1 passed, `npm run build` exit 0 pada 22 Oktober 2026.
+## Bukti historis, bukan kelengkapan demo
 
-## Fase 1: fondasi repo
+Scaffold React/Vite/Tailwind sudah dibuat. Commit baseline 07bd3e1, scaffold 4f29705; hasil lokal sebelumnya typecheck exit 0, Vitest 1 passed, build exit 0. CI file ada, job remote belum diverifikasi. Belum ada Worker, migrasi D1, deploy Cloudflare atau gateway. Test scaffold bukan bukti checkout/invoice/akses selesai. Tidak ada ESLint/Prettier; jangan mengklaim terpasang.
 
-- [x] T1. Git init, baseline commit (docs + AGENT.md + rencana ini), CI minimal (typecheck + test exit 0). Bukti: log commit dan job CI.
-- [x] T2. Scaffold Vite React TS + Tailwind + path alias + vitest; tanpa ESLint/Prettier. Bukti: `npm run typecheck` exit 0, vitest 1 passed, `npm run build` exit 0. Skipped: ESLint/Prettier, tambah saat pola berulang menimbulkan review friction.
+## Tugas aktif
 
-## Fase 2: kontrak database
+- [ ] T1. Detailkan rencana implementasi dari spesifikasi Cloudflare/demo; audit scaffold/config/test sebelum menambah kode. Hapus placeholder href # saat membangun UI.
+- [ ] T2. Tambah Wrangler dan Workers types minimum, Static Assets dist/, API routing sebelum SPA fallback, binding DB lokal, typecheck Worker dan contoh non-secret config. Bukti dev lokal, API 404 JSON dan refresh route UI.
+- [ ] T3. Migrasi D1 SQLite tabel/constraint/index/trigger sesuai SCHEMA; seed SIMULASI terpisah. Bukti migrasi lokal dan staging setelah izin resource diberikan; tidak perlu kredensial Supabase.
+- [ ] T4. TDD checkout D1: total/snapshot server, batch guards rollback, idempotency, race SKU/paket, versi stale, expiry. Bukti RELEASE T03-T09/T11/T12/T15, termasuk D1 nyata.
+- [ ] T5. Sesi tamu demo cookie/hash/CSRF/ownership/rate limit; operator demo diprovisioning terpercaya, tanpa self-assign role. Bukti forged actor, sesi lain, cookie/Origin invalid ditolak.
+- [ ] T6. Endpoint simulasi check-payment hanya DEMO; PAID/CONSUMED dan invoice unik atomik, retry aman, expired ditolak. Bukti test duplikat, dua tab, expiry race dan endpoint tertutup non-demo.
+- [ ] T7. UI katalog/detail/keranjang/checkout/metode simulasi/cek status/order/invoice dari snapshot. Bukti alur penuh, refresh, error/empty/loading, label SIMULASI dan tidak ada request gateway.
+- [ ] T8. Staf/admin demo minimum, packing/READY/pickup sekali, katalog/stok/settings/audit. Bukti akses operator dan claim race.
+- [ ] T9. Audit keyboard/mobile/kontras, semua kontrol, API routing, secret scan; build/typecheck/test; lengkapi bukti RELEASE demo tanpa centang produksi.
+- [ ] T10. Deployment demo Cloudflare hanya setelah izin akun/binding/kuota/biaya; migrasi staging, smoke test publik dan backup/reset demo terisolasi.
 
-- [ ] T3. Migrasi tabel inti dari SCHEMA §2: profiles, user_roles, faculties, departments, spec_checklists, products, variants, bundle_components, orders, order_items, order_components, payments, pickup_tickets, refunds, audit_logs, store_settings, constraint dan index. Bukti: supabase `db reset` sukses, tabel/trigger sesuai.
-- [ ] T4. Uji concurrency dari RELEASE T04-T06, T09-T12: checkout race SKU terakhir, alokasi HELD/CONSUMED/RELEASED, refund, adjust_stock. Bukti: hasil pgTAP/testDB, invariant terpenuhi.
+## Ditunda, bukan bagian penyelesaian presentasi
 
-## Fase 3: service dan endpoint
+Midtrans/Xendit, merchant key, webhook, cron rekonsiliasi, refund uang nyata, akun pelanggan permanen/email OTP/MFA produksi, PDF/email invoice otomatis. R2 baru saat upload diperlukan. Sesudah dosen/pemilik ingin lanjut, pilih satu gateway, lengkapi D01-D08 BRD dan kontrak produksi/sandbox.
 
-- [ ] T5. RPC reliabel dari SCHEMA §3 (checkout, payment, pickup, refund, stock). Bukti: test hasil dari database nyata.
-- [ ] T6. Edge create-payment, payment-webhook, reconcile-payments dari PRD §4 dan DESIGN §1 dengan signature/amount/rate limit. Bukti: test server lokal menyentuh snapshot/status guard.
+## Keputusan dan batas
 
-- [ ] T7. Seed simulasi (produk, varian, paket, fakultas, checklist) berlabel SIMULASI. Bukti: query data katalog tampil sesuai.
-
-## Fase 4: UI
-
-- [ ] T8. Rute publik dari DESIGN §4: home katalog, detail produk, keranjang lokal, login OTP. Bukti: test render + state kosong/error.
-- [ ] T9. Checkout, Snap modal, orders list/detail dengan status bersama. Bukti: test render + poll/pulih dari server.
-- [ ] T10. Staff orders + pickup claim + admin (katalog/stok/pause checkout/refund/audit/MFA). Bukti: test render + aksi memerlukan role.
-
-- [ ] T11. Aksesibilitas dan kontras dari DESIGN §3 §5. Bukti: audit contrast terukur, keyboard pass, status non-warna, mobile 360px.
-
-## Fase 5: gerbang rilis
-
-- [ ] T12. Jalankan checklist RELEASE §2 §3 §4 uji wajib. Bukti: tabel `ID | tanggal | environment | penanggung jawab | perintah | hasil | lokasi` untuk tiap ID.
-
-- [ ] T13. Operasi go-live RELEASE §5 butuh D01-D08 lengkap; blokir sampai pemilik mengisi.
+Cloudflare penuh dipilih pemilik. Dummy payment diminta untuk mengejar presentasi. Usulan teknis sesi tamu demo dan invoice HTML menghindari provider email/PDF yang belum perlu; tidak mengklaim akun produksi. Tidak ada cloud resource/deploy/uang nyata melalui revisi dokumentasi. Arsitektur/kuota D1 diperiksa ke dokumentasi resmi sebelum implementasi, khususnya batch limits dan SQL guard rollback. Jika invariant gagal, demo transaksi diblokir sampai benar; tidak mengendurkan keamanan demi jadwal.

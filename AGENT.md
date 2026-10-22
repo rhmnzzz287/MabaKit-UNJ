@@ -1,45 +1,44 @@
-# AGENT.md: panduan agen untuk MabaKit
+# AGENT.md: panduan agen MabaKit
 
-Revisi: 22 Oktober 2026. File ini mengarahkan agen coding yang bekerja di repo ini. Sumber kebenaran tetap dokumen di `docs/`; file ini tidak menggantikannya.
+Revisi: 22 Oktober 2026. Target aktif demo presentasi dosen di Cloudflare, pembayaran dummy tanpa uang nyata. Panduan ini tidak menggantikan kontrak docs.
 
-## Baca dulu, sesuai urutan
+## Baca sebelum bekerja
 
-1. `docs/README.md`: tujuan project, cakupan rilis pertama, dan batasan revisi.
-2. `docs/BRD.md`: masalah pelanggan, keputusan bisnis D01-D08 (semua masih BELUM DIKONFIRMASI).
-3. `docs/PRD.md`: alur belanja, pembayaran, acceptance criteria.
-4. `docs/SCHEMA.md`: kontrak data, transaksi checkout, akses, konsistensi stok.
-5. `docs/DESIGN.md`: arsitektur, layar, token visual, aksesibilitas.
-6. `docs/KISS.md`: batas kompleksitas dan alasan penundaan fitur.
-7. `docs/RELEASE.md`: gerbang pengujian yang wajib sebelum menerima uang nyata.
+1. docs/README.md: tujuan dan scope.
+2. docs/BRD.md: fase demo vs keputusan bisnis produksi.
+3. docs/PRD.md: perilaku/acceptance criteria.
+4. docs/SCHEMA.md: D1, API, transaksi, akses.
+5. docs/DESIGN.md: arsitektur, layar, aksesibilitas.
+6. docs/KISS.md: batas kompleksitas.
+7. docs/RELEASE.md: bukti demo vs gerbang produksi.
+8. PLAN.md: status dan urutan kerja; jangan percaya checkbox tanpa bukti.
 
-Konflik aturan uang, status atau akses diselesaikan di PRD dan SCHEMA sebelum kode. Jika dokumen bertentangan dengan kode, dokumen yang menang; usulkan perubahan dokumen alih-alih diam-diam menyesuaikan kode.
+Konflik status/uang/akses diselesaikan di PRD/SCHEMA sebelum kode. Desain keputusan di docs/superpowers/specs/2026-10-22-cloudflare-full-design.md bersifat catatan arsitektur; PRD/SCHEMA adalah kontrak aktif.
 
-## Batas project (jangan dilanggar)
+## Scope tetap
 
-- **Booking/reservasi di luar cakupan**: tidak ada kalender, pilihan slot, kuota kunjungan, booking fee atau reschedule, termasuk di uji dan skema. Alokasi stok sementara (`stock_allocation_status`: HELD/CONSUMED/RELEASED) adalah pengaman pembayaran internal, bukan reservasi pelanggan.
-- Tidak ada klaim resmi kampus (UNJ/BEM/HIMA) atau angka harga/pajak tanpa persetujuan pemilik. Data contoh wajib berlabel SIMULASI.
-- Status lunas hanya dari provider terverifikasi (signature + Status API), bukan callback browser atau screenshot.
-- Harga dan total dihitung server; snapshot order tidak berubah setelah checkout.
-- Pelanggan tidak dapat menulis role/status/harga/stok; semua mutasi sensitif lewat transaksi atau RPC terpercaya dengan audit.
-- Tidak menyimpan Server Key, service-role key atau token pickup di bundle, URL atau log.
+- Toko perlengkapan PKKMB mahasiswa baru UNJ, satuan/paket; bukan marketplace atau kanal resmi kampus.
+- Tanpa booking/reservasi, kalender, slot, kuota kunjungan, booking fee atau reschedule.
+- Target presentasi: total server, pilih metode simulasi, Cek status pembayaran, konfirmasi pesanan dan invoice digital HTML berlabel SIMULASI, bukan bukti pembayaran nyata.
+- Jangan memasang Midtrans/Xendit, webhook, cron rekonsiliasi atau merchant secret sekarang. Tidak ada QR/rekening bayar nyata. Produksi memerlukan keputusan baru setelah presentasi.
+- Tidak membuat data/angka/izin/testimoni palsu. Fixture diberi label SIMULASI, gunakan data fiktif saat demo.
 
-## Keputusan pemilik yang memblokir
+## Stack
 
-D01-D08 di BRD masih BELUM DIKONFIRMASI. Fitur terkait keputusan yang belum ada jangan diimplementasi sampai pemilik mengisi keputusan tersebut. Sandbox boleh memakai fixture SIMULASI; jangan anggap fixture sebagai data produksi.
+React + TypeScript + Vite + Tailwind CSS, Cloudflare Workers Static Assets untuk frontend; Workers API same-origin untuk backend; D1 binding DB untuk database. src/ UI, worker/ server, db/migrations/ SQL. Foto awal Static Assets; R2 ditunda sampai upload perlu. Tidak menambah vendor/database/ORM/KV/Queues/Durable Objects tanpa kebutuhan terukur.
 
-## Aturan kerja teknis
+D1 SQLite: ID TEXT UUID server, timestamp INTEGER Unix ms UTC ditampilkan WIB, uang INTEGER safe integer rupiah. Prepared queries, FK/CHECK/UNIQUE dan atomic DB.batch(). Tidak ada RLS, database RPC, row/advisory lock atau transaksi JavaScript interaktif.
 
-- Stack rilis pertama: React + TypeScript + Vite + Tailwind CSS, Supabase (PostgreSQL + RLS + transactional RPC + Edge Functions), Midtrans Snap, hosting SPA di Vercel. Jangan menambah dependency atau layanan tanpa alasan yang tercatat di KISS.
-- Uang = integer rupiah (`bigint`), tanpa float. Waktu disimpan UTC (`timestamptz`), ditampilkan WIB.
-- Logika bisnis atomik tinggal di PostgreSQL RPC, bukan diduplikasi di browser/Edge.
-- Setiap logika nontrivial punya runnable test; race condition dan kasus di `docs/RELEASE.md` diuji di database nyata, bukan mock saja.
-- Aksesibilitas wajib: WCAG AA, navigasi keyboard, status selain warna, mobile mulai 360px.
-- Jangan memakai em dash (`—`) dalam teks UI atau dokumen baru.
+Guard gagal harus mengakibatkan error SQL dan rollback seluruh batch; UPDATE nol row bukan rollback. Read di luar batch hanya kandidat; versi/komposisi/harga divalidasi ulang di batch. Snapshot immutable, idempotency unique, stok/invoice/status satu efek atomik. Jangan memecah transaksi stok menjadi beberapa commit karena batas query.
 
-## Alur kerja agen
+## Akses dan keamanan
 
-1. Sebelum mengubah kode, pastikan scope disetujui (lihat `docs/README.md` bagian "Mulai implementasi").
-2. Buat rencana tugas kecil dari PRD/SCHEMA; setiap tugas punya definisi selesai yang dapat diuji.
-3. Kerjakan dengan TDD: test dulu, lihat gagal, implementasi, lihat lolos.
-4. Sebelum mengklaim selesai, jalankan verifikasi nyata dan lampirkan bukti (perintah + hasil). Checkbox di RELEASE hanya dicentang dengan bukti.
-5. Perubahan yang menyentuh kontrak uang/status/akses wajib memperbarui PRD/SCHEMA di commit yang sama.
+Browser tidak mengakses D1. Actor dari sesi server, role/ownership diperiksa setiap route, default deny dan projection minimum. Cookie sesi demo opaque HttpOnly/Secure pada HTTPS/SameSite, hash token saja di DB; CSRF+Origin untuk mutasi. Sesi tamu bukan akun produksi. Jangan self-assign staff/admin dari browser atau membangun kriptografi autentikasi sendiri.
+
+Endpoint simulasi hanya terdaftar mode DEMO dan row mode DEMO, ditolak non-demo. Data DEMO tidak menjadi pembayaran sah. Reset terbatas operator dengan database terisolasi. Jangan commit secret, token deploy/merchant/sesi, PII atau menaruhnya pada VITE_*, URL/log/localStorage. Resource cloud, billing, deploy, transaksi nyata dan operasi destruktif perlu izin eksplisit.
+
+## Cara kerja
+
+Buat tugas kecil dengan check runnable, test gagal dahulu untuk logika lalu implementasi minimum. Uji D1 lokal dan staging nyata untuk concurrency/rollback; mock tidak cukup. Jangan centang RELEASE atau klaim selesai tanpa command/output terbaru. Frontend diverifikasi build/typecheck/test plus interaksi, keyboard, kontras, mobile >=360px dan states. Tidak ada tautan dummy atau tombol mati.
+
+D01-D08 BRD memblokir aktivasi produksi terkait, bukan scaffold lokal demo. Integrasi email/auth produksi/MFA, gateway, refund dan rekonsiliasi ditunda, bukan diklaim tersedia. Perubahan kontrak memperbarui PRD/SCHEMA/DESIGN/RELEASE dan rencana dalam perubahan sama.
