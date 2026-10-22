@@ -125,6 +125,92 @@ describe("alur belanja demo", () => {
     expect(screen.getByText("Sudah dibayar (simulasi)")).toBeInTheDocument();
   });
 
+  test("retry checkout memakai idempotency key sama sampai data berubah", async () => {
+    window.history.replaceState({}, "", "/checkout");
+    localStorage.setItem(
+      "mabakit.cart.v1",
+      JSON.stringify([
+        { productId: "p-a", variantId: "v-a", title: "Kaos PKKMB", variantLabel: "ukuran: M", priceRp: 15000, quantity: 1 },
+      ]),
+    );
+    const keys: string[] = [];
+    let attempt = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/checkout/create") {
+          keys.push((JSON.parse(String(init?.body)) as { idempotencyKey: string }).idempotencyKey);
+          attempt += 1;
+          if (attempt <= 2) return json({ error: "internal", message: "Gagal sementara." }, 500);
+          return json({ order: pendingOrder }, 201);
+        }
+        if (url === "/api/catalog") return json({ products: [product] });
+        if (url === "/api/orders/o-1") return json({ order: pendingOrder });
+        return json({}, 404);
+      }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByLabelText("Nama pemesan"), "Siti");
+    await user.type(screen.getByLabelText("Nama penerima"), "Siti");
+    await user.type(screen.getByLabelText("Nomor WhatsApp"), "081234567890");
+    const submit = screen.getByRole("button", { name: "Lanjut ke pembayaran simulasi" });
+
+    await user.click(submit);
+    expect(await screen.findByText("Gagal sementara.")).toBeInTheDocument();
+    await user.click(submit);
+    await user.click(submit);
+
+    expect(await screen.findByRole("heading", { name: /Pembayaran MBK-261022-ABCD/ })).toBeInTheDocument();
+    expect(keys).toHaveLength(3);
+    expect(keys[0]).toBe(keys[1]);
+  });
+
+  test("retry checkout setelah data berubah memakai key baru", async () => {
+    window.history.replaceState({}, "", "/checkout");
+    localStorage.setItem(
+      "mabakit.cart.v1",
+      JSON.stringify([
+        { productId: "p-a", variantId: "v-a", title: "Kaos PKKMB", variantLabel: "ukuran: M", priceRp: 15000, quantity: 1 },
+      ]),
+    );
+    const keys: string[] = [];
+    let attempt = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/checkout/create") {
+          keys.push((JSON.parse(String(init?.body)) as { idempotencyKey: string }).idempotencyKey);
+          attempt += 1;
+          if (attempt === 1) return json({ error: "internal", message: "Gagal sementara." }, 500);
+          return json({ order: pendingOrder }, 201);
+        }
+        if (url === "/api/catalog") return json({ products: [product] });
+        if (url === "/api/orders/o-1") return json({ order: pendingOrder });
+        return json({}, 404);
+      }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByLabelText("Nama pemesan"), "Siti");
+    await user.type(screen.getByLabelText("Nama penerima"), "Siti");
+    await user.type(screen.getByLabelText("Nomor WhatsApp"), "081234567890");
+    await user.click(screen.getByRole("button", { name: "Lanjut ke pembayaran simulasi" }));
+    expect(await screen.findByText("Gagal sementara.")).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Nama pemesan"));
+    await user.type(screen.getByLabelText("Nama pemesan"), "Budi");
+    await user.click(screen.getByRole("button", { name: "Lanjut ke pembayaran simulasi" }));
+
+    await screen.findByRole("heading", { name: /Pembayaran MBK-261022-ABCD/ });
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
   test("keranjang kosong menawarkan kembali ke katalog", async () => {
     window.history.replaceState({}, "", "/cart");
     render(<App />);

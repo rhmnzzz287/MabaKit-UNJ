@@ -1,5 +1,5 @@
 import { validateCheckout } from "./domain/checkout";
-import { type Ctx, type SessionRow, audit, errorName, fail, json, sha256 } from "./http";
+import { type Ctx, type SessionRow, audit, errorName, fail, json, releaseExpired, sha256 } from "./http";
 import { loadOrder, orderPayload } from "./orders";
 
 const METHODS = ["BANK_TRANSFER", "EWALLET", "QRIS"] as const;
@@ -36,6 +36,7 @@ function orderNumber(now: number): string {
 }
 
 export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Response> {
+  await releaseExpired(ctx);
   const body = await ctx.request.json().catch(() => null);
   const parsed = validateCheckout(body);
   if (!parsed.ok) return fail(parsed.code, parsed.field ? { field: parsed.field } : undefined);
@@ -215,6 +216,15 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
     await ctx.env.DB.batch(statements);
   } catch (error) {
     const code = errorName(error);
+    if (code === "conflict") {
+      const raced = await ctx.env.DB.prepare("SELECT id, request_hash FROM orders WHERE session_id = ? AND checkout_key = ?")
+        .bind(session.id, input.idempotencyKey)
+        .first<{ id: string; request_hash: string }>();
+      if (raced?.request_hash === requestHash) {
+        const order = await loadOrder(ctx, raced.id);
+        if (order) return json({ order: await orderPayload(ctx, order) }, 200);
+      }
+    }
     return fail(code === "internal" ? "internal" : code);
   }
 

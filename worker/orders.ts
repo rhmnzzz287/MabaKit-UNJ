@@ -138,6 +138,7 @@ export async function listOrders(ctx: Ctx, session: SessionRow): Promise<Respons
 }
 
 export async function getOrder(ctx: Ctx, session: SessionRow, id: string): Promise<Response> {
+  await releaseExpired(ctx);
   const order = await ownedOrder(ctx, session, id);
   if (order instanceof Response) return order;
   return json({ order: await orderPayload(ctx, order) });

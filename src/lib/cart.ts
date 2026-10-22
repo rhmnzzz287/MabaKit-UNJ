@@ -61,11 +61,14 @@ export function clearCart(): void {
   write([]);
 }
 
+export function newCheckoutKey(): string {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+}
+
 export function checkoutPayload(status: { buyerName: string; recipientName: string; contactPhone: string; method: string }) {
   return {
     ...status,
     departmentId: null,
-    idempotencyKey: crypto.randomUUID().replace(/-/g, "").slice(0, 32),
     items: read().map((line) => ({ productId: line.productId, variantId: line.variantId, quantity: line.quantity })),
   };
 }

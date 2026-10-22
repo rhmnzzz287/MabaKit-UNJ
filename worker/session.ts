@@ -37,6 +37,18 @@ export async function createSession(ctx: Ctx): Promise<Response> {
   return new Response(JSON.stringify({ csrfToken: csrf }), { status: 201, headers });
 }
 
+async function allowOperatorAttempt(ctx: Ctx, session: SessionRow): Promise<boolean> {
+  const windowStart = Math.floor(ctx.now / 300_000) * 300_000;
+  const row = await ctx.env.DB.prepare(
+    `INSERT INTO rate_limits (scope, actor_key_hash, window_start, count) VALUES ('operator_code', ?, ?, 1)
+     ON CONFLICT (scope, actor_key_hash, window_start) DO UPDATE SET count = count + 1
+     RETURNING count`,
+  )
+    .bind(`${session.id}:${session.client_key_hash}`, windowStart)
+    .first<{ count: number }>();
+  return (row?.count ?? 0) <= 10;
+}
+
 const ROLE_CODES = { staff: "STAFF_DEMO_CODE", admin: "ADMIN_DEMO_CODE" } as const;
 
 export async function registerOperator(ctx: Ctx, session: SessionRow): Promise<Response> {
@@ -44,6 +56,7 @@ export async function registerOperator(ctx: Ctx, session: SessionRow): Promise<R
   const role = body?.role === "staff" || body?.role === "admin" ? body.role : null;
   const code = typeof body?.code === "string" ? body.code.trim() : "";
   if (!role) return fail("invalid_payload");
+  if (!(await allowOperatorAttempt(ctx, session))) return fail("rate_limited");
   const expected = ctx.env[ROLE_CODES[role]];
   if (!expected || code.length === 0) return fail("forbidden");
   const a = await sha256(code);

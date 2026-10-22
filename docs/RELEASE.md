@@ -68,3 +68,22 @@ Tidak ada go-live uang nyata melalui checklist demo. Sebelum produksi perlu gerb
 - [ ] Produksi/staging terpisah, deployment dan migrasi nondestruktif disetujui; smoke test uang nyata hanya dengan izin eksplisit pemilik.
 
 Toko tidak siap produksi hanya karena invoice simulasi muncul.
+
+## 6. Bukti lokal, 22 Oktober 2026
+
+Lingkungan: branch feat/cloudflare-demo, Node 22, wrangler local, D1 lokal. Bukan staging D1, bukan perangkat fisik, bukan deployment publik. Checkbox di atas tetap belum dicentang karena bukti staging/izin belum ada.
+
+| Bukti | Command/skenario | Hasil |
+|---|---|---|
+| Unit/API | `npx vitest run` | 5 file, 57 lulus |
+| Tipe | `npm run typecheck`, `npm run typecheck:worker` | exit 0 |
+| Build | `npm run build` | exit 0, dist dihasilkan |
+| Migrasi/seed | `npm run db:migrate:local`, `npm run db:seed:local` | sukses, produk 5, varian 7 |
+| E2E lokal | sesi, katalog, checkout 2 item Rp215.000, Cek status pembayaran, invoice | order MBK-261022-QTX9QW, PAID, invoice INV-MBK-261022-QTX9QW berwatermark SIMULASI |
+| Pickup | staf READY, terbit token, lookup, claim | token VYLVHUWJ, status PICKED_UP, claim kedua ditolak |
+| Routing | 10 route UI, `/api/nope` | UI 200, API 404 JSON |
+| Guard | test/worker/sql-guards.test.ts | rollback batch, race SKU terakhir, hold limit, stale price, konsumsi sekali, expiry, READY/claim, stok di bawah reserved |
+| Keamanan | test/worker/api.test.ts | CSRF/Origin salah, sesi lain, kode operator salah berulang, replay key sama, key sama payload beda |
+| Secret | `rg` pola key + `git check-ignore .dev.vars` | tidak ada secret; .dev.vars diabaikan |
+
+Catatan: concurrency diuji pada emulasi `node:sqlite`, belum pada D1 nyata. Audit keyboard/mobile/kontras berbasis inspeksi kode dan test, belum uji perangkat atau screen reader. T10 deployment belum dijalankan.

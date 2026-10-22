@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, ensureSession, post } from "../lib/api";
-import { cartLines, cartTotal, checkoutPayload, clearCart, subscribeCart } from "../lib/cart";
+import { cartLines, cartTotal, checkoutPayload, clearCart, newCheckoutKey, subscribeCart } from "../lib/cart";
 import { rupiah } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { Order } from "../lib/types";
@@ -21,6 +21,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Kunci idempotensi dipertahankan selama isi checkout sama, supaya retry tidak membuat order ganda.
+  const draftKey = useRef<{ fingerprint: string; key: string } | null>(null);
 
   useEffect(() => subscribeCart(() => setLines(cartLines())), []);
 
@@ -43,10 +45,13 @@ export default function CheckoutPage() {
     setBusy(true);
     try {
       await ensureSession();
-      const body = await post<{ order: Order }>(
-        "/api/checkout/create",
-        checkoutPayload({ buyerName, recipientName, contactPhone, method }),
-      );
+      const draft = checkoutPayload({ buyerName, recipientName, contactPhone, method });
+      const fingerprint = JSON.stringify(draft);
+      if (draftKey.current?.fingerprint !== fingerprint) draftKey.current = { fingerprint, key: newCheckoutKey() };
+      const body = await post<{ order: Order }>("/api/checkout/create", {
+        ...draft,
+        idempotencyKey: draftKey.current.key,
+      });
       clearCart();
       navigate(`/orders/${body.order.id}/payment`);
     } catch (issue) {

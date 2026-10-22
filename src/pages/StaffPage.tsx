@@ -133,7 +133,7 @@ export default function StaffPage() {
         <ul className="space-y-2">
           {readyToPick.map((order) => (
             <li key={order.id} className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
-              <span className="font-mono font-semibold text-ink">{order.orderNumber}</span> — {order.recipientName},{" "}
+              <span className="font-mono font-semibold text-ink">{order.orderNumber}</span> · {order.recipientName},{" "}
               {statusLabel(order.fulfillmentStatus)}
             </li>
           ))}

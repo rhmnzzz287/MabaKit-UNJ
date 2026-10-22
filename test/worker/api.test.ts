@@ -36,11 +36,11 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-function call(path: string, init: RequestInit & { cookie?: string; csrf?: string } = {}) {
+function call(path: string, init: RequestInit & { cookie?: string; csrf?: string; origin?: string } = {}) {
   const headers = new Headers(init.headers);
   if (init.cookie) headers.set("cookie", init.cookie);
   if (init.csrf) headers.set("x-csrf", init.csrf);
-  headers.set("origin", "http://localhost");
+  headers.set("origin", init.origin ?? "http://localhost");
   return worker.fetch(new Request(`http://localhost${path}`, { ...init, headers }), env as never);
 }
 
@@ -387,4 +387,82 @@ describe("staff & admin", () => {
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ error: "stock_below_reserved" });
   });
+});
+
+describe("batas waktu, replay, dan origin", () => {
+  test("draft kedaluwarsa melepas stok untuk sesi lain", async () => {
+    const owner = await newSession();
+    const created = await checkout(owner, { items: [{ productId: "p-a", variantId: "v-a", quantity: 2 }] });
+    expect(created.status).toBe(201);
+
+    vi.setSystemTime(new Date(NOW.getTime() + 31 * 60 * 1000));
+    const other = await newSession();
+    const body = (await (await call("/api/catalog")).json()) as { products: { id: string; stock: number }[] };
+    expect(body.products.find((product) => product.id === "p-a")?.stock).toBe(2);
+
+    const again = await checkout(other, { idempotencyKey: "checkout-key-0002" });
+    expect(again.status).toBe(201);
+  });
+
+  test("idempotency key sama dengan payload berbeda ditolak 409", async () => {
+    const session = await newSession();
+    expect((await checkout(session)).status).toBe(201);
+    const changed = await checkout(session, { buyerName: "Budi Lain" });
+    expect(changed.status).toBe(409);
+    expect(await changed.json()).toMatchObject({ error: "conflict" });
+  });
+
+  test("dua checkout paralel dengan key sama menghasilkan satu order", async () => {
+    const session = await newSession();
+    const [first, second] = await Promise.all([checkout(session), checkout(session)]);
+    expect([first.status, second.status].sort()).toEqual([200, 201]);
+    const a = (await first.json()) as { order: { id: string } };
+    const b = (await second.json()) as { order: { id: string } };
+    expect(a.order.id).toBe(b.order.id);
+  });
+
+  test("origin lintas situs ditolak", async () => {
+    const session = await newSession();
+    const response = await call("/api/checkout/create", {
+      method: "POST",
+      cookie: session.cookie,
+      csrf: session.csrf,
+      origin: "https://situs-lain.example",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload()),
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: "origin_rejected" });
+  });
+
+  test("kode operator salah dibatasi setelah percobaan berulang", async () => {
+    const session = await newSession();
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const response = await call("/api/demo/operator", {
+        method: "POST",
+        cookie: session.cookie,
+        csrf: session.csrf,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ role: "admin", code: "kode-salah" }),
+      });
+      expect(response.status).toBe(403);
+    }
+    const blocked = await call("/api/demo/operator", {
+      method: "POST",
+      cookie: session.cookie,
+      csrf: session.csrf,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "admin", code: "admin-123" }),
+    });
+    expect(blocked.status).toBe(429);
+  });
+});
+
+test("endpoint demo tertutup pada mode non-demo", async () => {
+  const response = await worker.fetch(
+    new Request("http://localhost/api/demo/session", { method: "POST", headers: { origin: "http://localhost" } }),
+    { ...env, APP_MODE: "production" } as never,
+  );
+  expect(response.status).toBe(404);
+  expect(await response.json()).toMatchObject({ error: "not_found" });
 });

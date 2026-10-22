@@ -1,4 +1,4 @@
-import { type Ctx, fail, json } from "./http";
+import { type Ctx, fail, json, releaseExpired } from "./http";
 
 type ProductRow = {
   id: string;
@@ -51,6 +51,7 @@ function attributes(raw: string): Record<string, string> {
 }
 
 export async function catalog(ctx: Ctx): Promise<Response> {
+  await releaseExpired(ctx);
   const { results: products } = await ctx.env.DB.prepare(
     `SELECT id, kind, title, description, image_path, bundle_price_rp FROM products WHERE active = 1 ORDER BY kind DESC, title`,
   ).all<ProductRow>();

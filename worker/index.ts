@@ -21,6 +21,7 @@ export default {
     const ctx: Ctx = { request, env, url, now: Date.now(), requestId: crypto.randomUUID() };
 
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (url.pathname.startsWith("/api/demo/") && env.APP_MODE !== "demo") return fail("not_found");
 
     const parts = url.pathname.split("/").filter(Boolean);
     const method = request.method.toUpperCase();

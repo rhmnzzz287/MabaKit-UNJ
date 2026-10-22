@@ -1,4 +1,4 @@
-# Salin ke .dev.vars untuk demo lokal. Jangan commit nilai asli.
+# Salin ke .dev.vars untuk demo lokal. Isi kode sendiri; nilai kosong = operator dimatikan.
 DEMO_SECRET=ganti-di-lokal
-STAFF_DEMO_CODE=kode-staf-demo
-ADMIN_DEMO_CODE=kode-admin-demo
+STAFF_DEMO_CODE=
+ADMIN_DEMO_CODE=

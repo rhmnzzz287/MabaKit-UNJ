@@ -200,12 +200,12 @@ END;
 -- Checkout: 5 per sesi per menit, maksimum 2 draft HELD per sesi, 10 per IP hash.
 CREATE TRIGGER trg_order_limits BEFORE INSERT ON orders
 WHEN (SELECT COUNT(*) FROM orders WHERE session_id = NEW.session_id AND created_at > NEW.created_at - 60000) >= 5
-  OR (SELECT COUNT(*) FROM orders WHERE session_id = NEW.session_id AND stock_allocation_status = 'HELD') >= 2
+  OR (SELECT COUNT(*) FROM orders WHERE session_id = NEW.session_id AND stock_allocation_status = 'HELD' AND expires_at > NEW.created_at) >= 2
   OR (
     SELECT COUNT(*) FROM orders o
     JOIN demo_sessions s ON s.id = o.session_id
     WHERE s.client_key_hash = (SELECT client_key_hash FROM demo_sessions WHERE id = NEW.session_id)
-      AND o.stock_allocation_status = 'HELD'
+      AND o.stock_allocation_status = 'HELD' AND o.expires_at > NEW.created_at
   ) >= 10
 BEGIN
   SELECT RAISE(ABORT, 'hold_limit');
