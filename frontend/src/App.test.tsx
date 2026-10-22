@@ -9,10 +9,10 @@ const product = {
   kind: "single" as const,
   title: "Kaos PKKMB",
   description: "Kaos katun untuk peserta.",
-  imagePath: null,
+  imagePath: "/products/topi-feb.jpg",
   priceRp: 15000,
   stock: 2,
-  variants: [{ id: "v-a", sku: "KAOS-01", attributes: { ukuran: "M" }, priceRp: 15000, stock: 2 }],
+  variants: [{ id: "v-a", sku: "KAOS-01", attributes: { ukuran: "M" }, imagePath: null, priceRp: 15000, stock: 2 }],
 };
 
 const NOW = Date.now();
@@ -78,6 +78,7 @@ describe("alur belanja demo", () => {
     render(<App />);
     expect(await screen.findByRole("heading", { name: "Kaos PKKMB" })).toBeInTheDocument();
     expect(screen.getByText(/Rp\s?15\.000/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Foto Kaos PKKMB" })).toHaveAttribute("src", "/products/topi-feb.jpg");
   });
 
   test("checkout mengirim item keranjang dan membuka halaman pembayaran", async () => {

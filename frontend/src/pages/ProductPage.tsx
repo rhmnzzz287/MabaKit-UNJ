@@ -4,7 +4,7 @@ import { addToCart } from "../lib/cart";
 import { rupiah, variantLabel } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { Product } from "../lib/types";
-import { Alert, Button, Link, PageHeader, Spinner } from "../components/ui";
+import { Alert, Button, Link, PageHeader, ProductPhoto, Spinner } from "../components/ui";
 
 export default function ProductPage({ id }: { id: string }) {
   const [product, setProduct] = useState<Product | null>(null);
@@ -60,9 +60,11 @@ export default function ProductPage({ id }: { id: string }) {
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <div className="flex h-56 items-center justify-center rounded-xl bg-brand-tint text-sm font-medium text-brand-dark">
-            Foto belum tersedia
-          </div>
+          <ProductPhoto
+            src={variant?.imagePath ?? product.imagePath}
+            alt={variant ? `Foto ${product.title} ${variantLabel(variant.attributes)}` : `Foto ${product.title}`}
+            className="h-64 w-full rounded-xl border border-slate-200 sm:h-80"
+          />
           <PageHeader title={product.title} description={product.description} />
           <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
             <div>

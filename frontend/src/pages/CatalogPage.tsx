@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { get } from "../lib/api";
 import { rupiah } from "../lib/format";
 import type { Product } from "../lib/types";
-import { Alert, Link, PageHeader, Spinner } from "../components/ui";
+import { Alert, Link, PageHeader, ProductPhoto, Spinner } from "../components/ui";
 
 function ProductCard({ product }: { product: Product }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="flex h-40 items-center justify-center bg-brand-tint text-sm font-medium text-brand-dark">
-        Foto belum tersedia
-      </div>
+      <ProductPhoto
+        src={product.imagePath}
+        alt={`Foto ${product.title}`}
+        className="h-40 w-full border-b border-slate-200"
+      />
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h2 className="text-lg font-semibold text-ink">
           <Link to={`/products/${product.id}`} className="hover:underline">

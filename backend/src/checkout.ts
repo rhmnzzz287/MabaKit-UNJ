@@ -1,6 +1,7 @@
 import { validateCheckout } from "./domain/checkout";
 import { type Ctx, type SessionRow, audit, errorName, fail, json, releaseExpired, sha256 } from "./http";
 import { loadOrder, orderPayload } from "./orders";
+import { parseAttributes } from "./variant-attributes";
 
 const METHODS = ["BANK_TRANSFER", "EWALLET", "QRIS"] as const;
 const DRAFT_MINUTES = 30;
@@ -94,7 +95,7 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
         productId: product.id,
         variantId: variant.id,
         title: product.title,
-        attributes: variant.attributes,
+        attributes: JSON.stringify(parseAttributes(variant.attributes).attributes),
         catalogVersion: product.version,
         variantVersion: variant.version,
         quantity: item.quantity,
@@ -104,7 +105,7 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
             variantId: variant.id,
             sku: variant.sku,
             title: product.title,
-            attributes: variant.attributes,
+            attributes: JSON.stringify(parseAttributes(variant.attributes).attributes),
             quantity: item.quantity,
           },
         ],
@@ -136,7 +137,7 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
         variantId: part.variant_id,
         sku: part.sku,
         title: part.title,
-        attributes: part.attributes,
+        attributes: JSON.stringify(parseAttributes(part.attributes).attributes),
         quantity: part.quantity * item.quantity,
       })),
     });

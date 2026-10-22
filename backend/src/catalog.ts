@@ -1,4 +1,5 @@
 import { type Ctx, fail, json, releaseExpired } from "./http";
+import { parseAttributes } from "./variant-attributes";
 
 type ProductRow = {
   id: string;
@@ -22,6 +23,7 @@ type CatalogVariant = {
   id: string;
   sku: string;
   attributes: Record<string, string>;
+  imagePath: string | null;
   priceRp: number;
   stock: number;
 };
@@ -39,15 +41,6 @@ type CatalogProduct = {
 
 function available(variant: VariantRow): number {
   return Math.max(0, variant.stock_on_hand - variant.stock_reserved);
-}
-
-function attributes(raw: string): Record<string, string> {
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
-  } catch {
-    return {};
-  }
 }
 
 export async function catalog(ctx: Ctx): Promise<Response> {
@@ -75,13 +68,17 @@ export async function catalog(ctx: Ctx): Promise<Response> {
         imagePath: product.image_path,
         priceRp: own[0]?.price_rp ?? 0,
         stock: own.reduce((total, variant) => total + available(variant), 0),
-        variants: own.map((variant) => ({
-          id: variant.id,
-          sku: variant.sku,
-          attributes: attributes(variant.attributes),
-          priceRp: variant.price_rp,
-          stock: available(variant),
-        })),
+        variants: own.map((variant) => {
+          const parsed = parseAttributes(variant.attributes);
+          return {
+            id: variant.id,
+            sku: variant.sku,
+            attributes: parsed.attributes,
+            imagePath: parsed.imagePath,
+            priceRp: variant.price_rp,
+            stock: available(variant),
+          };
+        }),
       };
     }
     const parts = components.filter((component) => component.bundle_product_id === product.id);

@@ -15,7 +15,7 @@ Booking/reservasi tidak termasuk produk atau roadmap: tanpa kalender, slot, kuot
 - Frontend: React + TypeScript + Vite + Tailwind CSS, Cloudflare Workers Static Assets.
 - Backend: Cloudflare Workers, API same-origin /api/*.
 - Database: Cloudflare D1, SQLite relasional dengan prepared query, atomic batch dan SQL guards.
-- Foto demo: Static Assets berizin/placeholder berlabel; R2 ditunda sampai upload diperlukan.
+- Foto demo: Static Assets berizin/placeholder berlabel; R2 ditunda sampai upload diperlukan. Foto katalog di `frontend/public/products/` diambil dari `docs/reference/Foto Produk-MabaKit Define.pdf` (topi dan kipas per fakultas, goodie bag, kaus kaki, gesper, slayer, rok span). Kemeja putih dan dasi belum masuk seed karena belum ada fotonya.
 - Midtrans/Xendit, webhook, cron rekonsiliasi, email/OTP produksi dan MFA ditunda.
 - Sesi tamu demo di Worker/D1, bukan akun produksi. Role staf/admin tetap dibatasi server.
 

@@ -134,6 +134,25 @@ export function SimulasiBadge() {
   );
 }
 
+export function ProductPhoto({ src, alt, className = "" }: { src: string | null; alt: string; className?: string }) {
+  if (!src) {
+    return (
+      <div className={`flex items-center justify-center bg-brand-tint text-sm font-medium text-brand-dark ${className}`}>
+        Foto belum tersedia
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      className={`bg-white object-cover ${className}`}
+    />
+  );
+}
+
 export function Spinner({ label = "Memuat" }: { label?: string }) {
   return (
     <p className="py-8 text-center text-muted" role="status">

@@ -2,6 +2,7 @@ export type Variant = {
   id: string;
   sku: string;
   attributes: Record<string, string>;
+  imagePath: string | null;
   priceRp: number;
   stock: number;
 };
