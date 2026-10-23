@@ -10,6 +10,7 @@
     "run_worker_first": true
   },
   "vars": { "APP_MODE": "demo" },
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "mabakit-media" }],
   "d1_databases": [
     {
       "binding": "DB",

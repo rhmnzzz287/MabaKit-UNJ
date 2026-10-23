@@ -78,6 +78,9 @@ export async function adminCatalog(ctx: Ctx): Promise<Response> {
     alias: string;
     faculty_id: string;
   }>();
+  const { results: photos } = await ctx.env.DB.prepare(
+    "SELECT id, product_id, object_key, width, height FROM product_photos ORDER BY product_id, position, id",
+  ).all<{ id: string; product_id: string; object_key: string; width: number; height: number }>();
 
   return json({
     products: products.map((product) => ({
@@ -87,6 +90,9 @@ export async function adminCatalog(ctx: Ctx): Promise<Response> {
       discountBasisPoints: product.discount_basis_points,
       description: product.description,
       imagePath: product.image_path,
+      photos: photos
+        .filter((photo) => photo.product_id === product.id)
+        .map((photo) => ({ id: photo.id, url: `/media/${photo.object_key}`, width: photo.width, height: photo.height })),
       active: product.active === 1,
       version: product.version,
       variants: variants

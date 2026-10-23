@@ -15,6 +15,7 @@ import {
   adminUpdateStaff,
 } from "./admin-team";
 import { adminExportSales } from "./admin-export";
+import { adminDeletePhoto, adminPhotos, adminReorderPhotos, adminUploadPhoto, mediaObject } from "./admin-media";
 import { catalog, packageQuote, productDetail } from "./catalog";
 import { createCheckout } from "./checkout";
 import {
@@ -42,6 +43,15 @@ export default {
     const ctx: Ctx = { request, env, url, now: Date.now(), requestId: crypto.randomUUID() };
 
     if (!url.pathname.startsWith("/api/")) {
+      if (url.pathname.startsWith("/media/") && request.method === "GET") {
+        let key = url.pathname.slice("/media/".length);
+        try {
+          key = decodeURIComponent(key);
+        } catch {
+          return new Response("Not found", { status: 404 });
+        }
+        return mediaObject(ctx, key);
+      }
       const guarded = await guardPage(ctx);
       return guarded ?? env.ASSETS.fetch(request);
     }
@@ -223,6 +233,10 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
     (rest[0] === "products" && !rest[1] && method === "POST") ||
     (rest[0] === "products" && rest[1] && !rest[2] && method === "PATCH") ||
     (rest[0] === "products" && rest[1] && rest[2] === "variants" && method === "POST") ||
+    (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "GET") ||
+    (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "POST") ||
+    (rest[0] === "products" && rest[1] && rest[2] === "photos" && rest[3] === "order" && method === "PUT") ||
+    (rest[0] === "products" && rest[1] && rest[2] === "photos" && rest[3] && method === "DELETE") ||
     (rest[0] === "variants" && rest[1] && !rest[2] && method === "PATCH") ||
     (rest[0] === "packages" && rest[1] && rest[2] === "configs" && rest[3] && method === "PUT") ||
     (rest[0] === "faculties" && rest[1] && rest[2] === "aliases" && method === "PUT") ||
@@ -258,6 +272,21 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
   if (rest[0] === "products" && rest[1] && method === "PATCH") {
     const blocked = await requireMutation(ctx, session);
     return blocked ?? adminUpdateProduct(ctx, operator, rest[1]);
+  }
+  if (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "GET") {
+    return adminPhotos(ctx, rest[1]);
+  }
+  if (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "POST") {
+    const blocked = await requireMutation(ctx, session);
+    return blocked ?? adminUploadPhoto(ctx, operator, rest[1]);
+  }
+  if (rest[0] === "products" && rest[1] && rest[2] === "photos" && rest[3] === "order" && method === "PUT") {
+    const blocked = await requireMutation(ctx, session);
+    return blocked ?? adminReorderPhotos(ctx, operator, rest[1]);
+  }
+  if (rest[0] === "products" && rest[1] && rest[2] === "photos" && rest[3] && method === "DELETE") {
+    const blocked = await requireMutation(ctx, session);
+    return blocked ?? adminDeletePhoto(ctx, operator, rest[1], rest[3]);
   }
   if (rest[0] === "products" && rest[1] && rest[2] === "variants" && method === "POST") {
     const blocked = await requireMutation(ctx, session);

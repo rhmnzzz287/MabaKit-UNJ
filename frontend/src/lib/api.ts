@@ -98,6 +98,27 @@ export const opPost = <T>(path: string, body?: unknown) =>
 export const opGet = <T>(path: string) => raw<T>(path, {}, "operator");
 export const opPatch = <T>(path: string, body: unknown) =>
   raw<T>(path, { method: "PATCH", body: JSON.stringify(body) }, "operator");
+export const del = <T>(path: string) => raw<T>(path, { method: "DELETE" }, "operator");
+
+/** Unggah biner ke endpoint operator; bukan JSON. */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "content-type": file.type, "x-csrf": csrfToken("operator") },
+    body: file,
+    credentials: "same-origin",
+  });
+  const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!response.ok) {
+    throw new ApiError(
+      typeof body.error === "string" ? body.error : "internal",
+      typeof body.message === "string" ? body.message : "Terjadi kesalahan.",
+      response.status,
+      typeof body.field === "string" ? body.field : undefined,
+    );
+  }
+  return body as T;
+}
 
 export function isAuthError(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);

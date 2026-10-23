@@ -1,5 +1,6 @@
 export type Env = {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
+  MEDIA?: R2Bucket;
   DB: D1Database;
   APP_MODE: string;
   DEMO_SECRET: string;
@@ -70,6 +71,7 @@ const STATUS: Record<string, number> = {
   email_unavailable: 409,
   not_ready_transition: 409,
   stock_below_reserved: 409,
+  photo_limit: 409,
   rate_limited: 429,
   checkout_disabled: 503,
   internal: 500,

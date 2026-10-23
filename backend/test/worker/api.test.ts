@@ -21,8 +21,22 @@ const NOW = new Date("2026-10-22T08:00:00Z");
 let db: TestD1;
 let env: Env;
 let call: Call;
+const objects = new Map<string, { bytes: Uint8Array; type: string }>();
+const media = {
+  put: async (key: string, value: Uint8Array, options?: { httpMetadata?: { contentType?: string } }) => {
+    objects.set(key, { bytes: value, type: options?.httpMetadata?.contentType ?? "application/octet-stream" });
+  },
+  get: async (key: string) => {
+    const row = objects.get(key);
+    return row ? { body: row.bytes, httpMetadata: { contentType: row.type }, httpEtag: `"${key}"` } : null;
+  },
+  delete: async (key: string) => {
+    objects.delete(key);
+  },
+};
 
 beforeEach(() => {
+  objects.clear();
   vi.useFakeTimers();
   vi.setSystemTime(NOW);
   db = new TestD1();
@@ -33,6 +47,7 @@ beforeEach(() => {
     APP_MODE: "demo",
     DEMO_SECRET: "test-secret",
     APP_ORIGIN: "https://mabakit.test",
+    MEDIA: media as unknown as R2Bucket,
   };
   call = makeCall(env);
 });
@@ -1369,5 +1384,49 @@ describe("ekspor penjualan", () => {
     expect([401, 403]).toContain(forbidden.status);
     expect(csvCell("=1+1")).toBe("'=1+1");
     expect(csvCell('a,"b"')).toBe('"a,""b"""');
+  });
+});
+
+describe("galeri foto admin", () => {
+  const png = (width = 1, height = 1) =>
+    new Uint8Array([
+      137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
+      (width >>> 24) & 255, (width >>> 16) & 255, (width >>> 8) & 255, width & 255,
+      (height >>> 24) & 255, (height >>> 16) & 255, (height >>> 8) & 255, height & 255,
+      8, 6, 0, 0, 0,
+    ]);
+
+  const upload = async (admin: Session, bytes: Uint8Array) =>
+    call("/api/admin/products/p-topi/photos", {
+      method: "POST",
+      cookie: admin.cookie,
+      csrf: admin.csrf,
+      headers: { "content-type": "image/png" },
+      body: bytes,
+    });
+
+  test("maksimal lima foto, validasi gambar, dan penyajian media", async () => {
+    const admin = await signInAs(ADMIN);
+    for (let i = 0; i < 5; i += 1) expect((await upload(admin, png())).status).toBe(201);
+    const full = await upload(admin, png());
+    expect(full.status).toBe(409);
+    expect(((await full.json()) as { error: string }).error).toBe("photo_limit");
+
+    const list = (await (await call("/api/admin/products/p-topi/photos", { cookie: admin.cookie })).json()) as {
+      photos: { url: string }[];
+    };
+    expect(list.photos).toHaveLength(5);
+    const mediaResponse = await call(list.photos[0].url);
+    expect(mediaResponse.status).toBe(200);
+    expect(mediaResponse.headers.get("content-type")).toBe("image/png");
+
+    const bad = await call("/api/admin/products/p-topi/photos", {
+      method: "POST",
+      cookie: admin.cookie,
+      csrf: admin.csrf,
+      headers: { "content-type": "text/plain" },
+      body: "nope",
+    });
+    expect(bad.status).toBe(400);
   });
 });

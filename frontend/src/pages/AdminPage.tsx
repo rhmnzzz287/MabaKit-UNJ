@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ApiError, get, isAuthError, patch, post, put } from "../lib/api";
+import { ApiError, del, get, isAuthError, patch, post, put, upload } from "../lib/api";
 import { dateTime, rupiah, variantLabel } from "../lib/format";
 import type { AdminCatalog, AdminKpi, AdminProduct, AdminSummary, AdminVariant, Operator } from "../lib/types";
 import { useOperatorWorkspace } from "../lib/workspace";
@@ -703,9 +703,74 @@ function ProductCard({
         <Field id={`description-${product.id}`} label="Deskripsi">
           <Textarea id={`description-${product.id}`} name="description" defaultValue={product.description} maxLength={600} />
         </Field>
-        <Field id={`image-${product.id}`} label="Path gambar">
-          <Input id={`image-${product.id}`} name="imagePath" defaultValue={product.imagePath ?? ""} maxLength={200} />
-        </Field>
+        <div className="space-y-3 rounded-lg border border-line p-3">
+          <h4 className="font-semibold text-ink">Galeri foto ({product.photos.length}/5)</h4>
+          {product.photos.length ? (
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {product.photos.map((photo, index) => (
+                <li key={photo.id} className="space-y-2 rounded-lg border border-slate-200 p-2">
+                  <img src={photo.url} alt="" width={photo.width} height={photo.height} className="h-24 w-full object-contain" />
+                  {index === 0 ? <p className="text-xs font-semibold text-brand-dark">Sampul</p> : null}
+                  <div className="flex flex-wrap gap-2">
+                    {index > 0 ? (
+                      <button
+                        type="button"
+                        className="min-h-10 rounded border border-line px-2 text-sm"
+                        disabled={action.busy}
+                        onClick={() =>
+                          void action.exec(async () => {
+                            const ids = [photo.id, ...product.photos.filter((item) => item.id !== photo.id).map((item) => item.id)];
+                            await put(`/api/admin/products/${product.id}/photos/order`, { ids });
+                            return "Sampul diperbarui.";
+                          })
+                        }
+                      >
+                        Jadikan sampul
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="min-h-10 rounded border border-danger px-2 text-sm text-danger"
+                      disabled={action.busy}
+                      onClick={() =>
+                        void action.exec(async () => {
+                          await del(`/api/admin/products/${product.id}/photos/${photo.id}`);
+                          return "Foto dihapus.";
+                        })
+                      }
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted">Belum ada foto. Gambar lama tetap tampil sampai foto baru diunggah.</p>
+          )}
+          {product.photos.length < 5 ? (
+            <Field id={`photo-${product.id}`} label="Unggah foto" hint="JPEG, PNG, atau WebP. Maksimal 5 MiB dan 20 MP.">
+              <input
+                id={`photo-${product.id}`}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="block w-full text-sm"
+                disabled={action.busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (!file) return;
+                  void action.exec(async () => {
+                    await upload(`/api/admin/products/${product.id}/photos`, file);
+                    return "Foto diunggah.";
+                  });
+                }}
+              />
+            </Field>
+          ) : (
+            <p className="text-sm text-muted">Batas lima foto tercapai. Hapus satu foto untuk mengunggah yang baru.</p>
+          )}
+        </div>
         <Field id={`discount-${product.id}`} label="Diskon (%)" hint="0 sampai 100. Dua desimal, misalnya 12,5.">
           <Input
             id={`discount-${product.id}`}

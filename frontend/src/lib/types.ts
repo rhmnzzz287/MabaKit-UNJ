@@ -191,6 +191,7 @@ export type AdminProduct = {
   title: string;
   description: string;
   imagePath: string | null;
+  photos: { id: string; url: string; width: number; height: number }[];
   discountBasisPoints?: number;
   active: boolean;
   version: number;
