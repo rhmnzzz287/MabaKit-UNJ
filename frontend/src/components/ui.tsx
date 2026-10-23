@@ -303,18 +303,20 @@ export function Price({
   baseRp,
   discountBasisPoints,
   size = "md",
+  className = "",
 }: {
   finalRp: number;
   baseRp?: number;
   discountBasisPoints?: number;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }) {
   const money = (value: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
   const scale = size === "lg" ? "text-2xl sm:text-3xl" : size === "sm" ? "text-base" : "text-lg";
   const discounted = (discountBasisPoints ?? 0) > 0 && (baseRp ?? 0) > finalRp;
   return (
-    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <div className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 ${className}`}>
       <span className={`${scale} font-bold tracking-tight text-ink`}>{finalRp === 0 ? "Gratis" : money(finalRp)}</span>
       {discounted ? (
         <>

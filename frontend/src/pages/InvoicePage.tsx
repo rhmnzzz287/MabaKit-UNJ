@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { navigate } from "../lib/router";
 import { useWorkspace } from "../lib/workspace";
 import { get } from "../lib/api";
-import { dateTime } from "../lib/format";
+import { dateTime, statusLabel } from "../lib/format";
 import type { Invoice } from "../lib/types";
 import { Alert, Button, ButtonLink, Card, Link, PageHeader, Price, Spinner } from "../components/ui";
 
@@ -118,16 +118,16 @@ export default function InvoicePage({ id }: { id: string }) {
             <caption className="sr-only">Item pesanan</caption>
             <thead>
               <tr className="border-b border-slate-200 text-xs font-semibold text-muted">
-                <th scope="col" className="pb-2 pl-0">
+                <th scope="col" className="pb-2 pl-0 pr-4">
                   Item
                 </th>
-                <th scope="col" className="pb-2 text-right">
+                <th scope="col" className="w-20 px-4 pb-2 text-right">
                   Jumlah
                 </th>
-                <th scope="col" className="pb-2 text-right">
+                <th scope="col" className="w-32 px-4 pb-2 text-right">
                   Harga
                 </th>
-                <th scope="col" className="pb-2 pr-0 text-right">
+                <th scope="col" className="w-32 pb-2 pl-4 pr-0 text-right">
                   Subtotal
                 </th>
               </tr>
@@ -135,18 +135,20 @@ export default function InvoicePage({ id }: { id: string }) {
             <tbody>
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-slate-100">
-                  <td className="py-4 pl-0 text-ink">{item.title}</td>
-                  <td className="py-4 text-right text-ink">{item.quantity}</td>
-                  <td className="py-4 text-right">
+                  <td className="py-4 pl-0 pr-4 align-top text-ink">{item.title}</td>
+                  <td className="px-4 py-4 text-right align-top text-ink">{item.quantity}</td>
+                  <td className="px-4 py-4 align-top">
                     <Price
+                      className="justify-end"
                       finalRp={item.unitPriceRp}
                       baseRp={(item.discountBasisPoints ?? 0) > 0 ? item.basePriceRp : undefined}
                       discountBasisPoints={item.discountBasisPoints}
                       size="sm"
                     />
                   </td>
-                  <td className="py-4 pr-0 text-right font-medium text-ink">
+                  <td className="py-4 pl-4 pr-0 align-top">
                     <Price
+                      className="justify-end font-medium"
                       finalRp={item.lineTotalRp}
                       baseRp={(item.discountBasisPoints ?? 0) > 0 ? (item.basePriceRp ?? item.unitPriceRp) * item.quantity : undefined}
                       discountBasisPoints={item.discountBasisPoints}
@@ -157,12 +159,12 @@ export default function InvoicePage({ id }: { id: string }) {
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <th scope="row" colSpan={3} className="pb-0 pl-0 pt-4 text-right text-base">
+              <tr className="border-t-2 border-slate-200">
+                <th scope="row" colSpan={3} className="pb-0 pl-0 pr-4 pt-4 text-right text-base align-middle">
                   Total
                 </th>
-                <td className="pb-0 pr-0 pt-4 text-right">
-                  <Price finalRp={order.totalRp} size="lg" />
+                <td className="pb-0 pl-4 pr-0 pt-4 align-middle">
+                  <Price className="justify-end" finalRp={order.totalRp} size="lg" />
                 </td>
               </tr>
             </tfoot>
@@ -172,15 +174,15 @@ export default function InvoicePage({ id }: { id: string }) {
         <dl className="grid gap-8 border-t border-slate-200 pt-8 text-sm sm:grid-cols-3">
           <div className="space-y-2">
             <dt className="text-muted">Metode</dt>
-            <dd className="font-medium text-ink">{order.method ?? "-"}</dd>
+            <dd className="font-medium text-ink">{statusLabel(order.method ?? "-")}</dd>
           </div>
           <div className="space-y-2">
             <dt className="text-muted">Status pembayaran</dt>
-            <dd className="font-medium text-ink">{order.paymentStatus}</dd>
+            <dd className="font-medium text-ink">{statusLabel(order.paymentStatus)}</dd>
           </div>
           <div className="space-y-2">
             <dt className="text-muted">Status pemenuhan</dt>
-            <dd className="font-medium text-ink">{order.fulfillmentStatus}</dd>
+            <dd className="font-medium text-ink">{statusLabel(order.fulfillmentStatus)}</dd>
           </div>
         </dl>
       </article>

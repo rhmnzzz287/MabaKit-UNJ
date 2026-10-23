@@ -13,8 +13,11 @@
     "typecheck": "tsc -p frontend/tsconfig.json && tsc -p backend/tsconfig.json",
     "typecheck:worker": "tsc -p backend/tsconfig.json",
     "dev:worker": "npm run build && cd backend && wrangler dev",
+    "deploy": "npm run build && wrangler deploy --config backend/wrangler.jsonc",
     "db:migrate:local": "cd backend && wrangler d1 migrations apply mabakit-demo --local",
-    "db:seed:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/seed.sql"
+    "db:seed:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/seed.sql",
+    "db:migrate:remote": "wrangler d1 migrations apply mabakit-demo --remote --config backend/wrangler.jsonc",
+    "db:seed:remote": "wrangler d1 execute mabakit-demo --remote --config backend/wrangler.jsonc --file=backend/db/seed.sql"
   },
   "dependencies": {
     "react": "^19.3.1",
