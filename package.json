@@ -13,7 +13,7 @@
     "typecheck": "tsc -p frontend/tsconfig.json && tsc -p backend/tsconfig.json",
     "typecheck:worker": "tsc -p backend/tsconfig.json",
     "dev:worker": "npm run build && cd backend && wrangler dev",
-    "db:migrate:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/migrations/0001_init.sql",
+    "db:migrate:local": "cd backend && wrangler d1 migrations apply mabakit-demo --local",
     "db:seed:local": "cd backend && wrangler d1 execute mabakit-demo --local --file=db/seed.sql"
   },
   "dependencies": {

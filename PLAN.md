@@ -15,7 +15,7 @@ Scaffold React/Vite/Tailwind sudah dibuat. Commit baseline 07bd3e1, scaffold 4f2
 - [x] T5. Sesi tamu demo cookie/hash/CSRF/ownership/rate limit; operator demo diprovisioning terpercaya, tanpa self-assign role. Bukti forged actor, sesi lain, cookie/Origin invalid ditolak. Bukti: backend/src/session.ts, requireMutation/requireSession, backend/test/worker/api.test.ts; kode operator salah 403.
 - [x] T6. Endpoint simulasi check-payment hanya DEMO; PAID/CONSUMED dan invoice unik atomik, retry aman, expired ditolak. Bukti test duplikat, dua tab, expiry race dan endpoint tertutup non-demo. Bukti: backend/src/orders.ts + trigger trg_payment_confirm; invoice kedua idempoten; expiry 409.
 - [x] T7. UI katalog/detail/keranjang/checkout/metode simulasi/cek status/order/invoice dari snapshot. Bukti alur penuh, refresh, error/empty/loading, label SIMULASI dan tidak ada request gateway. Bukti: frontend/src/pages/*, 6 test UI; e2e curl order MBK-261022-C64GZM total 215000 -> PAID -> invoice berwatermark.
-- [x] T8. Staf/admin demo minimum, packing/READY/pickup sekali, katalog/stok/settings/audit. Bukti akses operator dan claim race. Bukti: backend/src/staff.ts, backend/src/admin.ts; e2e READY -> token D3WBNDTQ -> lookup -> PICKED_UP; claim kedua ditolak.
+- [x] T8. Staf/admin demo minimum, packing/READY/pickup sekali, katalog/stok/settings/audit. Bukti akses operator dan claim race. Bukti: backend/src/staff.ts, backend/src/admin.ts; e2e READY -> serah terima manual operator -> PICKED_UP; pengulangan idempoten.
 - [x] T9. Audit keyboard/mobile/kontras, semua kontrol, API routing, secret scan; build/typecheck/test; lengkapi bukti RELEASE demo tanpa centang produksi. Bukti: 49 test lulus, typecheck UI/Worker bersih, build sukses, skip link + label + focus-visible ada, tidak ada teks kontras rendah di src, secret scan bersih, .dev.vars ignored.
 - [ ] T10. Deployment demo Cloudflare hanya setelah izin akun/binding/kuota/biaya; migrasi staging, smoke test publik dan backup/reset demo terisolasi. Belum dijalankan: menunggu izin pemilik.
 
@@ -28,3 +28,13 @@ Midtrans/Xendit, merchant key, webhook, cron rekonsiliasi, refund uang nyata, ak
 ## Keputusan dan batas
 
 Cloudflare penuh dipilih pemilik. Dummy payment diminta untuk mengejar presentasi. Usulan teknis sesi tamu demo dan invoice HTML menghindari provider email/PDF yang belum perlu; tidak mengklaim akun produksi. Tidak ada cloud resource/deploy/uang nyata melalui revisi dokumentasi. Arsitektur/kuota D1 diperiksa ke dokumentasi resmi sebelum implementasi, khususnya batch limits dan SQL guard rollback. Jika invariant gagal, demo transaksi diblokir sampai benar; tidak mengendurkan keamanan demi jadwal.
+
+## Tindak lanjut 22 Oktober 2026: customer + team workspace
+
+- [x] T11. Privasi `/team`: guard Worker sebelum aset untuk `/team*`, `/staff*`, `/admin*`; redirect login, 403 pembeli, redirect `/staff` ke `/team/orders`, `no-store`.
+- [x] T12. Profil sesi + email snapshot checkout, prefill form, pratinjau email simulasi.
+- [x] T13. Beranda, katalog `/catalog`, carousel unggulan, ulasan contoh berlabel.
+- [x] T14. Workspace tim: ringkasan, filter/cursor pesanan, READY, complete manual idempotent, logout/revoke operator.
+- [x] T15. Ulasan pasca-pickup satu per order, nama depan saja, publik tanpa kontak.
+- [x] T16. Migrasi 0002/0003, seed, dokumentasi PRD/SCHEMA/DESIGN/RELEASE/README, 87 test lulus.
+- [ ] T17. Uji manual dua workspace, 360px/200%/keyboard/kontras, staging D1, deploy. Belum dijalankan.
