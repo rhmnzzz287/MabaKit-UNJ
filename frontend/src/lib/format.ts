@@ -20,12 +20,15 @@ export function countdown(expiresAt: number, now = Date.now()): string {
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Menunggu pembayaran",
-  PAID: "Sudah dibayar (simulasi)",
+  PAID: "Sudah dibayar",
   EXPIRED: "Kedaluwarsa",
-  UNFULFILLED: "Belum disiapkan",
+  UNFULFILLED: "Sedang disiapkan",
   READY: "Siap diambil",
-  PICKED_UP: "Sudah diambil",
+  PICKED_UP: "Sudah diterima",
   CANCELLED: "Dibatalkan",
+  BANK_TRANSFER: "Transfer bank",
+  EWALLET: "E-wallet",
+  QRIS: "QRIS",
 };
 
 export function statusLabel(status: string): string {
@@ -33,6 +36,19 @@ export function statusLabel(status: string): string {
 }
 
 export function variantLabel(attributes: Record<string, string>): string {
-  const entries = Object.entries(attributes);
+  const entries = Object.entries(attributes).filter(([key]) => key !== "foto" && key !== "foto480");
   return entries.length ? entries.map(([key, value]) => `${key}: ${value}`).join(", ") : "";
+}
+
+/** Empat langkah timeline pembeli. Langkah yang belum terjadi tetap terlihat abu-abu. */
+export function timeline(order: { paymentStatus: string; fulfillmentStatus: string }): { label: string; done: boolean }[] {
+  const paid = order.paymentStatus === "PAID";
+  const ready = order.fulfillmentStatus === "READY" || order.fulfillmentStatus === "PICKED_UP";
+  const received = order.fulfillmentStatus === "PICKED_UP";
+  return [
+    { label: "Menunggu pembayaran", done: paid },
+    { label: "Sedang disiapkan", done: paid },
+    { label: "Siap diambil", done: ready },
+    { label: "Sudah diterima", done: received },
+  ];
 }

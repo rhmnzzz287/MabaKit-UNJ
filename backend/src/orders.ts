@@ -1,24 +1,19 @@
-import {
-  type Ctx,
-  type SessionRow,
-  audit,
-  fail,
-  json,
-  randomToken,
-  releaseExpired,
-  sha256,
-} from "./http";
+import { type Ctx, type SessionRow, fail, json, randomToken, releaseExpired } from "./http";
 
 export type OrderRow = {
   id: string;
   order_number: string;
   session_id: string;
+  user_id: string | null;
+  faculty_id: string | null;
   buyer_name: string;
   recipient_name: string;
   contact_phone: string;
+  email: string | null;
   department_id: string | null;
   pickup_instructions_snapshot: string;
   total_rp: number;
+  amount_due_rp: number;
   payment_status: "PENDING" | "PAID" | "EXPIRED";
   fulfillment_status: "UNFULFILLED" | "READY" | "PICKED_UP" | "CANCELLED";
   created_at: number;
@@ -35,6 +30,10 @@ type ItemRow = {
   quantity: number;
   unit_price_rp: number;
   line_total_rp: number;
+  base_unit_price_rp: number;
+  discount_basis_points: number;
+  charged_unit_price_rp: number;
+  charged_line_total_rp: number;
 };
 
 type InvoiceRow = { invoice_number: string; issued_at: number };
@@ -64,8 +63,8 @@ function attributes(raw: string): Record<string, string> {
 
 export async function loadOrder(ctx: Ctx, orderId: string): Promise<OrderRow | null> {
   return ctx.env.DB.prepare(
-    `SELECT id, order_number, session_id, buyer_name, recipient_name, contact_phone, department_id,
-            pickup_instructions_snapshot, total_rp, payment_status, fulfillment_status, created_at,
+    `SELECT id, order_number, session_id, user_id, faculty_id, buyer_name, recipient_name, contact_phone, email,
+            department_id, pickup_instructions_snapshot, total_rp, amount_due_rp, payment_status, fulfillment_status, created_at,
             expires_at, paid_at, ready_at, picked_up_at
      FROM orders WHERE id = ?`,
   )
@@ -75,7 +74,8 @@ export async function loadOrder(ctx: Ctx, orderId: string): Promise<OrderRow | n
 
 export async function orderPayload(ctx: Ctx, order: OrderRow): Promise<Record<string, unknown>> {
   const { results: items } = await ctx.env.DB.prepare(
-    `SELECT id, title_snapshot, attributes_snapshot, quantity, unit_price_rp, line_total_rp
+    `SELECT id, title_snapshot, attributes_snapshot, quantity, unit_price_rp, line_total_rp,
+            base_unit_price_rp, discount_basis_points, charged_unit_price_rp, charged_line_total_rp
      FROM order_items WHERE order_id = ? ORDER BY rowid`,
   )
     .bind(order.id)
@@ -86,6 +86,24 @@ export async function orderPayload(ctx: Ctx, order: OrderRow): Promise<Record<st
   const invoice = await ctx.env.DB.prepare("SELECT invoice_number, issued_at FROM invoices WHERE order_id = ?")
     .bind(order.id)
     .first<InvoiceRow>();
+  const review = await ctx.env.DB.prepare(
+    "SELECT rating, comment, created_at FROM reviews WHERE order_id = ? AND is_example = 0",
+  )
+    .bind(order.id)
+    .first<{ rating: number; comment: string; created_at: number }>();
+  const components = await ctx.env.DB.prepare(
+    `SELECT order_item_id, variant_id, sku_snapshot, title_snapshot, attributes_snapshot, quantity
+     FROM order_components WHERE order_item_id IN (SELECT id FROM order_items WHERE order_id = ?) ORDER BY rowid`,
+  )
+    .bind(order.id)
+    .all<{
+      order_item_id: string;
+      variant_id: string;
+      sku_snapshot: string;
+      title_snapshot: string;
+      attributes_snapshot: string;
+      quantity: number;
+    }>();
 
   return {
     id: order.id,
@@ -93,8 +111,10 @@ export async function orderPayload(ctx: Ctx, order: OrderRow): Promise<Record<st
     buyerName: order.buyer_name,
     recipientName: order.recipient_name,
     contactPhone: order.contact_phone,
+    email: order.email,
     departmentId: order.department_id,
-    totalRp: order.total_rp,
+    facultyId: order.faculty_id,
+    totalRp: order.amount_due_rp,
     paymentStatus: order.payment_status,
     fulfillmentStatus: order.fulfillment_status,
     method: payment?.method ?? null,
@@ -109,28 +129,42 @@ export async function orderPayload(ctx: Ctx, order: OrderRow): Promise<Record<st
       title: item.title_snapshot,
       attributes: attributes(item.attributes_snapshot),
       quantity: item.quantity,
-      unitPriceRp: item.unit_price_rp,
-      lineTotalRp: item.line_total_rp,
+      unitPriceRp: item.charged_unit_price_rp,
+      lineTotalRp: item.charged_line_total_rp,
+      basePriceRp: item.base_unit_price_rp,
+      discountBasisPoints: item.discount_basis_points,
+      components: components.results
+        .filter((component) => component.order_item_id === item.id)
+        .map((component) => ({
+          variantId: component.variant_id,
+          sku: component.sku_snapshot,
+          title: component.title_snapshot,
+          attributes: attributes(component.attributes_snapshot),
+          quantity: component.quantity,
+        })),
     })),
     invoice: invoice ? { invoiceNumber: invoice.invoice_number, issuedAt: invoice.issued_at } : null,
+    review: review ? { rating: review.rating, comment: review.comment, createdAt: review.created_at } : null,
+    reviewEligible:
+      order.payment_status === "PAID" && order.fulfillment_status === "PICKED_UP" && review === null,
   };
 }
 
 async function ownedOrder(ctx: Ctx, session: SessionRow, id: string): Promise<OrderRow | Response> {
   const order = await loadOrder(ctx, id);
-  if (!order || order.session_id !== session.id) return fail("not_found");
+  if (!order || !session.user_id || order.user_id !== session.user_id) return fail("not_found");
   return order;
 }
 
 export async function listOrders(ctx: Ctx, session: SessionRow): Promise<Response> {
-  await releaseExpired(ctx, session.id);
+  await releaseExpired(ctx);
   const { results } = await ctx.env.DB.prepare(
-    `SELECT id, order_number, session_id, buyer_name, recipient_name, contact_phone, department_id,
-            pickup_instructions_snapshot, total_rp, payment_status, fulfillment_status, created_at,
+    `SELECT id, order_number, session_id, user_id, faculty_id, buyer_name, recipient_name, contact_phone, email,
+            department_id, pickup_instructions_snapshot, total_rp, amount_due_rp, payment_status, fulfillment_status, created_at,
             expires_at, paid_at, ready_at, picked_up_at
-     FROM orders WHERE session_id = ? ORDER BY created_at DESC LIMIT 50`,
+     FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
   )
-    .bind(session.id)
+    .bind(session.user_id)
     .all<OrderRow>();
   const orders = [];
   for (const order of results) orders.push(await orderPayload(ctx, order));
@@ -145,7 +179,7 @@ export async function getOrder(ctx: Ctx, session: SessionRow, id: string): Promi
 }
 
 export async function checkPayment(ctx: Ctx, session: SessionRow, id: string): Promise<Response> {
-  await releaseExpired(ctx, session.id);
+  await releaseExpired(ctx);
   const order = await ownedOrder(ctx, session, id);
   if (order instanceof Response) return order;
   if (order.payment_status === "PAID") return json({ order: await orderPayload(ctx, order) });
@@ -165,7 +199,7 @@ export async function checkPayment(ctx: Ctx, session: SessionRow, id: string): P
     return fail("order_not_payable");
   }
 
-  await releaseExpired(ctx, session.id);
+  await releaseExpired(ctx);
   const paid = await loadOrder(ctx, id);
   return paid ? json({ order: await orderPayload(ctx, paid) }) : fail("not_found");
 }
@@ -191,35 +225,23 @@ export async function invoice(ctx: Ctx, session: SessionRow, id: string): Promis
   });
 }
 
-const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-function pickupCode(): string {
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  return [...bytes].map((byte) => ALPHABET[byte % ALPHABET.length]).join("");
-}
-
-export async function issuePickupToken(ctx: Ctx, session: SessionRow, id: string): Promise<Response> {
+export async function emailPreview(ctx: Ctx, session: SessionRow, id: string): Promise<Response> {
   const order = await ownedOrder(ctx, session, id);
   if (order instanceof Response) return order;
-  if (order.fulfillment_status !== "READY") return fail("pickup_not_allowed");
-  const code = pickupCode();
-  const hash = await sha256(code);
-  const existing = await ctx.env.DB.prepare("SELECT claimed_at FROM pickup_tickets WHERE order_id = ?")
+  if (order.payment_status !== "PAID") return fail("order_not_payable");
+  if (!order.email) return fail("email_unavailable");
+  const row = await ctx.env.DB.prepare("SELECT invoice_number, issued_at FROM invoices WHERE order_id = ?")
     .bind(id)
-    .first<{ claimed_at: number | null }>();
-  if (existing?.claimed_at) return fail("pickup_not_allowed");
-  if (existing) {
-    await ctx.env.DB.prepare("UPDATE pickup_tickets SET token_hash = ?, issued_at = ? WHERE order_id = ?")
-      .bind(hash, ctx.now, id)
-      .run();
-  } else {
-    await ctx.env.DB.prepare("INSERT INTO pickup_tickets (order_id, token_hash, issued_at) VALUES (?, ?, ?)")
-      .bind(id, hash, ctx.now)
-      .run();
-  }
-  await audit(ctx, { actorId: session.id, action: "pickup_token_issued", entityType: "order", entityId: id });
-  return json({ token: code, expiresWithOrder: false }, 201);
+    .first<InvoiceRow>();
+  if (!row) return fail("order_not_payable");
+  const origin = ctx.env.APP_ORIGIN ?? ctx.url.origin;
+  return json({
+    recipient: order.email,
+    subject: `Invoice ${row.invoice_number} - MabaKit`,
+    invoiceUrl: `${origin}/orders/${id}/invoice`,
+    simulated: true,
+    body: `Halo ${order.buyer_name}, pembayaran simulasi pesanan ${order.order_number} sudah tercatat. Invoice ${row.invoice_number} dapat dilihat di ${origin}/orders/${id}/invoice. Ini simulasi: tidak ada email yang dikirim.`,
+  });
 }
 
 export function randomReference(): string {

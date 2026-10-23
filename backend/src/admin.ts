@@ -1,4 +1,14 @@
-import { type Ctx, type OperatorRow, audit, errorName, fail, json, readJson } from "./http";
+import {
+  type Ctx,
+  type OperatorRow,
+  audit,
+  errorName,
+  fail,
+  json,
+  parsePermissions,
+  readJsonLimited,
+  releaseExpired,
+} from "./http";
 
 type SettingsRow = {
   checkout_enabled: number;
@@ -23,6 +33,7 @@ function settingsPayload(row: SettingsRow) {
 }
 
 export async function adminSummary(ctx: Ctx): Promise<Response> {
+  await releaseExpired(ctx);
   const settings = await ctx.env.DB.prepare(
     `SELECT checkout_enabled, pickup_location_label, pickup_location_details, pickup_service_hours, pickup_version, updated_at
      FROM store_settings WHERE id = 1`,
@@ -71,7 +82,7 @@ export async function adminSummary(ctx: Ctx): Promise<Response> {
 }
 
 export async function adminSettings(ctx: Ctx, operator: OperatorRow): Promise<Response> {
-  const body = await readJson(ctx.request);
+  const body = await readJsonLimited(ctx.request);
   if (!body) return fail("invalid_payload");
 
   const current = await ctx.env.DB.prepare(
@@ -111,7 +122,8 @@ export async function adminSettings(ctx: Ctx, operator: OperatorRow): Promise<Re
 }
 
 export async function adminStock(ctx: Ctx, operator: OperatorRow, variantId: string): Promise<Response> {
-  const body = await readJson(ctx.request);
+  if (operator.role !== "admin" && !operator.permissions.includes("stock.adjust")) return fail("forbidden");
+  const body = await readJsonLimited(ctx.request);
   const onHand = body?.onHand;
   if (typeof onHand !== "number" || !Number.isInteger(onHand) || onHand < 0 || onHand > 100_000) {
     return fail("invalid_payload");
@@ -169,4 +181,57 @@ export async function adminAudit(ctx: Ctx): Promise<Response> {
       createdAt: log.created_at,
     })),
   });
+}
+
+export async function adminOperators(ctx: Ctx): Promise<Response> {
+  const { results } = await ctx.env.DB.prepare(
+    `SELECT u.id, u.email, u.name, u.role, u.permissions, u.disabled,
+            MAX(s.created_at) AS last_login,
+            SUM(CASE WHEN s.expires_at > ? THEN 1 ELSE 0 END) AS active_sessions
+     FROM users u LEFT JOIN demo_sessions s ON s.user_id = u.id
+     WHERE u.role IN ('staff', 'admin')
+     GROUP BY u.id ORDER BY u.role, u.email`,
+  )
+    .bind(ctx.now)
+    .all<{
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      permissions: string;
+      disabled: number;
+      last_login: number | null;
+      active_sessions: number | null;
+    }>();
+  return json({
+    operators: results.map((operator) => ({
+      id: operator.id,
+      email: operator.email,
+      name: operator.name,
+      role: operator.role,
+      permissions: parsePermissions(operator.permissions),
+      disabled: operator.disabled === 1,
+      lastLoginAt: operator.last_login,
+      activeSessions: operator.active_sessions ?? 0,
+    })),
+  });
+}
+
+export async function adminRevokeOperator(ctx: Ctx, operator: OperatorRow, id: string): Promise<Response> {
+  const target = await ctx.env.DB.prepare(
+    "SELECT id, role FROM users WHERE id = ? AND role IN ('staff', 'admin')",
+  )
+    .bind(id)
+    .first<{ id: string; role: string }>();
+  if (!target) return fail("not_found");
+  if (target.role === "admin") return fail("forbidden");
+  await ctx.env.DB.batch([
+    ctx.env.DB.prepare("UPDATE users SET disabled = 1, updated_at = ? WHERE id = ?").bind(ctx.now, id),
+    ctx.env.DB.prepare("UPDATE demo_sessions SET expires_at = ? WHERE user_id = ? AND portal = 'operator'").bind(ctx.now, id),
+    ctx.env.DB.prepare(
+      `INSERT INTO audit_logs (id, actor_id, action, entity_type, entity_id, safe_metadata, request_id, created_at)
+       VALUES (?, ?, 'operator_revoked', 'user', ?, '{"disabled":true}', ?, ?)`,
+    ).bind(crypto.randomUUID(), operator.id, id, ctx.requestId, ctx.now),
+  ]);
+  return json({ revoked: true, disabled: true });
 }

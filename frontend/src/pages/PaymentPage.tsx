@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { navigate } from "../lib/router";
+import { useWorkspace } from "../lib/workspace";
 import { ApiError, get, post } from "../lib/api";
 import { countdown, dateTime, rupiah, statusLabel } from "../lib/format";
 import type { Order } from "../lib/types";
@@ -8,9 +10,11 @@ const METHOD_LABEL: Record<string, string> = {
   BANK_TRANSFER: "Transfer bank (simulasi)",
   EWALLET: "E-wallet (simulasi)",
   QRIS: "QRIS (simulasi)",
+  FREE: "Gratis, tanpa pembayaran",
 };
 
 export default function PaymentPage({ id }: { id: string }) {
+  const workspace = useWorkspace();
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -18,6 +22,12 @@ export default function PaymentPage({ id }: { id: string }) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
+    if (workspace.state === "loading") return;
+    if (!workspace.user) navigate("/login?next=%2Forders");
+  }, [workspace.state, workspace.user]);
+
+  useEffect(() => {
+    if (!workspace.user) return;
     let active = true;
     get<{ order: Order }>(`/api/orders/${id}`)
       .then((body) => {
@@ -29,7 +39,7 @@ export default function PaymentPage({ id }: { id: string }) {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, workspace.user]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -73,6 +83,7 @@ export default function PaymentPage({ id }: { id: string }) {
         description="Halaman ini mensimulasikan konfirmasi pembayaran. Tidak ada uang yang dikirim dan tidak ada bank yang dihubungi."
       />
       <SimulasiBadge />
+      <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -118,8 +129,10 @@ export default function PaymentPage({ id }: { id: string }) {
       {paid ? (
         <div className="space-y-3">
           <Alert tone="info">
-            Pesanan simulasi berhasil dibuat. Status {statusLabel(order.fulfillmentStatus)}. Invoice digital tersedia dan
-            bukan bukti pembayaran nyata.
+            {order.method === "FREE"
+              ? "Pesanan gratis dibuat tanpa pembayaran. Status " + statusLabel(order.fulfillmentStatus) + "."
+              : "Pesanan simulasi berhasil dibuat. Status " + statusLabel(order.fulfillmentStatus) + "."}{" "}
+            Invoice digital tersedia dan bukan bukti pembayaran nyata.
           </Alert>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -140,7 +153,7 @@ export default function PaymentPage({ id }: { id: string }) {
         <div className="space-y-3">
           <Alert tone="warn">Draft kedaluwarsa. Stok sudah dilepas. Silakan buat pesanan baru dari katalog.</Alert>
           <Link
-            to="/"
+            to="/catalog"
             className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white"
           >
             Mulai pesanan baru

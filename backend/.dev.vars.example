@@ -2,3 +2,5 @@
 DEMO_SECRET=ganti-di-lokal
 STAFF_DEMO_CODE=
 ADMIN_DEMO_CODE=
+# Opsional: origin publik untuk tautan invoice di pratinjau email (default: origin request).
+APP_ORIGIN=

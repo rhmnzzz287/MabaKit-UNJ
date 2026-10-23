@@ -1,0 +1,93 @@
+import { useEffect, useState } from "react";
+import { ApiError, authenticate } from "../lib/api";
+import { navigate } from "../lib/router";
+import { refreshAuth, useAuth } from "../lib/auth-store";
+import { safeNext } from "../lib/workspace";
+import { Alert, Button, Field, Input, Link, PageHeader } from "../components/ui";
+
+export default function LoginPage() {
+  const next = safeNext(new URLSearchParams(window.location.search).get("next"), "/orders");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const auth = useAuth("buyer");
+
+  useEffect(() => {
+    if (auth.state === "ready" && auth.user) navigate(next);
+  }, [auth.state, auth.user, next]);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await authenticate("/api/auth/login", { email, password });
+      await refreshAuth("buyer");
+      navigate(next);
+    } catch (issue) {
+      if (issue instanceof ApiError && issue.status === 429) setError(issue.message);
+      else if (issue instanceof ApiError && issue.code === "invalid_credentials") {
+        setError("Email atau kata sandi tidak cocok.");
+      } else if (issue instanceof ApiError && issue.code === "wrong_portal") {
+        setError("Akun ini akun operator. Gunakan halaman masuk operator di bawah.");
+      } else setError(issue instanceof Error ? issue.message : "Masuk gagal.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-md space-y-6">
+      <PageHeader title="Masuk" description="Masuk untuk checkout, melihat pesanan, dan menyimpan profil kontak." />
+      {error ? <Alert tone="error">{error}</Alert> : null}
+      <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
+        <Field id="login-email" label="Email">
+          <Input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            maxLength={254}
+            required
+          />
+        </Field>
+        <Field id="login-password" label="Kata sandi">
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </Field>
+        <Button type="submit" className="w-full" disabled={busy}>
+          {busy ? "Memeriksa..." : "Masuk"}
+        </Button>
+      </form>
+      <p className="text-sm text-muted">
+        Belum punya akun?{" "}
+        <Link to={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand underline">
+          Daftar
+        </Link>
+        .
+      </p>
+      <p className="text-sm text-muted">
+        Tim MabaKit masuk lewat{" "}
+        <Link to="/operator/login" className="font-semibold text-brand underline">
+          halaman operator
+        </Link>
+        .
+      </p>
+      <p className="text-sm text-muted">
+        Ingin melihat katalog dulu?{" "}
+        <button type="button" className="font-semibold text-brand underline" onClick={() => navigate("/catalog")}>
+          Buka katalog
+        </button>
+        .
+      </p>
+    </div>
+  );
+}

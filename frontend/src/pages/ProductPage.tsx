@@ -4,12 +4,12 @@ import { addToCart } from "../lib/cart";
 import { rupiah, variantLabel } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { Product } from "../lib/types";
-import { Alert, Button, Link, PageHeader, ProductPhoto, Spinner } from "../components/ui";
+import { Alert, Button, Field, Input, Link, PageHeader, ProductPhoto, Select, Spinner } from "../components/ui";
 
 export default function ProductPage({ id }: { id: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [variantId, setVariantId] = useState<string>("");
+  const [variantId, setVariantId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -38,7 +38,7 @@ export default function ProductPage({ id }: { id: string }) {
     return (
       <div className="space-y-4">
         <Alert tone="error">{error}</Alert>
-        <Link to="/" className="font-semibold text-brand underline">
+        <Link to="/catalog" className="font-semibold text-brand underline">
           Kembali ke katalog
         </Link>
       </div>
@@ -46,14 +46,45 @@ export default function ProductPage({ id }: { id: string }) {
   }
   if (!product) return <Spinner label="Memuat produk" />;
 
-  const available = product.kind === "bundle" ? product.stock : (variant?.stock ?? 0);
-  const unitPrice = product.kind === "bundle" ? product.priceRp : (variant?.priceRp ?? product.priceRp);
+  if (product.kind === "bundle") {
+    return (
+      <div className="space-y-6">
+        <nav aria-label="Remah roti" className="text-sm">
+          <Link to="/catalog" className="text-brand underline">
+            Paket dan Produk
+          </Link>
+          <span className="text-muted"> / {product.title}</span>
+        </nav>
+        <PageHeader title={product.title} description={product.description} />
+        <Alert tone="info">
+          Isi dan harga paket bergantung pada fakultas. Sesuaikan paket untuk melihat rincian dan stok yang benar.
+        </Alert>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to={`/packages/${product.id}/customize`}
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
+          >
+            Sesuaikan paket
+          </Link>
+          <Link
+            to="/catalog"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg border border-line bg-white px-5 font-semibold text-ink"
+          >
+            Kembali ke katalog
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const available = variant?.stock ?? 0;
+  const unitPrice = variant?.priceRp ?? product.priceRp;
 
   return (
     <div className="space-y-6">
       <nav aria-label="Remah roti" className="text-sm">
-        <Link to="/" className="text-brand underline">
-          Katalog
+        <Link to="/catalog" className="text-brand underline">
+          Paket dan Produk
         </Link>
         <span className="text-muted"> / {product.title}</span>
       </nav>
@@ -62,37 +93,25 @@ export default function ProductPage({ id }: { id: string }) {
         <div className="space-y-4">
           <ProductPhoto
             src={variant?.imagePath ?? product.imagePath}
+            srcSet480={variant?.imagePath480 ?? null}
             alt={variant ? `Foto ${product.title} ${variantLabel(variant.attributes)}` : `Foto ${product.title}`}
             className="h-64 w-full rounded-xl border border-slate-200 sm:h-80"
+            eager
           />
           <PageHeader title={product.title} description={product.description} />
           <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
             <div>
               <dt className="text-muted">Jenis</dt>
-              <dd className="font-semibold text-ink">{product.kind === "bundle" ? "Paket" : "Satuan"}</dd>
+              <dd className="font-semibold text-ink">Satuan</dd>
             </div>
             <div>
               <dt className="text-muted">Ketersediaan</dt>
               <dd className="font-semibold text-ink">{available > 0 ? `${available} tersedia` : "Habis"}</dd>
             </div>
             {variant ? (
-              <div>
+              <div className="col-span-2">
                 <dt className="text-muted">Spesifikasi</dt>
                 <dd className="font-semibold text-ink">{variantLabel(variant.attributes)}</dd>
-              </div>
-            ) : null}
-            {product.components?.length ? (
-              <div className="col-span-2">
-                <dt className="text-muted">Isi paket</dt>
-                <dd>
-                  <ul className="mt-1 space-y-1">
-                    {product.components.map((component) => (
-                      <li key={component.variantId} className="text-ink">
-                        {component.sku} x {component.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
               </div>
             ) : null}
           </dl>
@@ -100,58 +119,54 @@ export default function ProductPage({ id }: { id: string }) {
 
         <aside className="h-fit space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <p className="text-2xl font-bold text-ink">{rupiah(unitPrice)}</p>
+          {(product.discountBasisPoints ?? 0) > 0 ? (
+            <p className="text-sm text-muted">
+              <s>{rupiah(variant?.basePriceRp ?? product.basePriceRp ?? unitPrice)}</s> · diskon{" "}
+              {(product.discountBasisPoints ?? 0) / 100}%
+            </p>
+          ) : null}
           <p className="text-sm text-muted">Harga per unit, dihitung ulang di server saat checkout.</p>
 
-          {product.kind === "single" && product.variants.length > 1 ? (
-            <fieldset className="space-y-2">
-              <legend className="font-medium text-ink">Pilih varian</legend>
-              {product.variants.map((item) => (
-                <label key={item.id} className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 px-3">
-                  <input
-                    type="radio"
-                    name="variant"
-                    value={item.id}
-                    checked={variantId === item.id}
-                    onChange={() => setVariantId(item.id)}
-                    className="size-4"
-                  />
-                  <span className="text-ink">
-                    {variantLabel(item.attributes)} ({item.stock} tersedia)
-                  </span>
-                </label>
-              ))}
-            </fieldset>
+          {product.variants.length > 1 ? (
+            <Field id="variant" label="Pilih varian">
+              <Select id="variant" value={variantId} onChange={(event) => setVariantId(event.target.value)}>
+                {product.variants.map((item) => (
+                  <option key={item.id} value={item.id} disabled={item.stock < 1}>
+                    {variantLabel(item.attributes) || item.sku} ({item.stock} tersedia)
+                  </option>
+                ))}
+              </Select>
+            </Field>
           ) : null}
 
-          <div className="space-y-1">
-            <label htmlFor="quantity" className="block font-medium text-ink">
-              Jumlah
-            </label>
-            <input
+          <Field id="quantity" label="Jumlah">
+            <Input
               id="quantity"
               type="number"
+              inputMode="numeric"
               min={1}
               max={Math.max(1, Math.min(99, available))}
               value={quantity}
               onChange={(event) => setQuantity(Math.max(1, Math.min(99, Number(event.target.value) || 1)))}
-              className="min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base"
             />
-          </div>
+          </Field>
 
           <Button
             className="w-full"
             disabled={available < 1}
             onClick={() => {
               if (available < 1) return;
-              if (product.kind === "single" && !variant) {
+              if (!variant) {
                 setNotice("Pilih varian terlebih dahulu.");
                 return;
               }
               addToCart({
                 productId: product.id,
-                variantId: product.kind === "single" ? (variant?.id ?? null) : null,
+                variantId: variant.id,
+                facultyId: null,
+                facultyName: null,
                 title: product.title,
-                variantLabel: variant ? variantLabel(variant.attributes) : "",
+                variantLabel: variantLabel(variant.attributes),
                 priceRp: unitPrice,
                 quantity: Math.min(quantity, available),
               });

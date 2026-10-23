@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as typeof import("node:sqlite");
@@ -6,7 +6,14 @@ type DatabaseSync = InstanceType<typeof DatabaseSync>;
 
 type Row = Record<string, unknown>;
 
-const DEFAULT_MIGRATION = path.resolve(import.meta.dirname, "../../db/migrations/0001_init.sql");
+const MIGRATIONS_DIR = path.resolve(import.meta.dirname, "../../db/migrations");
+
+function migrations(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+    .map((name) => path.join(MIGRATIONS_DIR, name));
+}
 
 function isReadStatement(sql: string): boolean {
   const head = sql.trim().toUpperCase();
@@ -51,10 +58,10 @@ class Statement {
 export class TestD1 {
   private readonly db: DatabaseSync;
 
-  constructor(migrationPath = DEFAULT_MIGRATION) {
+  constructor(migrationPaths = migrations()) {
     this.db = new DatabaseSync(":memory:");
     this.db.exec("PRAGMA foreign_keys = ON;");
-    this.db.exec(readFileSync(migrationPath, "utf8"));
+    for (const migrationPath of migrationPaths) this.db.exec(readFileSync(migrationPath, "utf8"));
   }
 
   prepare(sql: string): Statement {

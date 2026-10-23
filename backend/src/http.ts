@@ -3,6 +3,7 @@ export type Env = {
   DB: D1Database;
   APP_MODE: string;
   DEMO_SECRET: string;
+  APP_ORIGIN?: string;
   STAFF_DEMO_CODE?: string;
   ADMIN_DEMO_CODE?: string;
 };
@@ -17,18 +18,27 @@ export type Ctx = {
 
 export type SessionRow = {
   id: string;
+  user_id: string | null;
+  portal: "buyer" | "operator";
   csrf_hash: string;
   client_key_hash: string;
   expires_at: number;
 };
 
-export type OperatorRow = { id: string; role: "staff" | "admin" };
+export type OperatorRow = { id: string; role: "staff" | "admin"; permissions: string[] };
 
-export type Failure = { error: string; message: string };
+export const SESSION_COOKIES = {
+  buyer: { token: "mbk_sess", csrf: "mbk_csrf" },
+  operator: { token: "mbk_op_sess", csrf: "mbk_op_csrf" },
+} as const;
+
+export type Portal = keyof typeof SESSION_COOKIES;
 
 const STATUS: Record<string, number> = {
   invalid_name: 400,
   invalid_phone: 400,
+  invalid_email: 400,
+  invalid_password: 400,
   empty_cart: 400,
   too_many_items: 400,
   invalid_quantity: 400,
@@ -36,8 +46,14 @@ const STATUS: Record<string, number> = {
   invalid_item: 400,
   invalid_key: 400,
   invalid_method: 400,
+  package_unavailable: 409,
+  white_bag_not_sellable: 409,
+  package_not_publishable: 409,
+  faculty_required: 400,
   invalid_payload: 400,
   session_required: 401,
+  invalid_credentials: 401,
+  wrong_portal: 403,
   csrf_failed: 403,
   origin_rejected: 403,
   forbidden: 403,
@@ -49,6 +65,9 @@ const STATUS: Record<string, number> = {
   order_expired: 409,
   order_not_payable: 409,
   pickup_not_allowed: 409,
+  review_exists: 409,
+  review_not_allowed: 409,
+  email_unavailable: 409,
   not_ready_transition: 409,
   stock_below_reserved: 409,
   rate_limited: 429,
@@ -59,6 +78,8 @@ const STATUS: Record<string, number> = {
 const MESSAGE: Record<string, string> = {
   invalid_name: "Nama wajib diisi, maksimal 80 karakter.",
   invalid_phone: "Nomor WhatsApp tidak valid. Contoh: 081234567890.",
+  invalid_email: "Alamat email tidak valid.",
+  invalid_password: "Kata sandi minimal 8 karakter dan tidak boleh memuat email.",
   empty_cart: "Keranjang masih kosong.",
   too_many_items: "Maksimal 20 jenis item per pesanan.",
   invalid_quantity: "Jumlah per item harus 1 sampai 99.",
@@ -66,8 +87,14 @@ const MESSAGE: Record<string, string> = {
   invalid_item: "Item tidak dikenali.",
   invalid_key: "Kunci idempotensi tidak valid.",
   invalid_method: "Metode pembayaran tidak dikenali.",
+  package_unavailable: "Paket belum tersedia untuk fakultas ini.",
+  white_bag_not_sellable: "Tas putih atau natural tidak dijual pada versi ini.",
+  package_not_publishable: "Paket belum lengkap untuk dipublikasikan.",
+  faculty_required: "Pilih fakultas terlebih dahulu.",
   invalid_payload: "Permintaan tidak valid.",
-  session_required: "Sesi demo berakhir. Muat ulang halaman.",
+  session_required: "Sesi berakhir. Silakan masuk lagi.",
+  invalid_credentials: "Email atau kata sandi salah.",
+  wrong_portal: "Akun ini bukan untuk portal ini. Gunakan halaman masuk yang sesuai.",
   csrf_failed: "Token keamanan tidak cocok. Muat ulang halaman.",
   origin_rejected: "Permintaan lintas situs ditolak.",
   forbidden: "Akses ditolak.",
@@ -79,6 +106,9 @@ const MESSAGE: Record<string, string> = {
   order_expired: "Batas waktu pembayaran 30 menit sudah lewat.",
   order_not_payable: "Pesanan ini tidak bisa dibayar lagi.",
   pickup_not_allowed: "Klaim pickup tidak diizinkan untuk status ini.",
+  review_exists: "Pesanan ini sudah punya ulasan.",
+  review_not_allowed: "Ulasan hanya untuk pesanan yang sudah diterima.",
+  email_unavailable: "Email tidak tersedia untuk pesanan lama ini.",
   not_ready_transition: "Pesanan harus sudah dibayar sebelum ditandai siap.",
   stock_below_reserved: "Stok fisik tidak boleh di bawah jumlah yang sudah direservasi.",
   rate_limited: "Terlalu banyak permintaan. Coba lagi sebentar.",
@@ -93,7 +123,12 @@ export function fail(error: string, extra?: Record<string, unknown>): Response {
 export function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex, nofollow",
+      ...headers,
+    },
   });
 }
 
@@ -101,6 +136,18 @@ export async function readJson(request: Request): Promise<Record<string, unknown
   try {
     const body = await request.json();
     return body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Body dibatasi 32 KB; dipakai endpoint yang menerima data pembeli. */
+export async function readJsonLimited(request: Request, max = 32_768): Promise<Record<string, unknown> | null> {
+  try {
+    const text = await request.text();
+    if (text.length > max) return null;
+    const body = JSON.parse(text);
+    return body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : null;
   } catch {
     return null;
   }
@@ -159,21 +206,22 @@ export function ipHash(ctx: Ctx): Promise<string> {
   return clientKeyHash(ctx, clientIp(ctx.request));
 }
 
-export async function loadSession(ctx: Ctx): Promise<SessionRow | null> {
-  const token = getCookie(ctx.request, "mbk_sess");
+export async function loadSession(ctx: Ctx, portal: Portal = "buyer"): Promise<SessionRow | null> {
+  const names = SESSION_COOKIES[portal];
+  const token = getCookie(ctx.request, names.token);
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await ctx.env.DB.prepare(
-    "SELECT id, csrf_hash, client_key_hash, expires_at FROM demo_sessions WHERE token_hash = ?",
+    "SELECT id, user_id, portal, csrf_hash, client_key_hash, expires_at FROM demo_sessions WHERE token_hash = ?",
   )
     .bind(tokenHash)
     .first<SessionRow>();
-  if (!row || row.expires_at <= ctx.now) return null;
+  if (!row || row.expires_at <= ctx.now || row.portal !== portal) return null;
   return row;
 }
 
-export async function requireSession(ctx: Ctx): Promise<SessionRow | Response> {
-  const session = await loadSession(ctx);
+export async function requireSession(ctx: Ctx, portal: Portal = "buyer"): Promise<SessionRow | Response> {
+  const session = await loadSession(ctx, portal);
   return session ?? fail("session_required");
 }
 
@@ -187,19 +235,50 @@ export async function requireMutation(ctx: Ctx, session: SessionRow): Promise<Re
   return null;
 }
 
-export async function loadOperator(ctx: Ctx, session: SessionRow): Promise<OperatorRow | null> {
-  return ctx.env.DB.prepare("SELECT id, role FROM demo_operators WHERE session_id = ?")
-    .bind(session.id)
-    .first<OperatorRow>();
+async function loadOperatorRow(ctx: Ctx, session: SessionRow): Promise<OperatorRow | null> {
+  if (!session.user_id) return null;
+  const row = await ctx.env.DB.prepare(
+    "SELECT id, role, permissions FROM users WHERE id = ? AND role IN ('staff', 'admin') AND disabled = 0",
+  )
+    .bind(session.user_id)
+    .first<{ id: string; role: "staff" | "admin"; permissions: string }>();
+  if (!row) return null;
+  return { id: row.id, role: row.role, permissions: parsePermissions(row.permissions) };
+}
+
+/** Operator hanya sah lewat sesi portal operator. */
+export function loadOperator(ctx: Ctx, session: SessionRow): Promise<OperatorRow | null> {
+  return loadOperatorRow(ctx, session);
+}
+
+export function parsePermissions(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export const PERMISSIONS = ["orders.view", "orders.ready", "orders.complete"] as const;
+
+/** Izin wajib; staff default tanpa stock.adjust sampai admin memberikannya. */
+export function requirePermission(operator: OperatorRow, permission: string): Response | null {
+  if (operator.role === "admin") return null;
+  return operator.permissions.includes(permission) ? null : fail("forbidden");
 }
 
 export async function requireOperator(
   ctx: Ctx,
   session: SessionRow,
   roles: ("staff" | "admin")[],
+  permission?: string,
 ): Promise<OperatorRow | Response> {
   const operator = await loadOperator(ctx, session);
   if (!operator || !roles.includes(operator.role)) return fail("forbidden");
+  if (permission && operator.role !== "admin" && !operator.permissions.includes(permission)) {
+    return fail("forbidden");
+  }
   return operator;
 }
 
@@ -212,7 +291,10 @@ export function errorName(error: unknown): string {
     "rate_limited",
     "not_ready_transition",
     "pickup_not_allowed",
+    "review_exists",
+    "review_not_allowed",
     "stock_below_reserved",
+    "white_bag_not_sellable",
   ]) {
     if (message.includes(code)) return code;
   }

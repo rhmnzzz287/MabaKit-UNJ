@@ -1,14 +1,25 @@
 import { useEffect, useState } from "react";
+import { navigate } from "../lib/router";
+import { useWorkspace } from "../lib/workspace";
 import { get } from "../lib/api";
 import { dateTime, rupiah } from "../lib/format";
 import type { Invoice } from "../lib/types";
 import { Alert, Button, Link, PageHeader, Spinner } from "../components/ui";
 
 export default function InvoicePage({ id }: { id: string }) {
+  const workspace = useWorkspace();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ recipient: string; subject: string; body: string; invoiceUrl: string; simulated: boolean } | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (workspace.state === "loading") return;
+    if (!workspace.user) navigate("/login?next=%2Forders");
+  }, [workspace.state, workspace.user]);
+
+  useEffect(() => {
+    if (!workspace.user) return;
     let active = true;
     get<{ invoice: Invoice }>(`/api/orders/${id}/invoice`)
       .then((body) => {
@@ -20,7 +31,22 @@ export default function InvoicePage({ id }: { id: string }) {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, workspace.user]);
+
+  useEffect(() => {
+    if (!invoice) return;
+    let active = true;
+    get<{ recipient: string; subject: string; body: string; invoiceUrl: string; simulated: boolean }>(`/api/orders/${id}/email-preview`)
+      .then((body) => {
+        if (active) setPreview(body);
+      })
+      .catch((issue: unknown) => {
+        if (active) setPreviewError(issue instanceof Error ? issue.message : "Pratinjau email tidak tersedia.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [id, invoice]);
 
   if (error) {
     return (
@@ -46,7 +72,7 @@ export default function InvoicePage({ id }: { id: string }) {
       </div>
 
       <div className="rounded-lg border border-warn-fg bg-warn-bg p-3 font-semibold text-warn-fg" role="note">
-        {invoice.watermark}. Invoice ini bukan faktur pajak dan tidak diterbitkan sistem pembayaran nyata.
+        Dokumen percobaan, bukan bukti pembayaran sah. {invoice.watermark}.
       </div>
 
       <article className="space-y-6 rounded-xl border border-slate-200 bg-white p-6">
@@ -77,10 +103,10 @@ export default function InvoicePage({ id }: { id: string }) {
 
         <section className="grid gap-4 sm:grid-cols-2">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Penerima</h2>
-            <p className="font-medium text-ink">{order.recipientName}</p>
-            <p className="text-sm text-muted">Pemesan: {order.buyerName}</p>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Pemesan</h2>
+            <p className="font-medium text-ink">{order.buyerName}</p>
             <p className="text-sm text-muted">{order.contactPhone}</p>
+            {order.email ? <p className="text-sm text-muted">{order.email}</p> : null}
           </div>
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Pengambilan</h2>
@@ -113,7 +139,12 @@ export default function InvoicePage({ id }: { id: string }) {
               <tr key={item.id} className="border-b border-slate-100">
                 <td className="py-2 text-ink">{item.title}</td>
                 <td className="py-2 text-right text-ink">{item.quantity}</td>
-                <td className="py-2 text-right text-ink">{rupiah(item.unitPriceRp)}</td>
+                <td className="py-2 text-right text-ink">
+                  {(item.discountBasisPoints ?? 0) > 0 ? (
+                    <s className="mr-1 text-xs text-muted">{rupiah(item.basePriceRp ?? item.unitPriceRp)}</s>
+                  ) : null}
+                  {rupiah(item.unitPriceRp)}
+                </td>
                 <td className="py-2 text-right font-medium text-ink">{rupiah(item.lineTotalRp)}</td>
               </tr>
             ))}
@@ -123,7 +154,9 @@ export default function InvoicePage({ id }: { id: string }) {
               <th scope="row" colSpan={3} className="py-3 text-right">
                 Total
               </th>
-              <td className="py-3 text-right text-lg font-bold text-ink">{rupiah(order.totalRp)}</td>
+              <td className="py-3 text-right text-lg font-bold text-ink">
+                {order.totalRp === 0 ? "Gratis" : rupiah(order.totalRp)}
+              </td>
             </tr>
           </tfoot>
         </table>
@@ -133,6 +166,27 @@ export default function InvoicePage({ id }: { id: string }) {
           {order.fulfillmentStatus}.
         </p>
       </article>
+
+      <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="text-lg font-semibold text-ink">Pratinjau email invoice</h2>
+        <p className="text-sm text-muted">
+          Simulasi email, tidak ada email dikirim. Preview memakai snapshot email dan invoice pesanan ini.
+        </p>
+        {previewError ? <Alert tone="warn">{previewError}</Alert> : null}
+        {!preview && !previewError ? <p className="text-muted">Memuat pratinjau...</p> : null}
+        {preview ? (
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <dl className="grid gap-1 text-sm sm:grid-cols-[120px_minmax(0,1fr)]">
+              <dt className="text-muted">Penerima</dt>
+              <dd className="font-medium text-ink">{preview.recipient}</dd>
+              <dt className="text-muted">Subject</dt>
+              <dd className="font-medium text-ink">{preview.subject}</dd>
+            </dl>
+            <p className="whitespace-pre-line text-sm text-ink">{preview.body}</p>
+            <p className="text-sm font-medium text-warn-fg">Simulasi email, tidak ada email dikirim.</p>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

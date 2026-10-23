@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { batch, openDb, seed } from "./db";
+import { batch, openDb, seed, seedDemo } from "./db";
 
 const NOW = 1_700_000_000_000;
 
@@ -26,6 +26,23 @@ function checkoutStatements(orderId: string, variantId: string, quantity: number
     { sql: `INSERT INTO payments (order_id, mode, method) VALUES (?, 'DEMO', 'QRIS')`, params: [orderId] },
   ];
 }
+
+describe("guard tas putih", () => {
+  test("varian tas putih ditolak sejak INSERT, bukan hanya saat checkout", () => {
+    const db = openDb();
+    seedDemo(db);
+    expect(() =>
+      db
+        .prepare(
+          `INSERT INTO variants (id, product_id, sku, attributes, price_rp, stock_on_hand, active, sellable, version, created_at, updated_at)
+           VALUES ('v-totebag-putih', 'p-goodie', 'TOTEBAG-01', '{"warna":"putih"}', 25000, 5, 1, 1, 1, ?, ?)`,
+        )
+        .run(NOW, NOW),
+    ).toThrow(/white_bag_not_sellable/);
+    const sellable = db.prepare("SELECT sellable FROM variants WHERE id = 'v-goodie'").get() as { sellable: number };
+    expect(sellable.sellable).toBe(0);
+  });
+});
 
 describe("guard transaksi D1", () => {
   test("oversell membatalkan seluruh batch, termasuk order dan item", () => {
@@ -153,20 +170,20 @@ describe("guard transaksi D1", () => {
     expect(variant).toEqual({ stock_on_hand: 2, stock_reserved: 0 });
   });
 
-  test("READY hanya setelah PAID lalu klaim pickup sekali", () => {
+  test("READY hanya setelah PAID lalu serah terima hanya dari READY", () => {
     const db = openDb();
     seed(db);
     batch(db, checkoutStatements("o-1", "v-a", 1));
     expect(() => db.exec("UPDATE orders SET fulfillment_status = 'READY' WHERE id = 'o-1'")).toThrow(/not_ready_transition/);
-    batch(db, [{ sql: `UPDATE payments SET confirmed_at = ? WHERE order_id = 'o-1'`, params: [NOW + 1000] }]);
-    db.exec("UPDATE orders SET fulfillment_status = 'READY', ready_at = " + (NOW + 2000) + " WHERE id = 'o-1'");
-    db.exec(
-      "INSERT INTO pickup_tickets (order_id, token_hash, issued_at) VALUES ('o-1', 'hash-token', " + (NOW + 3000) + ")",
-    );
-    db.exec("UPDATE pickup_tickets SET claimed_at = " + (NOW + 4000) + " WHERE order_id = 'o-1'");
-    expect(() => db.exec("UPDATE pickup_tickets SET claimed_at = " + (NOW + 5000) + " WHERE order_id = 'o-1'")).toThrow(
+    expect(() => db.exec("UPDATE orders SET fulfillment_status = 'PICKED_UP' WHERE id = 'o-1'")).toThrow(
       /pickup_not_allowed/,
     );
+    batch(db, [{ sql: `UPDATE payments SET confirmed_at = ? WHERE order_id = 'o-1'`, params: [NOW + 1000] }]);
+    db.exec("UPDATE orders SET fulfillment_status = 'READY', ready_at = " + (NOW + 2000) + " WHERE id = 'o-1'");
+    db.exec("UPDATE orders SET fulfillment_status = 'PICKED_UP', picked_up_at = " + (NOW + 4000) + " WHERE id = 'o-1'");
+    expect(db.prepare("SELECT fulfillment_status FROM orders WHERE id = 'o-1'").get()).toEqual({
+      fulfillment_status: "PICKED_UP",
+    });
   });
 
   test("stock adjustment di bawah reservasi ditolak", () => {

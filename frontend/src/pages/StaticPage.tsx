@@ -43,7 +43,7 @@ export default function StaticPage({ page }: { page: keyof typeof COPY }) {
           </li>
         ))}
       </ul>
-      <Link to="/" className="font-semibold text-brand underline">
+      <Link to="/catalog" className="font-semibold text-brand underline">
         Kembali ke katalog
       </Link>
     </div>

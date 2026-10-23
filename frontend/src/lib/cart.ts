@@ -1,12 +1,29 @@
-export type CartLine = { productId: string; variantId: string | null; title: string; variantLabel: string; priceRp: number; quantity: number };
+export type CartLine = {
+  productId: string;
+  variantId: string | null;
+  facultyId: string | null;
+  facultyName: string | null;
+  title: string;
+  variantLabel: string;
+  priceRp: number;
+  quantity: number;
+};
 
-const KEY = "mabakit.cart.v1";
+const KEY = "mabakit.cart.v2";
 const listeners = new Set<() => void>();
+
+/** Kunci baris: konfigurasi berbeda (termasuk fakultas) tidak boleh tergabung. */
+export function lineKey(line: Pick<CartLine, "productId" | "variantId" | "facultyId">): string {
+  return `${line.productId}::${line.variantId ?? ""}::${line.facultyId ?? ""}`;
+}
 
 function read(): CartLine[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-    return Array.isArray(parsed) ? (parsed as CartLine[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as CartLine[]).filter(
+      (line) => line && typeof line.productId === "string" && typeof line.priceRp === "number" && typeof line.quantity === "number",
+    );
   } catch {
     return [];
   }
@@ -31,30 +48,34 @@ export function cartTotal(): number {
 
 export function subscribeCart(listener: () => void): () => void {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function addToCart(line: CartLine): void {
   const lines = read();
-  const existing = lines.find((item) => item.productId === line.productId && item.variantId === line.variantId);
+  const key = lineKey(line);
+  const existing = lines.find((item) => lineKey(item) === key);
   if (existing) existing.quantity = Math.min(99, existing.quantity + line.quantity);
   else lines.push(line);
   write(lines);
 }
 
-export function setQuantity(productId: string, variantId: string | null, quantity: number): void {
-  const lines = read()
-    .map((line) =>
-      line.productId === productId && line.variantId === variantId
-        ? { ...line, quantity: Math.max(1, Math.min(99, quantity)) }
-        : line,
-    )
-    .filter((line) => line.quantity > 0);
-  write(lines);
+export function updateLine(key: string, changes: Partial<Pick<CartLine, "quantity" | "facultyId" | "facultyName" | "variantLabel" | "priceRp">>): void {
+  write(
+    read()
+      .map((line) => (lineKey(line) === key ? { ...line, ...changes } : line))
+      .filter((line) => line.quantity > 0),
+  );
 }
 
-export function removeLine(productId: string, variantId: string | null): void {
-  write(read().filter((line) => !(line.productId === productId && line.variantId === variantId)));
+export function setQuantity(key: string, quantity: number): void {
+  updateLine(key, { quantity: Math.max(1, Math.min(99, quantity)) });
+}
+
+export function removeLine(key: string): void {
+  write(read().filter((line) => lineKey(line) !== key));
 }
 
 export function clearCart(): void {
@@ -65,10 +86,15 @@ export function newCheckoutKey(): string {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 32);
 }
 
-export function checkoutPayload(status: { buyerName: string; recipientName: string; contactPhone: string; method: string }) {
+export function checkoutPayload(status: { buyerName: string; contactPhone: string; email: string; method: string }) {
   return {
     ...status,
     departmentId: null,
-    items: read().map((line) => ({ productId: line.productId, variantId: line.variantId, quantity: line.quantity })),
+    items: read().map((line) => ({
+      productId: line.productId,
+      variantId: line.variantId,
+      facultyId: line.facultyId,
+      quantity: line.quantity,
+    })),
   };
 }
