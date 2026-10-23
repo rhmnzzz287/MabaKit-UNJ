@@ -34,9 +34,13 @@ export function Link({
 }
 
 const BUTTON_STYLES = {
-  primary: "bg-brand text-white hover:bg-brand-dark disabled:opacity-60",
-  secondary: "border border-line bg-white text-ink hover:bg-brand-tint disabled:opacity-60",
-  danger: "border border-danger bg-white text-danger hover:bg-red-50 disabled:opacity-60",
+  primary:
+    "bg-brand text-white shadow-sm hover:bg-brand-dark hover:shadow-md active:translate-y-px disabled:opacity-60 disabled:shadow-none",
+  secondary:
+    "border border-slate-300 bg-white text-ink hover:border-brand hover:bg-brand-tint active:translate-y-px disabled:opacity-60",
+  quiet: "text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand disabled:opacity-60",
+  danger:
+    "border border-danger bg-white text-danger hover:bg-red-50 active:translate-y-px disabled:opacity-60",
 } as const;
 
 export function Button({
@@ -46,6 +50,7 @@ export function Button({
   onClick,
   disabled,
   className = "",
+  full,
 }: {
   children: ReactNode;
   type?: "button" | "submit";
@@ -53,16 +58,50 @@ export function Button({
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  full?: boolean;
 }) {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex min-h-12 items-center justify-center rounded-lg px-6 font-semibold transition-colors ${BUTTON_STYLES[variant]} ${className}`}
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 font-semibold transition-all duration-150 ${
+        BUTTON_STYLES[variant]
+      } ${full ? "w-full" : ""} ${className}`}
     >
       {children}
     </button>
+  );
+}
+
+/** Tautan berbentuk tombol, supaya CTA navigasi tidak butuh inline style berulang. */
+export function ButtonLink({
+  to,
+  children,
+  variant = "primary",
+  className = "",
+  external,
+}: {
+  to: string;
+  children: ReactNode;
+  variant?: keyof typeof BUTTON_STYLES;
+  className?: string;
+  external?: boolean;
+}) {
+  const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 font-semibold transition-all duration-150 ${
+    BUTTON_STYLES[variant]
+  } ${className}`;
+  if (external) {
+    return (
+      <a href={to} className={classes} rel="noreferrer noopener" target="_blank">
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link to={to} className={classes}>
+      {children}
+    </Link>
   );
 }
 
@@ -81,7 +120,7 @@ export function Field({
 }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="block font-medium text-ink">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink">
         {label}
       </label>
       {children}
@@ -100,7 +139,7 @@ export function Field({
 }
 
 const CONTROL =
-  "min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base text-ink placeholder:text-muted";
+  "min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-ink transition-colors placeholder:text-slate-500 hover:border-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-muted";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${CONTROL} ${props.className ?? ""}`} />;
@@ -111,18 +150,18 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 }
 
 export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${CONTROL} min-h-24 py-2 ${props.className ?? ""}`} />;
+  return <textarea {...props} className={`${CONTROL} min-h-24 py-3 ${props.className ?? ""}`} />;
 }
 
 export function Alert({ tone = "info", children }: { tone?: "info" | "warn" | "error"; children: ReactNode }) {
   const styles =
     tone === "error"
-      ? "border-danger bg-red-50 text-danger"
+      ? "border-red-200 bg-red-50 text-danger"
       : tone === "warn"
-        ? "border-warn-fg bg-warn-bg text-warn-fg"
-        : "border-brand bg-brand-tint text-brand-dark";
+        ? "border-amber-200 bg-warn-bg text-warn-fg"
+        : "border-emerald-200 bg-brand-tint text-brand-dark";
   return (
-    <div className={`rounded-lg border p-4 text-sm ${styles}`} role={tone === "error" ? "alert" : "status"}>
+    <div className={`rounded-xl border p-4 text-sm leading-relaxed ${styles}`} role={tone === "error" ? "alert" : "status"}>
       {children}
     </div>
   );
@@ -131,18 +170,25 @@ export function Alert({ tone = "info", children }: { tone?: "info" | "warn" | "e
 export function StatusBadge({ status }: { status: string }) {
   const tone =
     status === "PAID" || status === "READY"
-      ? "bg-brand-tint text-brand-dark border-brand"
+      ? "bg-brand-tint text-brand-dark ring-emerald-200"
       : status === "EXPIRED" || status === "CANCELLED"
-        ? "bg-slate-100 text-muted border-line"
-        : "bg-warn-bg text-warn-fg border-warn-fg";
-  return <span className={`inline-block rounded-full border px-4 py-2 text-sm font-medium ${tone}`}>{statusLabel(status)}</span>;
+        ? "bg-slate-100 text-muted ring-slate-200"
+        : "bg-warn-bg text-warn-fg ring-amber-200";
+  return (
+    <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${tone}`}>
+      {statusLabel(status)}
+    </span>
+  );
 }
 
-export function PageHeader({ title, description }: { title: string; description?: string }) {
+export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
-    <header className="space-y-2">
-      <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
-      {description ? <p className="max-w-2xl text-muted">{description}</p> : null}
+    <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        {description ? <p className="max-w-2xl text-muted">{description}</p> : null}
+      </div>
+      {actions}
     </header>
   );
 }
@@ -150,7 +196,8 @@ export function PageHeader({ title, description }: { title: string; description?
 /** Keterangan percobaan pembayaran. Hanya dipakai di alur pembayaran dan invoice. */
 export function SimulasiBadge() {
   return (
-    <p className="inline-flex items-center rounded-full bg-warn-bg px-4 py-2 text-sm font-semibold text-warn-fg">
+    <p className="inline-flex items-center gap-2 rounded-full bg-warn-bg px-4 py-2 text-sm font-semibold text-warn-fg">
+      <span aria-hidden="true" className="size-2 rounded-full bg-warn-fg" />
       SIMULASI, bukan pembayaran nyata
     </p>
   );
@@ -179,7 +226,11 @@ export function ProductPhoto({
 }) {
   if (!src) {
     return (
-      <div className={`flex items-center justify-center bg-brand-tint text-sm font-medium text-brand-dark ${className}`}>
+      <div
+        className={`flex items-center justify-center bg-brand-tint text-sm font-medium text-brand-dark ${className}`}
+        role="img"
+        aria-label={alt}
+      >
         Foto belum tersedia
       </div>
     );
@@ -202,8 +253,59 @@ export function ProductPhoto({
 
 export function Spinner({ label = "Memuat" }: { label?: string }) {
   return (
-    <p className="py-8 text-center text-muted" role="status">
+    <p className="flex items-center justify-center gap-3 py-12 text-muted" role="status">
+      <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-brand" />
       {label}...
     </p>
+  );
+}
+
+/** Kartu dasar untuk konten berulang: paket, produk, ringkasan, form. */
+export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`card ${className}`}>{children}</div>;
+}
+
+export function SectionTitle({ id, title, description, action }: { id?: string; title: string; description?: string; action?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="space-y-2">
+        <h2 id={id} className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
+          {title}
+        </h2>
+        {description ? <p className="max-w-2xl text-muted">{description}</p> : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/** Baris harga: harga akhir tebal, harga dasar dicoret bila ada diskon. */
+export function Price({
+  finalRp,
+  baseRp,
+  discountBasisPoints,
+  size = "md",
+}: {
+  finalRp: number;
+  baseRp?: number;
+  discountBasisPoints?: number;
+  size?: "sm" | "md" | "lg";
+}) {
+  const money = (value: number) =>
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
+  const scale = size === "lg" ? "text-2xl sm:text-3xl" : size === "sm" ? "text-base" : "text-lg";
+  const discounted = (discountBasisPoints ?? 0) > 0 && (baseRp ?? 0) > finalRp;
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <span className={`${scale} font-bold tracking-tight text-ink`}>{finalRp === 0 ? "Gratis" : money(finalRp)}</span>
+      {discounted ? (
+        <>
+          <span className="text-sm text-muted line-through">{money(baseRp ?? 0)}</span>
+          <span className="rounded-md bg-brand-tint px-2 py-1 text-xs font-bold text-brand-dark">
+            -{(discountBasisPoints ?? 0) / 100}%
+          </span>
+        </>
+      ) : null}
+    </div>
   );
 }

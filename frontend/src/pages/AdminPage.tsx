@@ -244,25 +244,44 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Admin"
-        description="Setiap perubahan dicatat di audit log. Pembayaran tetap simulasi, tidak ada gateway pembayaran nyata."
-      />
-
-      <nav aria-label="Bagian admin" className="flex flex-wrap gap-2">
-        {SECTIONS.map((item) => (
+      <header className="rounded-2xl bg-ink px-6 py-5 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-white/60">Panel admin</p>
+            <p className="text-xl font-black tracking-tight">MabaKit</p>
+            <p className="text-sm text-white/70">Setiap perubahan dicatat di audit log.</p>
+          </div>
           <Link
-            key={item.id}
-            to={`/admin/${item.id}`}
-            ariaCurrent={active === item.id ? "page" : undefined}
-            className={`inline-flex min-h-12 items-center rounded-lg border px-4 text-sm font-semibold ${
-              active === item.id ? "border-brand bg-brand-tint text-brand-dark" : "border-line bg-white text-ink hover:bg-brand-tint"
-            }`}
+            to="/team"
+            className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
-            {item.label}
+            Workspace tim
           </Link>
-        ))}
-      </nav>
+        </div>
+      </header>
+
+      <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav aria-label="Bagian admin" className="lg:sticky lg:top-24 lg:h-fit">
+          <ul className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+            {SECTIONS.map((item) => (
+              <li key={item.id} className="shrink-0 lg:shrink">
+                <Link
+                  to={`/admin/${item.id}`}
+                  ariaCurrent={active === item.id ? "page" : undefined}
+                  className={`flex min-h-12 items-center rounded-xl px-4 text-sm font-semibold transition-colors ${
+                    active === item.id
+                      ? "bg-brand text-white"
+                      : "text-ink hover:bg-brand-tint hover:text-brand-dark"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="min-w-0 space-y-8">
 
       <div hidden={active !== "ringkasan"}>
       <SummarySection summary={summary} onAuthError={onAuthError} refresh={load} />
@@ -276,13 +295,13 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
       >
         <div className="grid gap-3 sm:grid-cols-3">
           {(["pending", "paid", "ready"] as const).map((key) => (
-            <div key={key} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div key={key} className="card p-4">
               <p className="text-sm text-muted">{COUNT_LABELS.find(([name]) => name === key)?.[1] ?? key}</p>
               <p className="text-2xl font-bold text-ink">{summary.counts[key]}</p>
             </div>
           ))}
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="card p-4">
           <p className="text-sm text-muted">
             Tandai siap diambil dan selesaikan pesanan dari antrean tim. Perubahan status langsung terlihat di halaman
             pembeli.
@@ -314,7 +333,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
           {catalog.products
             .filter((product) => product.kind === "bundle")
             .map((product) => (
-              <li key={product.id} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+              <li key={product.id} className="space-y-4 card p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-semibold text-ink">{product.title}</h3>
                   <span className="text-sm text-muted">
@@ -368,7 +387,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
       >
         <ul className="space-y-3">
           {catalog.faculties.map((faculty) => (
-            <li key={faculty.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <li key={faculty.id} className="card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="font-semibold text-ink">{faculty.name}</h3>
                 <span className="text-sm text-muted">{faculty.active ? "Aktif" : "Nonaktif"}</span>
@@ -449,7 +468,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
       <Section id="audit" title="Audit" description="Seratus catatan terakhir. Respons audit tidak memuat email pelaku.">
         {audit.length === 0 ? <p className="text-muted">Belum ada catatan.</p> : null}
         {audit.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-x-auto card">
             <table className="w-full min-w-[36rem] text-left text-sm">
               <thead className="border-b border-slate-200 text-muted">
                 <tr>
@@ -474,8 +493,11 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
             </table>
           </div>
         ) : null}
-      </Section>      </div>
+      </Section>
+      </div>
 
+        </div>
+      </div>
     </div>
   );
 }
@@ -500,14 +522,14 @@ function SummarySection({
     >
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {COUNT_LABELS.map(([key, label]) => (
-          <div key={key} className="rounded-xl border border-slate-200 bg-white p-4">
+          <div key={key} className="card p-4">
             <p className="text-sm text-muted">{label}</p>
             <p className="text-2xl font-bold text-ink">{summary.counts[key]}</p>
           </div>
         ))}
       </div>
 
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="space-y-3 card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-ink">Checkout</h3>
@@ -551,7 +573,7 @@ function PickupForm({
   return (
     <form
       noValidate
-      className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+      className="space-y-3 card p-4"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -611,7 +633,7 @@ function CatalogSection({
     >
       <form
         noValidate
-        className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+        className="space-y-3 card p-4"
         onSubmit={(event) => {
           event.preventDefault();
           const form = event.currentTarget;
@@ -684,7 +706,7 @@ function ProductCard({
   const action = useAction(onAuthError, refresh);
 
   return (
-    <li className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+    <li className="space-y-4 card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-ink">{product.title}</h3>
@@ -1326,7 +1348,7 @@ function StockRow({
   const action = useAction(onAuthError, refresh);
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4">
+    <li className="card p-4">
       <form
         noValidate
         className="flex flex-wrap items-end gap-3"
@@ -1385,7 +1407,7 @@ function SalesExportSection() {
   if (to) query.set("to", to);
   const suffix = query.toString() ? `?${query.toString()}` : "";
   return (
-    <section aria-labelledby="ekspor-heading" className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <section aria-labelledby="ekspor-heading" className="space-y-3 card p-4">
       <h2 id="ekspor-heading" className="font-semibold text-ink">Ekspor penjualan</h2>
       <p className="text-sm text-muted">
         CSV semua transaksi berstatus dibayar pada rentang tanggal WIB. Tanpa nama, email, atau nomor telepon pembeli.
@@ -1466,22 +1488,22 @@ function KpiSection({ onAuthError }: { onAuthError: () => void }) {
       {kpi ? (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="card p-4">
               <p className="text-sm text-muted">Nilai pembayaran</p>
               <p className="text-2xl font-bold text-ink">{rupiah(kpi.sales.paidValueRp)}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="card p-4">
               <p className="text-sm text-muted">Pesanan dibayar</p>
               <p className="text-2xl font-bold text-ink">{kpi.sales.paidOrders}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="card p-4">
               <p className="text-sm text-muted">Transisi tanpa pelaku</p>
               <p className="text-2xl font-bold text-ink">
                 {kpi.unattributed.readyCount + kpi.unattributed.completeCount}
               </p>
             </div>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-x-auto card">
             <table className="w-full min-w-[36rem] text-left text-sm">
               <thead className="border-b border-slate-200 text-muted">
                 <tr>
@@ -1545,7 +1567,7 @@ function CreateStaffForm({ onAuthError, refresh }: { onAuthError: () => void; re
 
   return (
     <form
-      className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+      className="space-y-3 card p-4"
       onSubmit={(event) => {
         event.preventDefault();
         void action.exec(async () => {
@@ -1639,7 +1661,7 @@ function OperatorRow({
   const [permissions, setPermissions] = useState<string[]>(operator.permissions);
 
   return (
-    <li className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+    <li className="space-y-2 card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-medium text-ink">{operator.name || operator.email}</p>

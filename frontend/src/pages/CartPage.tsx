@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { cartLines, cartTotal, lineKey, removeLine, setQuantity, subscribeCart } from "../lib/cart";
 import { rupiah } from "../lib/format";
-import { Alert, Button, Link, PageHeader } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Link, PageHeader, Price } from "../components/ui";
 
 export default function CartPage() {
   const [lines, setLines] = useState(cartLines);
@@ -9,76 +9,108 @@ export default function CartPage() {
   useEffect(() => subscribeCart(() => setLines(cartLines())), []);
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Keranjang" description="Periksa jumlah dan estimasi sebelum lanjut ke checkout simulasi." />
+    <div className="space-y-8">
+      <PageHeader
+        title="Keranjang"
+        description="Periksa jumlah dan estimasi sebelum lanjut ke checkout simulasi."
+        actions={
+          lines.length > 0 ? (
+            <ButtonLink to="/catalog" variant="secondary">
+              Tambah item lain
+            </ButtonLink>
+          ) : undefined
+        }
+      />
 
       {lines.length === 0 ? (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
-          <p className="text-muted">Keranjang masih kosong.</p>
-          <Link to="/catalog" className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white">
-            Lihat katalog
-          </Link>
-        </div>
+        <Card className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+          <span aria-hidden="true" className="grid size-14 place-items-center rounded-2xl bg-brand-tint text-2xl">
+            🛒
+          </span>
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-ink">Keranjang masih kosong</p>
+            <p className="text-muted">Mulai dari paket fakultas atau produk satuan.</p>
+          </div>
+          <ButtonLink to="/catalog">Lihat katalog</ButtonLink>
+        </Card>
       ) : (
-        <>
-          <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.5fr)]">
+          <ul className="space-y-4">
             {lines.map((line) => {
               const key = lineKey(line);
               return (
-                <li key={key} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                  <div className="flex-1">
-                    <p className="font-semibold text-ink">{line.title}</p>
-                    {line.facultyName ? <p className="text-sm text-muted">Fakultas {line.facultyName}</p> : null}
-                    {line.variantLabel && line.variantLabel !== line.facultyName ? (
-                      <p className="text-sm text-muted">{line.variantLabel}</p>
-                    ) : null}
-                    <p className="text-sm text-muted">{rupiah(line.priceRp)} per unit</p>
-                    {line.variantId === null ? (
-                      <Link
-                        to={`/packages/${line.productId}/customize`}
-                        onClick={() => removeLine(key)}
-                        className="inline-flex min-h-12 items-center text-sm font-semibold text-brand underline"
-                      >
-                        Ubah fakultas paket
-                      </Link>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor={`qty-${key}`} className="text-sm text-muted">
-                      Jumlah
-                    </label>
-                    <input
-                      id={`qty-${key}`}
-                      type="number"
-                      min={1}
-                      max={99}
-                      value={line.quantity}
-                      onChange={(event) => setQuantity(key, Math.max(1, Math.min(99, Number(event.target.value) || 1)))}
-                      className="min-h-12 w-20 rounded-lg border border-line bg-white px-2 text-center text-base"
-                    />
-                  </div>
-                  <p className="w-32 font-semibold text-ink">{rupiah(line.priceRp * line.quantity)}</p>
-                  <Button variant="danger" onClick={() => removeLine(key)}>
-                    Hapus
-                  </Button>
+                <li key={key}>
+                  <Card className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="font-semibold text-ink">{line.title}</p>
+                      {line.facultyName ? (
+                        <p className="text-sm text-muted">
+                          Fakultas <span className="font-medium text-ink">{line.facultyName}</span>
+                        </p>
+                      ) : null}
+                      {line.variantLabel && line.variantLabel !== line.facultyName ? (
+                        <p className="text-sm text-muted">{line.variantLabel}</p>
+                      ) : null}
+                      <p className="text-sm text-muted">{rupiah(line.priceRp)} per unit</p>
+                      {line.variantId === null ? (
+                        <Link
+                          to={`/packages/${line.productId}/customize`}
+                          onClick={() => removeLine(key)}
+                          className="inline-flex min-h-12 items-center text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+                        >
+                          Ubah fakultas paket
+                        </Link>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label htmlFor={`qty-${key}`} className="text-sm font-medium text-muted">
+                        Jumlah
+                      </label>
+                      <input
+                        id={`qty-${key}`}
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={line.quantity}
+                        onChange={(event) => setQuantity(key, Math.max(1, Math.min(99, Number(event.target.value) || 1)))}
+                        className="min-h-12 w-20 rounded-xl border border-slate-300 px-2 text-center text-base focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-4 sm:w-32 sm:flex-col sm:items-end">
+                      <Price finalRp={line.priceRp * line.quantity} size="sm" />
+                      <Button variant="danger" onClick={() => removeLine(key)}>
+                        Hapus
+                      </Button>
+                    </div>
+                  </Card>
                 </li>
               );
             })}
           </ul>
 
-          <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-lg">
-              Total estimasi <strong className="text-ink">{rupiah(cartTotal())}</strong>
-            </p>
-            <Link
-              to="/checkout"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-dark"
-            >
-              Lanjut checkout
-            </Link>
-          </div>
-          <Alert tone="info">Total final dan ketersediaan stok dihitung ulang di server saat pesanan dibuat.</Alert>
-        </>
+          <aside className="sticky top-24 h-fit space-y-6">
+            <Card className="space-y-4 p-6">
+              <h2 className="text-lg font-bold tracking-tight text-ink">Ringkasan</h2>
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted">Jumlah item</dt>
+                  <dd className="font-medium text-ink">{lines.reduce((sum, line) => sum + line.quantity, 0)}</dd>
+                </div>
+                <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base">
+                  <dt className="font-semibold text-ink">Total estimasi</dt>
+                  <dd>
+                    <Price finalRp={cartTotal()} />
+                  </dd>
+                </div>
+              </dl>
+              <ButtonLink to="/checkout" className="w-full">
+                Lanjut checkout
+              </ButtonLink>
+              <p className="text-center text-sm text-muted">Checkout memerlukan akun pembeli.</p>
+            </Card>
+            <Alert tone="info">Total final dan ketersediaan stok dihitung ulang di server saat pesanan dibuat.</Alert>
+          </aside>
+        </div>
       )}
     </div>
   );

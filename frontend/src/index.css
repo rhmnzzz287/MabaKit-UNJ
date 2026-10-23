@@ -3,7 +3,7 @@
 @theme {
   --color-brand: #047857;
   --color-brand-dark: #064e3b;
-  --color-brand-tint: #f0fdf4;
+  --color-brand-tint: #ecfdf5;
   --color-ink: #0f172a;
   --color-muted: #475569;
   --color-line: #64748b;
@@ -11,19 +11,59 @@
   --color-warn-fg: #92400e;
   --color-danger: #b91c1c;
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 8px 24px -12px rgb(15 23 42 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.08), 0 16px 32px -16px rgb(15 23 42 / 0.28);
 }
 
 :root {
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--color-ink);
-  background-color: #f8fafc;
+  background-color: #f6f8f7;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-width: 320px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 3px solid var(--color-brand);
   outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Kartu dasar: satu tempat untuk border, radius, dan bayangan. */
+@utility card {
+  border-radius: var(--radius-card);
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+@utility card-lift {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+/* Latar dekoratif hero, murni CSS supaya tidak menambah aset atau JS. */
+@utility hero-wash {
+  background-image:
+    radial-gradient(64rem 32rem at 12% -10%, #d1fae5 0%, transparent 60%),
+    radial-gradient(48rem 24rem at 92% 8%, #e0f2fe 0%, transparent 55%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

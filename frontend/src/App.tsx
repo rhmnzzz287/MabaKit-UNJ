@@ -43,40 +43,53 @@ function NavLinks({
   signedIn,
   operatorRole,
   count,
-  stacked = false,
+  current,
 }: {
   signedIn: boolean;
   operatorRole: "staff" | "admin" | null;
   count: number;
-  stacked?: boolean;
+  current: string;
 }) {
-  const item = `min-h-12 content-center text-ink hover:underline ${stacked ? "px-2" : ""}`;
+  const item = (to: string, extra = "") =>
+    `inline-flex min-h-12 items-center rounded-xl px-4 text-sm font-semibold transition-colors ${
+      current === to || (to !== "/" && current.startsWith(to))
+        ? "bg-brand-tint text-brand-dark"
+        : "text-ink hover:bg-slate-100"
+    } ${extra}`;
   return (
     <>
       {NAV.map((entry) => (
-        <Link key={entry.to} to={entry.to} className={item}>
+        <Link key={entry.to} to={entry.to} className={item(entry.to)}>
           {entry.label}
         </Link>
       ))}
-      <Link to="/cart" className={item}>
-        Keranjang{count > 0 ? ` (${count})` : ""}
+      <Link to="/cart" className={item("/cart")}>
+        Keranjang
+        {count > 0 ? (
+          <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 text-xs font-bold text-white">
+            {count}
+          </span>
+        ) : null}
       </Link>
       {signedIn ? (
         <>
-          <Link to="/profile" className={item}>
-            Akun
-          </Link>
-          <Link to="/orders" className={item}>
+          <Link to="/orders" className={item("/orders")}>
             Pesanan Saya
+          </Link>
+          <Link to="/profile" className={item("/profile")}>
+            Akun
           </Link>
         </>
       ) : (
-        <Link to="/login" className={`${item} font-semibold text-brand underline`}>
+        <Link
+          to="/login"
+          className="inline-flex min-h-12 items-center rounded-xl bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+        >
           Masuk
         </Link>
       )}
       {operatorRole ? (
-        <Link to="/team" className={item}>
+        <Link to="/team" className={item("/team", "border border-line")}>
           Workspace tim
         </Link>
       ) : null}
@@ -163,7 +176,11 @@ export default function App() {
       "/team/orders": "Pesanan tim",
       "/admin": "Admin",
     };
-    document.title = `${titles[path] ?? "MabaKit"} | MabaKit`;
+    const section = path.startsWith("/admin/") ? path.slice("/admin/".length) : "";
+    const adminTitle = section
+      ? section.charAt(0).toUpperCase() + section.slice(1)
+      : null;
+    document.title = `${titles[path] ?? adminTitle ?? "MabaKit"} | MabaKit`;
   }, [path]);
 
   return (
@@ -174,9 +191,15 @@ export default function App() {
       >
         Lewati ke konten
       </a>
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
-          <Link to="/" className="min-h-12 content-center text-lg font-bold text-brand-dark">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
+          <Link to="/" className="flex min-h-12 items-center gap-3 text-lg font-bold text-brand-dark">
+            <span
+              aria-hidden="true"
+              className="grid size-9 place-items-center rounded-xl bg-brand text-sm font-black text-white"
+            >
+              M
+            </span>
             MabaKit
           </Link>
           <button
@@ -184,38 +207,48 @@ export default function App() {
             aria-expanded={menuOpen}
             aria-controls="nav-utama"
             onClick={() => setMenuOpen((open) => !open)}
-            className="min-h-12 rounded-lg border border-line px-4 font-semibold text-ink md:hidden"
+            className="min-h-12 rounded-xl border border-slate-300 px-4 font-semibold text-ink md:hidden"
           >
-            Menu
+            {menuOpen ? "Tutup" : "Menu"}
           </button>
           <nav
             id="nav-utama"
             aria-label="Navigasi utama"
-            className={`${menuOpen ? "flex" : "hidden"} w-full flex-col gap-x-4 text-sm font-medium md:flex md:w-auto md:flex-row md:flex-wrap md:items-center`}
+            className={`${menuOpen ? "flex" : "hidden"} w-full flex-col gap-1 pb-3 md:flex md:w-auto md:flex-row md:flex-wrap md:items-center md:gap-1 md:pb-0`}
           >
-            <NavLinks signedIn={signedIn} operatorRole={operatorRole} count={count} />
+            <NavLinks signedIn={signedIn} operatorRole={operatorRole} count={count} current={path} />
           </nav>
         </div>
       </header>
 
-      <main id="konten" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <main id="konten" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-12">
         <Routes path={path} />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 text-sm text-muted">
-          <p>Demo simulasi perlengkapan PKKMB. Bukan toko resmi kampus.</p>
-          <nav aria-label="Navigasi kaki" className="flex flex-wrap gap-4">
-            <Link to="/about" className="min-h-12 content-center hover:underline">
+      <footer className="mt-8 border-t border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="space-y-2">
+            <p className="flex items-center gap-2 font-bold text-brand-dark">
+              <span aria-hidden="true" className="grid size-8 place-items-center rounded-lg bg-brand text-xs font-black text-white">
+                M
+              </span>
+              MabaKit
+            </p>
+            <p className="max-w-md text-sm text-muted">
+              Demo simulasi perlengkapan PKKMB. Bukan toko resmi kampus dan tidak menerima pembayaran nyata.
+            </p>
+          </div>
+          <nav aria-label="Navigasi kaki" className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
+            <Link to="/about" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
               Tentang
             </Link>
-            <Link to="/contact" className="min-h-12 content-center hover:underline">
+            <Link to="/contact" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
               Kontak
             </Link>
-            <Link to="/privacy" className="min-h-12 content-center hover:underline">
+            <Link to="/privacy" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
               Privasi
             </Link>
-            <Link to="/terms" className="min-h-12 content-center hover:underline">
+            <Link to="/terms" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
               Ketentuan
             </Link>
           </nav>

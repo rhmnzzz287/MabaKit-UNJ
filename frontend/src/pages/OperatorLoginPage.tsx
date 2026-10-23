@@ -3,7 +3,7 @@ import { ApiError, authenticate, opPost } from "../lib/api";
 import { navigate } from "../lib/router";
 import { operatorNext } from "../lib/workspace";
 import { refreshAuth, useAuth } from "../lib/auth-store";
-import { Alert, Button, Field, Input, Link, PageHeader } from "../components/ui";
+import { Alert, Button, Card, Field, Input, Link } from "../components/ui";
 
 export default function OperatorLoginPage() {
   const next = operatorNext(new URLSearchParams(window.location.search).get("next"));
@@ -43,11 +43,17 @@ export default function OperatorLoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <PageHeader
-        title="Masuk operator"
-        description="Halaman ini untuk tim MabaKit. Pembeli tidak perlu masuk di sini dan tidak mendapat akses workspace tim."
-      />
+    <div className="mx-auto max-w-md space-y-8 py-4">
+      <div className="space-y-2 text-center">
+        <span className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-4 py-2 text-xs font-bold uppercase tracking-wide text-white">
+          Workspace tim
+        </span>
+        <h1 className="text-3xl font-black tracking-tight text-ink">Masuk operator</h1>
+        <p className="text-muted">
+          Halaman ini untuk tim MabaKit. Pembeli tidak perlu masuk di sini dan tidak mendapat akses workspace tim.
+        </p>
+      </div>
+
       {already ? (
         <Alert tone="info">
           Sesi ini sudah masuk sebagai {already}.{" "}
@@ -59,46 +65,50 @@ export default function OperatorLoginPage() {
       ) : null}
       {error ? <Alert tone="error">{error}</Alert> : null}
 
-      <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
-        <Field id="operator-email" label="Email operator">
-          <Input
-            id="operator-email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="username"
-            maxLength={254}
-            required
-          />
-        </Field>
-        <Field id="operator-password" label="Kata sandi">
-          <Input
-            id="operator-password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </Field>
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Memeriksa..." : "Masuk"}
-        </Button>
-        <p className="text-sm text-muted">Role akun diperiksa server. Memilih halaman ini saja tidak memberi izin tim.</p>
-      </form>
+      <Card className="space-y-6 p-6 sm:p-8">
+        <form onSubmit={submit} className="space-y-5" noValidate>
+          <Field id="operator-email" label="Email operator">
+            <Input
+              id="operator-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="username"
+              maxLength={254}
+              required
+            />
+          </Field>
+          <Field id="operator-password" label="Kata sandi">
+            <Input
+              id="operator-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </Field>
+          <Button type="submit" full disabled={busy}>
+            {busy ? "Memeriksa..." : "Masuk"}
+          </Button>
+          <p className="text-sm text-muted">Role akun diperiksa server. Memilih halaman ini saja tidak memberi izin tim.</p>
+        </form>
+      </Card>
 
-      <p>
-        <Link to="/catalog" className="font-semibold text-brand underline">
-          Kembali ke katalog
-        </Link>
-      </p>
-      <p className="text-sm text-muted">
-        Bukan tim MabaKit?{" "}
-        <button type="button" onClick={() => navigate("/login")} className="font-semibold text-brand underline">
-          Masuk sebagai pembeli
-        </button>
-        .
-      </p>
+      <div className="space-y-2 text-center text-sm text-muted">
+        <p>
+          <Link to="/catalog" className="font-semibold text-brand-dark underline">
+            Kembali ke katalog
+          </Link>
+        </p>
+        <p>
+          Bukan tim MabaKit?{" "}
+          <Link to="/login" className="font-semibold text-brand-dark underline">
+            Masuk sebagai pembeli
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

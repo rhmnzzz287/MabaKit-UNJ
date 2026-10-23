@@ -3,7 +3,7 @@ import { ApiError, get, patch, post } from "../lib/api";
 import { navigate } from "../lib/router";
 import type { CatalogResponse, Profile } from "../lib/types";
 import { useWorkspace } from "../lib/workspace";
-import { Alert, Button, Field, Input, Link, PageHeader, Select, Spinner } from "../components/ui";
+import { Alert, Button, Card, Field, Input, Link, PageHeader, Select, Spinner } from "../components/ui";
 
 export default function ProfilePage() {
   const workspace = useWorkspace();
@@ -78,7 +78,7 @@ export default function ProfilePage() {
   if (!workspace.user) return <Spinner label="Mengalihkan ke halaman masuk" />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Akun saya"
         description="Data ini menjadi isian awal checkout berikutnya. Pesanan yang sudah dibuat tetap memakai snapshot kontaknya."
@@ -86,69 +86,89 @@ export default function ProfilePage() {
       {error ? <Alert tone="error">{error}</Alert> : null}
       {saved ? <Alert tone="info">Profil tersimpan.</Alert> : null}
 
-      <form onSubmit={submit} className="max-w-xl space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
-        <Field id="profile-email" label="Email akun" hint="Email akun tidak dapat diubah pada demo ini.">
-          <Input id="profile-email" type="email" value={profile?.email ?? workspace.user.email} readOnly disabled />
-        </Field>
-        <Field id="profile-name" label="Nama" hint="Nama yang dipakai pada pesanan baru." error={fieldError.name}>
-          <Input
-            id="profile-name"
-            name="name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
-            maxLength={80}
-            required
-          />
-        </Field>
-        <Field id="profile-whatsapp" label="Nomor WhatsApp" hint="Gunakan data uji. Format 08xx atau 62xx." error={fieldError.whatsapp}>
-          <Input
-            id="profile-whatsapp"
-            name="whatsapp"
-            inputMode="tel"
-            value={whatsapp}
-            onChange={(event) => setWhatsapp(event.target.value)}
-            autoComplete="tel"
-            required
-          />
-        </Field>
-        <Field
-          id="profile-faculty"
-          label="Fakultas"
-          hint="Dipakai sebagai pilihan awal saat menyesuaikan paket. Tetap dapat diganti per pesanan."
-          error={fieldError.facultyId}
-        >
-          <Select id="profile-faculty" value={facultyId} onChange={(event) => setFacultyId(event.target.value)}>
-            <option value="">Belum dipilih</option>
-            {faculties.map((faculty) => (
-              <option key={faculty.id} value={faculty.id}>
-                {faculty.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="flex flex-wrap gap-4">
-          <Button type="submit" disabled={busy}>
-            {busy ? "Menyimpan..." : "Simpan profil"}
-          </Button>
-          <Button variant="secondary" onClick={() => void signOut()} disabled={busy}>
-            Keluar
-          </Button>
-        </div>
-        {profile ? <p className="text-sm text-muted">Terakhir diperbarui {new Date(profile.updatedAt).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })} WIB.</p> : null}
-      </form>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]">
+        <Card className="p-6 sm:p-8">
+          <form onSubmit={submit} className="space-y-6" noValidate>
+            <Field id="profile-email" label="Email akun" hint="Email akun tidak dapat diubah pada demo ini.">
+              <Input id="profile-email" type="email" value={profile?.email ?? workspace.user.email} readOnly disabled />
+            </Field>
+            <Field id="profile-name" label="Nama" hint="Nama yang dipakai pada pesanan baru." error={fieldError.name}>
+              <Input
+                id="profile-name"
+                name="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                autoComplete="name"
+                maxLength={80}
+                required
+              />
+            </Field>
+            <Field
+              id="profile-whatsapp"
+              label="Nomor WhatsApp"
+              hint="Gunakan data uji. Format 08xx atau 62xx."
+              error={fieldError.whatsapp}
+            >
+              <Input
+                id="profile-whatsapp"
+                name="whatsapp"
+                inputMode="tel"
+                value={whatsapp}
+                onChange={(event) => setWhatsapp(event.target.value)}
+                autoComplete="tel"
+                required
+              />
+            </Field>
+            <Field
+              id="profile-faculty"
+              label="Fakultas"
+              hint="Dipakai sebagai pilihan awal saat menyesuaikan paket. Tetap dapat diganti per pesanan."
+              error={fieldError.facultyId}
+            >
+              <Select id="profile-faculty" value={facultyId} onChange={(event) => setFacultyId(event.target.value)}>
+                <option value="">Belum dipilih</option>
+                {faculties.map((faculty) => (
+                  <option key={faculty.id} value={faculty.id}>
+                    {faculty.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-6">
+              <Button type="submit" disabled={busy}>
+                {busy ? "Menyimpan..." : "Simpan profil"}
+              </Button>
+              <Button variant="secondary" onClick={() => void signOut()} disabled={busy}>
+                Keluar
+              </Button>
+            </div>
+            {profile ? (
+              <p className="text-sm text-muted">
+                Terakhir diperbarui{" "}
+                {new Date(profile.updatedAt).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })} WIB.
+              </p>
+            ) : null}
+          </form>
+        </Card>
 
-      <p className="text-sm text-muted">
-        Lihat{" "}
-        <Link to="/orders" className="font-semibold text-brand underline">
-          pesanan saya
-        </Link>{" "}
-        atau kembali ke{" "}
-        <Link to="/catalog" className="font-semibold text-brand underline">
-          katalog
-        </Link>
-        .
-      </p>
+        <div className="space-y-4">
+          <Card className="space-y-3 p-6">
+            <h2 className="font-bold text-ink">Pintasan</h2>
+            <Link to="/orders" className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint">
+              Pesanan saya
+            </Link>
+            <Link to="/catalog" className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint">
+              Paket dan produk
+            </Link>
+            <Link to="/contact" className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint">
+              Hubungi kami
+            </Link>
+          </Card>
+          <Alert tone="info">
+            Akun demo. Jangan memakai kata sandi yang juga dipakai di layanan lain.
+          </Alert>
+        </div>
+      </div>
     </div>
   );
 }

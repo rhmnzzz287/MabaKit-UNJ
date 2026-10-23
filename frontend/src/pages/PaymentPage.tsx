@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { navigate } from "../lib/router";
 import { useWorkspace } from "../lib/workspace";
 import { ApiError, get, post } from "../lib/api";
-import { countdown, dateTime, rupiah, statusLabel } from "../lib/format";
+import { countdown, dateTime, statusLabel } from "../lib/format";
 import type { Order } from "../lib/types";
-import { Alert, Button, Link, PageHeader, SimulasiBadge, Spinner, StatusBadge } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Link, PageHeader, Price, SimulasiBadge, Spinner, StatusBadge } from "../components/ui";
 
 const METHOD_LABEL: Record<string, string> = {
   BANK_TRANSFER: "Transfer bank (simulasi)",
@@ -65,9 +65,9 @@ export default function PaymentPage({ id }: { id: string }) {
     return (
       <div className="space-y-4">
         <Alert tone="error">{error}</Alert>
-        <Link to="/orders" className="font-semibold text-brand underline">
+        <ButtonLink to="/orders" variant="secondary">
           Lihat pesanan saya
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
@@ -77,100 +77,110 @@ export default function PaymentPage({ id }: { id: string }) {
   const expired = order.paymentStatus === "EXPIRED" || (!paid && order.expiresAt <= now);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Pembayaran ${order.orderNumber}`}
-        description="Halaman ini mensimulasikan konfirmasi pembayaran. Tidak ada uang yang dikirim dan tidak ada bank yang dihubungi."
-      />
-      <SimulasiBadge />
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageHeader
+          title={`Pembayaran ${order.orderNumber}`}
+          description="Halaman ini mensimulasikan konfirmasi pembayaran. Tidak ada uang yang dikirim dan tidak ada bank yang dihubungi."
+        />
+        <SimulasiBadge />
+      </div>
       <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="font-semibold text-ink">Ringkasan</h2>
-          <p className="text-3xl font-bold text-ink">{rupiah(order.totalRp)}</p>
-          <p className="text-sm text-muted">Metode: {order.method ? METHOD_LABEL[order.method] : "-"}</p>
-          <p>
-            Status: <StatusBadge status={order.paymentStatus} />
-          </p>
-          {!paid && !expired ? (
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
+        <div className="space-y-8">
+          <Card className="space-y-4 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-bold tracking-tight text-ink">Tagihan simulasi</h2>
+              <StatusBadge status={order.paymentStatus} />
+            </div>
+            <Price finalRp={order.totalRp} size="lg" />
+            <dl className="space-y-2 border-t border-slate-200 pt-4 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Metode</dt>
+                <dd className="font-medium text-ink">{order.method ? METHOD_LABEL[order.method] : "-"}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Dibuat</dt>
+                <dd className="font-medium text-ink">{dateTime(order.createdAt)} WIB</dd>
+              </div>
+              {!paid && !expired ? (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted">Sisa waktu draft</dt>
+                  <dd className="font-mono font-semibold text-ink">{countdown(order.expiresAt, now)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </Card>
+
+          <Card className="space-y-4 p-6">
+            <h2 className="text-lg font-bold tracking-tight text-ink">Item</h2>
+            <ul className="divide-y divide-slate-100">
+              {order.items.map((item) => (
+                <li key={item.id} className="flex justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                  <span className="text-ink">
+                    {item.title} x {item.quantity}
+                  </span>
+                  <Price finalRp={item.lineTotalRp} size="sm" />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card className="space-y-2 p-6">
+            <h2 className="text-lg font-bold tracking-tight text-ink">Pengambilan</h2>
+            <p className="font-semibold text-ink">{order.pickup.label}</p>
+            <p className="text-sm text-muted">{order.pickup.details}</p>
+            <p className="text-sm text-muted">Jam layanan: {order.pickup.hours}</p>
             <p className="text-sm text-muted">
-              Sisa waktu draft: <strong className="font-mono text-ink">{countdown(order.expiresAt, now)}</strong>
+              Pengambilan dilakukan setelah panitia menandai pesanan siap. Tidak ada booking jadwal.
             </p>
-          ) : null}
-          <p className="text-sm text-muted">Dibuat {dateTime(order.createdAt)} WIB</p>
-        </section>
+          </Card>
 
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="font-semibold text-ink">Pengambilan</h2>
-          <p className="font-medium text-ink">{order.pickup.label}</p>
-          <p className="text-sm text-muted">{order.pickup.details}</p>
-          <p className="text-sm text-muted">Jam layanan: {order.pickup.hours}</p>
-          <p className="text-sm text-muted">
-            Pengambilan dilakukan setelah panitia menandai pesanan siap. Tidak ada booking jadwal.
-          </p>
-        </section>
+          {paid ? (
+            <Card className="space-y-4 p-6">
+              <Alert tone="info">
+                {order.method === "FREE"
+                  ? `Pesanan gratis dibuat tanpa pembayaran. Status ${statusLabel(order.fulfillmentStatus)}.`
+                  : `Pesanan simulasi berhasil dibuat. Status ${statusLabel(order.fulfillmentStatus)}.`}{" "}
+                Invoice digital tersedia dan bukan bukti pembayaran nyata.
+              </Alert>
+              <ButtonLink to={`/orders/${order.id}/invoice`} className="w-full">
+                Lihat invoice
+              </ButtonLink>
+              <ButtonLink to="/orders" variant="secondary" className="w-full">
+                Daftar pesanan
+              </ButtonLink>
+            </Card>
+          ) : expired ? (
+            <Card className="space-y-4 p-6">
+              <Alert tone="warn">Draft kedaluwarsa. Stok sudah dilepas. Silakan buat pesanan baru dari katalog.</Alert>
+              <ButtonLink to="/catalog" className="w-full">
+                Mulai pesanan baru
+              </ButtonLink>
+            </Card>
+          ) : (
+            <Card className="space-y-4 p-6">
+              <Button full onClick={checkPayment} disabled={busy}>
+                {busy ? "Memeriksa..." : "Cek status pembayaran"}
+              </Button>
+              <p className="text-sm text-muted">
+                Tombol ini tidak memeriksa rekening atau bank nyata. Server hanya menandai pembayaran simulasi berhasil.
+              </p>
+              {error ? <Alert tone="error">{error}</Alert> : null}
+              {notice ? <Alert tone="info">{notice}</Alert> : null}
+              <Link
+                to="/orders"
+                className="block text-center text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+              >
+                Kembali ke daftar pesanan
+              </Link>
+            </Card>
+          )}
+        </div>
       </div>
-
-      <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="font-semibold text-ink">Item</h2>
-        <ul className="divide-y divide-slate-200">
-          {order.items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-4 py-2">
-              <span className="text-ink">
-                {item.title} x {item.quantity}
-              </span>
-              <span className="font-medium text-ink">{rupiah(item.lineTotalRp)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {paid ? (
-        <div className="space-y-4">
-          <Alert tone="info">
-            {order.method === "FREE"
-              ? "Pesanan gratis dibuat tanpa pembayaran. Status " + statusLabel(order.fulfillmentStatus) + "."
-              : "Pesanan simulasi berhasil dibuat. Status " + statusLabel(order.fulfillmentStatus) + "."}{" "}
-            Invoice digital tersedia dan bukan bukti pembayaran nyata.
-          </Alert>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              to={`/orders/${order.id}/invoice`}
-              className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white"
-            >
-              Lihat invoice
-            </Link>
-            <Link
-              to="/orders"
-              className="inline-flex min-h-12 items-center rounded-lg border border-line bg-white px-4 font-semibold text-ink"
-            >
-              Daftar pesanan
-            </Link>
-          </div>
-        </div>
-      ) : expired ? (
-        <div className="space-y-4">
-          <Alert tone="warn">Draft kedaluwarsa. Stok sudah dilepas. Silakan buat pesanan baru dari katalog.</Alert>
-          <Link
-            to="/catalog"
-            className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white"
-          >
-            Mulai pesanan baru
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <Button onClick={checkPayment} disabled={busy}>
-            {busy ? "Memeriksa..." : "Cek status pembayaran"}
-          </Button>
-          <p className="text-sm text-muted">
-            Tombol ini tidak memeriksa rekening atau bank nyata. Server hanya menandai pembayaran simulasi berhasil.
-          </p>
-          {error ? <Alert tone="error">{error}</Alert> : null}
-          {notice ? <Alert tone="info">{notice}</Alert> : null}
-        </div>
-      )}
     </div>
   );
 }

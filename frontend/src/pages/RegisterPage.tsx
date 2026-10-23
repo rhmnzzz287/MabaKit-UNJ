@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ApiError, authenticate } from "../lib/api";
 import { safeNext } from "../lib/workspace";
-import { Alert, Button, Field, Input, Link, PageHeader } from "../components/ui";
+import { Alert, Button, Card, Field, Input, Link } from "../components/ui";
 
 export default function RegisterPage() {
   const next = safeNext(new URLSearchParams(window.location.search).get("next"), "/orders");
@@ -29,59 +29,66 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <PageHeader title="Daftar akun" description="Akun demo dipakai untuk checkout, riwayat pesanan, dan profil kontak." />
+    <div className="mx-auto max-w-md space-y-8 py-4">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-black tracking-tight text-ink">Daftar akun</h1>
+        <p className="text-muted">Akun demo dipakai untuk checkout, riwayat pesanan, dan profil kontak.</p>
+      </div>
+
       {error ? <Alert tone="error">{error}</Alert> : null}
-      <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
-        <Field id="register-name" label="Nama" error={fieldError.name}>
-          <Input
-            id="register-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
-            maxLength={80}
-            required
-          />
-        </Field>
-        <Field id="register-email" label="Email" error={fieldError.email}>
-          <Input
-            id="register-email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            maxLength={254}
-            required
-          />
-        </Field>
-        <Field
-          id="register-password"
-          label="Kata sandi"
-          hint="Minimal 8 karakter dan tidak boleh memuat bagian email."
-          error={fieldError.password}
-        >
-          <Input
+
+      <Card className="space-y-6 p-6 sm:p-8">
+        <form onSubmit={submit} className="space-y-5" noValidate>
+          <Field id="register-name" label="Nama" error={fieldError.name}>
+            <Input
+              id="register-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="name"
+              maxLength={80}
+              required
+            />
+          </Field>
+          <Field id="register-email" label="Email" error={fieldError.email}>
+            <Input
+              id="register-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              maxLength={254}
+              required
+            />
+          </Field>
+          <Field
             id="register-password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password"
-            minLength={8}
-            maxLength={128}
-            required
-          />
-        </Field>
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Mendaftar..." : "Daftar"}
-        </Button>
-      </form>
-      <p className="text-sm text-muted">
-        Sudah punya akun?{" "}
-        <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brand underline">
-          Masuk
-        </Link>
-        .
-      </p>
+            label="Kata sandi"
+            hint="Minimal 8 karakter dan tidak boleh memuat bagian email."
+            error={fieldError.password}
+          >
+            <Input
+              id="register-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={128}
+              required
+            />
+          </Field>
+          <Button type="submit" full disabled={busy}>
+            {busy ? "Mendaftar..." : "Daftar"}
+          </Button>
+        </form>
+
+        <p className="border-t border-slate-200 pt-6 text-center text-sm text-muted">
+          Sudah punya akun?{" "}
+          <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark underline">
+            Masuk
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 }

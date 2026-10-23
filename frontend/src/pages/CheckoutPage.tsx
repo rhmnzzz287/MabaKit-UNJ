@@ -5,7 +5,7 @@ import { rupiah } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { CatalogResponse, PackageQuote, Profile } from "../lib/types";
 import { useWorkspace } from "../lib/workspace";
-import { Alert, Button, Field, Input, Link, PageHeader, SimulasiBadge, Spinner } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Field, Input, PageHeader, Price, SimulasiBadge, Spinner } from "../components/ui";
 
 const METHODS = [
   { value: "QRIS", label: "QRIS (simulasi)" },
@@ -117,18 +117,19 @@ export default function CheckoutPage() {
 
   if (lines.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <PageHeader title="Checkout" />
-        <Alert tone="info">Keranjang kosong. Tambahkan paket atau produk terlebih dahulu.</Alert>
-        <Link to="/catalog" className="font-semibold text-brand underline">
-          Lihat katalog
-        </Link>
+        <Card className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+          <p className="text-lg font-semibold text-ink">Keranjang kosong</p>
+          <p className="text-muted">Tambahkan paket atau produk terlebih dahulu.</p>
+          <ButtonLink to="/catalog">Lihat katalog</ButtonLink>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader
           title="Checkout"
@@ -138,95 +139,115 @@ export default function CheckoutPage() {
       </div>
       {error ? <Alert tone="error">{error}</Alert> : null}
 
-      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_360px]">
-        <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
-          <Field id="buyerName" label="Nama pemesan" error={fieldError.buyerName}>
-            <Input
-              id="buyerName"
-              value={buyerName}
-              onChange={(event) => setBuyerName(event.target.value)}
-              autoComplete="name"
-              maxLength={80}
-              required
-            />
-          </Field>
-          <Field id="contactPhone" label="Nomor WhatsApp" hint="Dipakai tim untuk mencocokkan pesanan saat pengambilan." error={fieldError.contactPhone}>
-            <Input
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
+        <form onSubmit={submit} className="space-y-8" noValidate>
+          <Card className="space-y-6 p-6">
+            <h2 className="text-lg font-bold tracking-tight text-ink">Kontak pesanan</h2>
+            <Field id="buyerName" label="Nama pemesan" error={fieldError.buyerName}>
+              <Input
+                id="buyerName"
+                value={buyerName}
+                onChange={(event) => setBuyerName(event.target.value)}
+                autoComplete="name"
+                maxLength={80}
+                required
+              />
+            </Field>
+            <Field
               id="contactPhone"
-              inputMode="tel"
-              value={contactPhone}
-              onChange={(event) => setContactPhone(event.target.value)}
-              autoComplete="tel"
-              required
-            />
-          </Field>
-          <Field id="email" label="Email pesanan" hint="Hanya untuk pratinjau invoice. Tidak ada email dikirim." error={fieldError.email}>
-            <Input
+              label="Nomor WhatsApp"
+              hint="Dipakai tim untuk mencocokkan pesanan saat pengambilan."
+              error={fieldError.contactPhone}
+            >
+              <Input
+                id="contactPhone"
+                inputMode="tel"
+                value={contactPhone}
+                onChange={(event) => setContactPhone(event.target.value)}
+                autoComplete="tel"
+                required
+              />
+            </Field>
+            <Field
               id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-              maxLength={254}
-              required
-            />
-          </Field>
+              label="Email pesanan"
+              hint="Hanya untuk pratinjau invoice. Tidak ada email dikirim."
+              error={fieldError.email}
+            >
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                maxLength={254}
+                required
+              />
+            </Field>
+          </Card>
 
-          <fieldset className="space-y-2">
-            <legend className="font-medium text-ink">Metode pengambilan</legend>
-            <label className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4">
-              <input type="radio" name="delivery" value="pickup" checked readOnly className="size-4" />
-              <span className="text-ink">Ambil di kampus</span>
-            </label>
-            <label className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4 opacity-60">
-              <input type="radio" name="delivery" value="courier" disabled className="size-4" />
-              <span className="text-muted">Kurir, segera tersedia</span>
-            </label>
-          </fieldset>
-
-          <fieldset className="space-y-2">
-            <legend className="font-medium text-ink">Metode pembayaran simulasi</legend>
-            {METHODS.map((option) => (
-              <label key={option.value} className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4">
-                <input
-                  type="radio"
-                  name="method"
-                  value={option.value}
-                  checked={method === option.value}
-                  onChange={() => setMethod(option.value)}
-                  className="size-4"
-                />
-                <span className="text-ink">{option.label}</span>
+          <Card className="space-y-6 p-6">
+            <fieldset className="space-y-3">
+              <legend className="text-lg font-bold tracking-tight text-ink">Metode pengambilan</legend>
+              <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-brand bg-brand-tint px-4">
+                <input type="radio" name="delivery" value="pickup" checked readOnly className="size-5 text-brand" />
+                <span className="font-medium text-ink">Ambil di kampus</span>
               </label>
-            ))}
-          </fieldset>
+              <label className="flex min-h-12 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 opacity-70">
+                <input type="radio" name="delivery" value="courier" disabled className="size-5" />
+                <span className="text-muted">Kurir, segera tersedia</span>
+              </label>
+            </fieldset>
 
-          <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
+            <fieldset className="space-y-3 border-t border-slate-200 pt-6">
+              <legend className="text-lg font-bold tracking-tight text-ink">Metode pembayaran simulasi</legend>
+              {METHODS.map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 transition-colors ${
+                    method === option.value ? "border-brand bg-brand-tint" : "border-slate-200 hover:border-slate-400"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="method"
+                    value={option.value}
+                    checked={method === option.value}
+                    onChange={() => setMethod(option.value)}
+                    className="size-5 text-brand"
+                  />
+                  <span className="text-ink">{option.label}</span>
+                </label>
+              ))}
+            </fieldset>
 
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Membuat pesanan..." : "Buat pesanan simulasi"}
-          </Button>
+            <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
+
+            <Button type="submit" full disabled={busy}>
+              {busy ? "Membuat pesanan..." : "Buat pesanan simulasi"}
+            </Button>
+          </Card>
         </form>
 
-        <aside className="h-fit space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="font-semibold text-ink">Ringkasan</h2>
-          <ul className="space-y-2 text-sm">
+        <Card className="sticky top-24 h-fit space-y-4 p-6">
+          <h2 className="text-lg font-bold tracking-tight text-ink">Ringkasan</h2>
+          <ul className="space-y-3 text-sm">
             {lines.map((line) => (
               <li key={`${line.productId}:${line.variantId ?? ""}:${line.facultyId ?? ""}`} className="flex justify-between gap-4">
-                <span className="text-ink">
+                <span className="min-w-0 text-ink">
                   {line.title} x {line.quantity}
                   {line.facultyName ? <span className="block text-muted">Fakultas {line.facultyName}</span> : null}
                 </span>
-                <span className="font-medium text-ink">{rupiah(line.priceRp * line.quantity)}</span>
+                <span className="shrink-0 font-medium text-ink">{rupiah(line.priceRp * line.quantity)}</span>
               </li>
             ))}
           </ul>
-          <p className="flex justify-between border-t border-slate-200 pt-4 text-lg">
-            <span>Total estimasi</span>
-            <strong className="text-ink">{rupiah(cartTotal())}</strong>
-          </p>
+          <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+            <span className="font-semibold text-ink">Total estimasi</span>
+            <Price finalRp={cartTotal()} />
+          </div>
           <p className="text-sm text-muted">Harga final dan stok dihitung ulang di server saat pesanan dibuat.</p>
-        </aside>
+        </Card>
       </div>
     </div>
   );

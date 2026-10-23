@@ -3,7 +3,7 @@ import { ApiError, authenticate } from "../lib/api";
 import { navigate } from "../lib/router";
 import { refreshAuth, useAuth } from "../lib/auth-store";
 import { safeNext } from "../lib/workspace";
-import { Alert, Button, Field, Input, Link, PageHeader } from "../components/ui";
+import { Alert, Button, Card, Field, Input, Link } from "../components/ui";
 
 export default function LoginPage() {
   const next = safeNext(new URLSearchParams(window.location.search).get("next"), "/orders");
@@ -38,56 +38,66 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <PageHeader title="Masuk" description="Masuk untuk checkout, melihat pesanan, dan menyimpan profil kontak." />
+    <div className="mx-auto max-w-md space-y-8 py-4">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-black tracking-tight text-ink">Masuk</h1>
+        <p className="text-muted">Masuk untuk checkout, melihat pesanan, dan menyimpan profil kontak.</p>
+      </div>
+
       {error ? <Alert tone="error">{error}</Alert> : null}
-      <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
-        <Field id="login-email" label="Email">
-          <Input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            maxLength={254}
-            required
-          />
-        </Field>
-        <Field id="login-password" label="Kata sandi">
-          <Input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </Field>
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Memeriksa..." : "Masuk"}
-        </Button>
-      </form>
-      <p className="text-sm text-muted">
-        Belum punya akun?{" "}
-        <Link to={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand underline">
-          Daftar
-        </Link>
-        .
-      </p>
-      <p className="text-sm text-muted">
-        Tim MabaKit masuk lewat{" "}
-        <Link to="/operator/login" className="font-semibold text-brand underline">
-          halaman operator
-        </Link>
-        .
-      </p>
-      <p className="text-sm text-muted">
-        Ingin melihat katalog dulu?{" "}
-        <button type="button" className="font-semibold text-brand underline" onClick={() => navigate("/catalog")}>
-          Buka katalog
-        </button>
-        .
-      </p>
+
+      <Card className="space-y-6 p-6 sm:p-8">
+        <form onSubmit={submit} className="space-y-5" noValidate>
+          <Field id="login-email" label="Email">
+            <Input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              maxLength={254}
+              required
+            />
+          </Field>
+          <Field id="login-password" label="Kata sandi">
+            <Input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </Field>
+          <Button type="submit" full disabled={busy}>
+            {busy ? "Memeriksa..." : "Masuk"}
+          </Button>
+        </form>
+
+        <p className="border-t border-slate-200 pt-6 text-center text-sm text-muted">
+          Belum punya akun?{" "}
+          <Link to={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark underline">
+            Daftar
+          </Link>
+        </p>
+      </Card>
+
+      <div className="space-y-2 text-center text-sm text-muted">
+        <p>
+          Tim MabaKit masuk lewat{" "}
+          <Link to="/operator/login" className="font-semibold text-brand-dark underline">
+            halaman operator
+          </Link>
+          .
+        </p>
+        <p>
+          Ingin melihat katalog dulu?{" "}
+          <Link to="/catalog" className="font-semibold text-brand-dark underline">
+            Buka katalog
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

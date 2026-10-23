@@ -1,12 +1,12 @@
-import { Alert, Link, PageHeader } from "../components/ui";
+import { Alert, ButtonLink, Card, PageHeader } from "../components/ui";
 
 const COPY = {
   privacy: {
     title: "Privasi demo",
     body: [
-      "MabaKit versi ini adalah demo presentasi. Tidak ada akun nyata, email, OTP, atau integrasi pembayaran.",
-      "Data yang disimpan: nama dan nomor telepon yang Anda isi, isi keranjang, pesanan simulasi, dan cookie sesi tamu. Nomor telepon tidak diverifikasi dan tidak dikirim ke pihak ketiga.",
-      "Cookie sesi hanya berlaku di browser ini. Menghapus cookie berarti riwayat pesanan tidak bisa dipulihkan.",
+      "MabaKit versi ini adalah demo presentasi. Tidak ada integrasi pembayaran, pengiriman email, atau layanan pihak ketiga.",
+      "Data yang disimpan: nama, email, nomor WhatsApp, fakultas, isi keranjang, dan pesanan simulasi pada akun demo Anda.",
+      "Cookie sesi hanya berlaku di browser ini. Keluar dari akun berarti Anda perlu masuk kembali untuk melihat pesanan.",
       "Jangan memasukkan data pribadi nyata saat mencoba demo. Gunakan data fiktif.",
     ],
   },
@@ -22,10 +22,10 @@ const COPY = {
   help: {
     title: "Bantuan",
     body: [
-      "Alur demo: pilih produk, tambah ke keranjang, isi data fiktif, pilih metode simulasi, lalu tekan Cek status pembayaran.",
-      "Setelah PAID, invoice digital bisa dibuka. Kode pickup baru muncul setelah petugas menandai pesanan siap.",
+      "Alur demo: pilih paket atau produk, tentukan fakultas, tambah ke keranjang, lalu masuk ke akun pembeli.",
+      "Setelah checkout, tandai pembayaran simulasi lewat tombol Cek status pembayaran. Invoice digital bisa dibuka setelah PAID.",
+      "Pesanan gratis dari diskon 100 persen langsung tercatat tanpa halaman pembayaran.",
       "Jika draft melewati 30 menit, stok dilepas otomatis dan Anda perlu membuat pesanan baru.",
-      "Jika sesi berakhir, muat ulang halaman. Riwayat pesanan terikat pada sesi browser yang sama.",
     ],
   },
 } as const;
@@ -33,19 +33,19 @@ const COPY = {
 export default function StaticPage({ page }: { page: keyof typeof COPY }) {
   const copy = COPY[page];
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-3xl space-y-8">
       <PageHeader title={copy.title} description="Konten demo, bukan dokumen legal produksi." />
       <Alert tone="warn">Halaman ini masih draft demo dan belum ditinjau untuk kebutuhan produksi.</Alert>
-      <ul className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+      <Card className="space-y-5 p-6 sm:p-8">
         {copy.body.map((paragraph) => (
-          <li key={paragraph} className="text-ink">
+          <p key={paragraph} className="text-ink">
             {paragraph}
-          </li>
+          </p>
         ))}
-      </ul>
-      <Link to="/catalog" className="font-semibold text-brand underline">
+      </Card>
+      <ButtonLink to="/catalog" variant="secondary">
         Kembali ke katalog
-      </Link>
+      </ButtonLink>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { dateTime, rupiah, statusLabel, variantLabel } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { Order, TeamOrdersPage, TeamSummary } from "../lib/types";
 import { useOperatorWorkspace, waNumber, type Workspace, type WorkspaceRole } from "../lib/workspace";
-import { Alert, Button, Link, PageHeader, Spinner, StatusBadge } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Link, PageHeader, Price, Spinner, StatusBadge } from "../components/ui";
 
 const PERIODS = [
   { value: "today", label: "Hari ini" },
@@ -24,24 +24,30 @@ function useTeamGate() {
 function Denied({ workspace }: { workspace: Workspace }) {
   if (workspace.state === "loading") return <Spinner label="Memeriksa akses tim" />;
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-xl space-y-6 py-8">
       <PageHeader title="Workspace tim" description="Halaman ini hanya untuk admin dan tim MabaKit yang terverifikasi server." />
       <Alert tone="error">{workspace.error ?? "Akun ini bukan bagian dari tim MabaKit."}</Alert>
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-3">
         <Button variant="secondary" onClick={workspace.reload}>
           Coba lagi
         </Button>
-        <Link to="/operator/login?next=%2Fteam" className="inline-flex min-h-12 items-center font-semibold text-brand underline">
+        <ButtonLink to="/operator/login?next=%2Fteam" variant="quiet">
           Masuk sebagai operator
-        </Link>
+        </ButtonLink>
       </div>
     </div>
   );
 }
 
+const TEAM_NAV = [
+  { to: "/team", label: "Ringkasan" },
+  { to: "/team/orders", label: "Pesanan" },
+];
+
 export function TeamShell({ role, children }: { role: WorkspaceRole; children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const path = window.location.pathname;
 
   async function logout() {
     setBusy(true);
@@ -57,29 +63,47 @@ export function TeamShell({ role, children }: { role: WorkspaceRole; children: R
   }
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-brand">Workspace tim</p>
-          <p className="text-lg font-bold text-ink">MabaKit</p>
-          <p className="text-sm text-muted">Masuk sebagai {role === "admin" ? "admin" : "tim MabaKit"}</p>
+    <div className="space-y-8">
+      <header className="rounded-2xl bg-brand-dark px-6 py-5 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-white/70">Workspace tim</p>
+            <p className="text-xl font-black tracking-tight">MabaKit</p>
+            <p className="text-sm text-white/70">Masuk sebagai {role === "admin" ? "admin" : "tim MabaKit"}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <nav aria-label="Navigasi tim" className="flex flex-wrap items-center gap-1">
+              {TEAM_NAV.map((entry) => (
+                <Link
+                  key={entry.to}
+                  to={entry.to}
+                  ariaCurrent={path === entry.to ? "page" : undefined}
+                  className={`inline-flex min-h-12 items-center rounded-xl px-4 text-sm font-semibold transition-colors ${
+                    path === entry.to ? "bg-white/15 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {entry.label}
+                </Link>
+              ))}
+              {role === "admin" ? (
+                <Link
+                  to="/admin"
+                  className="inline-flex min-h-12 items-center rounded-xl px-4 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  Admin
+                </Link>
+              ) : null}
+            </nav>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              disabled={busy}
+              className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-60"
+            >
+              {busy ? "Keluar..." : "Keluar"}
+            </button>
+          </div>
         </div>
-        <nav aria-label="Navigasi tim" className="flex flex-wrap items-center gap-4 text-sm font-semibold">
-          <Link to="/team" className="min-h-12 content-center text-ink hover:underline">
-            Ringkasan
-          </Link>
-          <Link to="/team/orders" className="min-h-12 content-center text-ink hover:underline">
-            Pesanan
-          </Link>
-          {role === "admin" ? (
-            <Link to="/admin" className="min-h-12 content-center text-ink hover:underline">
-              Admin
-            </Link>
-          ) : null}
-          <Button variant="secondary" onClick={() => void logout()} disabled={busy}>
-            {busy ? "Keluar..." : "Keluar"}
-          </Button>
-        </nav>
       </header>
       {error ? <Alert tone="error">{error}</Alert> : null}
       {children}
@@ -118,22 +142,24 @@ export function TeamDashboardPage() {
       <PageHeader
         title="Ringkasan penjualan"
         description="Nilai penjualan adalah total pesanan terbayar, bukan laba. Semua angka berasal dari simulasi pembayaran."
+        actions={
+          <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1" role="group" aria-label="Rentang waktu">
+            {PERIODS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={period === option.value}
+                onClick={() => setPeriod(option.value)}
+                className={`min-h-10 rounded-lg px-4 text-sm font-semibold transition-colors ${
+                  period === option.value ? "bg-brand text-white" : "text-ink hover:bg-slate-100"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        }
       />
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Rentang waktu">
-        {PERIODS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={period === option.value}
-            onClick={() => setPeriod(option.value)}
-            className={`min-h-12 rounded-lg border px-4 font-semibold ${
-              period === option.value ? "border-brand bg-brand-tint text-brand-dark" : "border-line bg-white text-ink"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
       {error ? (
         <div className="space-y-4">
           <Alert tone="error">{error}</Alert>
@@ -145,19 +171,19 @@ export function TeamDashboardPage() {
       {loading && !summary ? <Spinner label="Memuat ringkasan" /> : null}
       {summary ? (
         <>
-          <section className="grid gap-4 sm:grid-cols-2" aria-label="Penjualan">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-sm text-muted">Nilai penjualan dibayar</p>
-              <p className="text-3xl font-bold text-ink">{rupiah(summary.sales.paidValueRp)}</p>
+          <section className="grid gap-6 sm:grid-cols-2" aria-label="Penjualan">
+            <Card className="space-y-2 p-6">
+              <p className="text-sm font-medium text-muted">Nilai penjualan dibayar</p>
+              <p className="text-3xl font-black tracking-tight text-ink">{rupiah(summary.sales.paidValueRp)}</p>
               <p className="text-sm text-muted">Simulasi, bukan omzet nyata dan bukan laba.</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-sm text-muted">Transaksi dibayar</p>
-              <p className="text-3xl font-bold text-ink">{summary.sales.paidOrders}</p>
+            </Card>
+            <Card className="space-y-2 p-6">
+              <p className="text-sm font-medium text-muted">Transaksi dibayar</p>
+              <p className="text-3xl font-black tracking-tight text-ink">{summary.sales.paidOrders}</p>
               <p className="text-sm text-muted">
                 Batas rentang WIB: {summary.rangeStart ? `${dateTime(summary.rangeStart)} WIB` : "sejak awal data"}.
               </p>
-            </div>
+            </Card>
           </section>
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Status pesanan">
             {(
@@ -168,13 +194,13 @@ export function TeamDashboardPage() {
                 ["completed", "Selesai", "/team/orders?fulfillment=PICKED_UP"],
               ] as const
             ).map(([key, label, to]) => (
-              <div key={key} className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-sm text-muted">{label}</p>
-                <p className="text-2xl font-bold text-ink">{summary.counts[key]}</p>
-                <Link to={to} className="text-sm font-semibold text-brand underline">
-                  Lihat pesanan
-                </Link>
-              </div>
+              <Link key={key} to={to} className="block">
+                <Card className="h-full space-y-2 p-5 transition-colors hover:border-brand">
+                  <p className="text-sm text-muted">{label}</p>
+                  <p className="text-3xl font-black tracking-tight text-ink">{summary.counts[key]}</p>
+                  <p className="text-sm font-semibold text-brand-dark">Lihat pesanan</p>
+                </Card>
+              </Link>
             ))}
           </section>
         </>
@@ -195,16 +221,16 @@ function WhatsAppShortcut({ order }: { order: Order }) {
   const href = `https://wa.me/${waNumber(order.contactPhone)}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className="space-y-2 rounded-lg border border-slate-200 p-4 text-sm">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm">
       <p className="font-semibold text-ink">Draft WhatsApp</p>
       <p className="text-muted">Tujuan: {order.contactPhone}. Membuka chat tidak mengubah status pesanan.</p>
-      <p className="rounded bg-slate-50 p-2 text-ink">{message}</p>
+      <p className="rounded-lg bg-white p-3 text-ink">{message}</p>
       <div className="flex flex-wrap gap-2">
         <a
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-12 items-center rounded-lg border border-line bg-white px-4 font-semibold text-ink"
+          className="inline-flex min-h-12 items-center rounded-xl border border-slate-300 bg-white px-4 font-semibold text-ink transition-colors hover:border-brand hover:bg-brand-tint"
         >
           Buka WhatsApp
         </a>
@@ -276,13 +302,14 @@ export function TeamOrdersPage() {
   return (
     <TeamShell role={role}>
       <PageHeader title="Pesanan tim" description="Semua pesanan lintas pembeli. Data kontak adalah snapshot saat checkout." />
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      <Card className="grid gap-4 p-5 sm:grid-cols-2">
         <label className="space-y-2">
-          <span className="block font-medium text-ink">Status pembayaran</span>
+          <span className="block text-sm font-semibold text-ink">Status pembayaran</span>
           <select
             value={payment}
             onChange={(event) => setPayment(event.target.value)}
-            className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-ink"
+            className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
           >
             <option value="">Semua</option>
             <option value="PENDING">Menunggu pembayaran</option>
@@ -291,11 +318,11 @@ export function TeamOrdersPage() {
           </select>
         </label>
         <label className="space-y-2">
-          <span className="block font-medium text-ink">Status pengerjaan</span>
+          <span className="block text-sm font-semibold text-ink">Status pengerjaan</span>
           <select
             value={fulfillment}
             onChange={(event) => setFulfillment(event.target.value)}
-            className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-ink"
+            className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
           >
             <option value="">Semua</option>
             <option value="UNFULFILLED">Belum disiapkan</option>
@@ -304,7 +331,7 @@ export function TeamOrdersPage() {
             <option value="CANCELLED">Dibatalkan</option>
           </select>
         </label>
-      </div>
+      </Card>
 
       {error ? (
         <div className="space-y-4">
@@ -319,22 +346,27 @@ export function TeamOrdersPage() {
       {page && page.orders.length > 0 ? (
         <ul className="space-y-4">
           {page.orders.map((order) => (
-            <li key={order.id} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-mono font-semibold text-ink">{order.orderNumber}</p>
-                <div className="flex flex-wrap gap-2">
-                  <StatusBadge status={order.paymentStatus} />
-                  <StatusBadge status={order.fulfillmentStatus} />
-                </div>
-              </div>
-              <p className="text-sm text-muted">
-                {order.buyerName} · {order.contactPhone} · {rupiah(order.totalRp)}
-              </p>
-              <p className="text-sm text-muted">
-                Dibuat {dateTime(order.createdAt)} WIB. {order.items.map((item) => `${item.title} x ${item.quantity}`).join(", ")}
-              </p>
-              <Link to={`/team/orders/${order.id}`} className="font-semibold text-brand underline">
-                Buka detail
+            <li key={order.id}>
+              <Link to={`/team/orders/${order.id}`} className="block">
+                <Card className="space-y-3 p-5 transition-colors hover:border-brand">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-mono font-semibold text-ink">{order.orderNumber}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status={order.paymentStatus} />
+                      <StatusBadge status={order.fulfillmentStatus} />
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted">
+                    {order.buyerName}, {order.contactPhone}
+                  </p>
+                  <p className="text-sm text-muted">
+                    Dibuat {dateTime(order.createdAt)} WIB. {order.items.map((item) => `${item.title} x ${item.quantity}`).join(", ")}
+                  </p>
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <Price finalRp={order.totalRp} size="sm" />
+                    <span className="text-sm font-semibold text-brand-dark">Buka detail</span>
+                  </div>
+                </Card>
               </Link>
             </li>
           ))}
@@ -397,49 +429,53 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
       {!order && !error ? <Spinner label="Memuat detail pesanan" /> : null}
       {order ? (
         <>
-          <PageHeader title={order.orderNumber} description={`Dibuat ${dateTime(order.createdAt)} WIB`} />
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status={order.paymentStatus} />
-            <StatusBadge status={order.fulfillmentStatus} />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <PageHeader title={order.orderNumber} description={`Dibuat ${dateTime(order.createdAt)} WIB`} />
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge status={order.paymentStatus} />
+              <StatusBadge status={order.fulfillmentStatus} />
+            </div>
           </div>
 
-          <section className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
-              <h2 className="font-semibold text-ink">Pembeli</h2>
-              <p className="font-medium text-ink">{order.buyerName}</p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="space-y-2 p-6">
+              <h2 className="text-lg font-bold tracking-tight text-ink">Pembeli</h2>
+              <p className="font-semibold text-ink">{order.buyerName}</p>
               <p className="text-sm text-muted">{order.contactPhone}</p>
               <p className="text-sm text-muted">{order.email ?? "Email tidak tersimpan."}</p>
-              <p className="text-sm text-muted">
+              <p className="border-t border-slate-100 pt-3 text-sm text-muted">
                 Dibayar {dateTime(order.paidAt)} WIB, siap {dateTime(order.readyAt)} WIB, diterima {dateTime(order.pickedUpAt)} WIB.
               </p>
-            </div>
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
-              <h2 className="font-semibold text-ink">Pengambilan</h2>
-              <p className="font-medium text-ink">{order.pickup.label}</p>
+            </Card>
+            <Card className="space-y-2 p-6">
+              <h2 className="text-lg font-bold tracking-tight text-ink">Pengambilan</h2>
+              <p className="font-semibold text-ink">{order.pickup.label}</p>
               <p className="text-sm text-muted">{order.pickup.details}</p>
               <p className="text-sm text-muted">Jam layanan: {order.pickup.hours}</p>
-              <p className="text-sm text-muted">Metode: {order.method ?? "-"} (simulasi)</p>
-            </div>
-          </section>
+              <p className="border-t border-slate-100 pt-3 text-sm text-muted">Metode: {order.method ?? "-"} (simulasi)</p>
+            </Card>
+          </div>
 
-          <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
-            <h2 className="font-semibold text-ink">Item dan komponen</h2>
-            <ul className="divide-y divide-slate-200">
+          <Card className="space-y-4 p-6">
+            <h2 className="text-lg font-bold tracking-tight text-ink">Item dan komponen</h2>
+            <ul className="divide-y divide-slate-100">
               {order.items.map((item) => (
-                <li key={item.id} className="space-y-2 py-2">
+                <li key={item.id} className="space-y-2 py-4 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap justify-between gap-2">
                     <span className="text-ink">
                       {item.title} x {item.quantity}
-                      {variantLabel(item.attributes) ? <span className="block text-sm text-muted">{variantLabel(item.attributes)}</span> : null}
+                      {variantLabel(item.attributes) ? (
+                        <span className="block text-sm text-muted">{variantLabel(item.attributes)}</span>
+                      ) : null}
                     </span>
-                    <span className="font-medium text-ink">{rupiah(item.lineTotalRp)}</span>
+                    <Price finalRp={item.lineTotalRp} size="sm" />
                   </div>
                   {item.components.length > 0 ? (
-                    <ul className="pl-4 text-sm text-muted">
+                    <ul className="space-y-1 rounded-xl bg-slate-50 p-4 text-sm text-muted">
                       {item.components.map((component) => (
                         <li key={component.variantId}>
                           {component.title} ({component.sku}) x {component.quantity}
-                          {variantLabel(component.attributes) ? ` · ${variantLabel(component.attributes)}` : ""}
+                          {variantLabel(component.attributes) ? `, ${variantLabel(component.attributes)}` : ""}
                         </li>
                       ))}
                     </ul>
@@ -447,18 +483,16 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
                 </li>
               ))}
             </ul>
-            <p className="flex justify-between border-t border-slate-200 pt-2 text-lg">
-              <span>Total</span>
-              <strong>{rupiah(order.totalRp)}</strong>
-            </p>
-          </section>
+            <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+              <span className="font-semibold text-ink">Total</span>
+              <Price finalRp={order.totalRp} />
+            </div>
+          </Card>
 
-          <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-            <h2 className="font-semibold text-ink">Tindakan</h2>
+          <Card className="space-y-4 p-6">
+            <h2 className="text-lg font-bold tracking-tight text-ink">Tindakan</h2>
             {role === "admin" ? (
-              <p className="text-sm text-muted">
-                Admin hanya melihat antrean. Tindakan siap diambil dan serah terima dijalankan staf.
-              </p>
+              <p className="text-sm text-muted">Admin hanya melihat antrean. Tindakan siap diambil dan serah terima dijalankan staf.</p>
             ) : null}
             {role === "staff" && order.paymentStatus === "PAID" && order.fulfillmentStatus === "UNFULFILLED" && can("orders.ready") ? (
               <Button onClick={() => void act(`/api/team/orders/${order.id}/ready`, "Pesanan ditandai siap diambil.")} disabled={busy}>
@@ -467,8 +501,8 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             ) : null}
             {role === "staff" && order.paymentStatus === "PAID" && order.fulfillmentStatus === "READY" && can("orders.complete") ? (
               confirming ? (
-                <div className="space-y-2 rounded-lg border border-brand bg-brand-tint p-4">
-                  <p className="font-medium text-brand-dark">Konfirmasi barang sudah diterima pembeli?</p>
+                <div className="space-y-3 rounded-xl border border-brand bg-brand-tint p-5">
+                  <p className="font-semibold text-brand-dark">Konfirmasi barang sudah diterima pembeli?</p>
                   <p className="text-sm text-ink">Tindakan ini mengubah status menjadi sudah diterima dan tercatat di audit.</p>
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={() => void act(`/api/team/orders/${order.id}/complete`, "Serah terima tercatat.")} disabled={busy}>
@@ -499,16 +533,12 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             ) : null}
             <p className="text-sm text-muted">Tidak ada QR atau kode dari pembeli. Tindakan tidak mengubah stok.</p>
             <WhatsAppShortcut order={order} />
-          </section>
+          </Card>
         </>
       ) : null}
-      <button
-        type="button"
-        onClick={() => navigate("/team/orders")}
-        className="min-h-12 font-semibold text-brand underline"
-      >
+      <Button variant="quiet" onClick={() => navigate("/team/orders")}>
         Kembali ke daftar pesanan tim
-      </button>
+      </Button>
     </TeamShell>
   );
 }

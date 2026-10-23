@@ -457,7 +457,7 @@ describe("alur belanja demo v2", () => {
   test("keranjang kosong menawarkan kembali ke katalog", async () => {
     window.history.replaceState({}, "", "/cart");
     render(<App />);
-    expect(await screen.findByText("Keranjang masih kosong.")).toBeInTheDocument();
+    expect(await screen.findByText("Keranjang masih kosong")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Lihat katalog" })).toHaveAttribute("href", "/catalog");
   });
 });
