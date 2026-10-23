@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { ensureSession } from "./lib/api";
 import { cartCount, subscribeCart } from "./lib/cart";
-import { Link } from "./components/ui";
-import { usePathname } from "./lib/router";
+import { Link, Spinner } from "./components/ui";
+import { navigate, usePathname } from "./lib/router";
 import { useOperatorWorkspace, useWorkspace } from "./lib/workspace";
 import { refreshAuth, useAuthRevalidation } from "./lib/auth-store";
 import HomePage from "./pages/HomePage";
@@ -31,6 +31,59 @@ const NAV = [
   { to: "/contact", label: "Hubungi Kami" },
 ];
 
+/** `/admin` tanpa bagian diarahkan ke ringkasan supaya tautan lama tetap bekerja. */
+function AdminRedirect() {
+  useEffect(() => {
+    navigate("/admin/ringkasan");
+  }, []);
+  return <Spinner label="Membuka ringkasan admin" />;
+}
+
+function NavLinks({
+  signedIn,
+  operatorRole,
+  count,
+  stacked = false,
+}: {
+  signedIn: boolean;
+  operatorRole: "staff" | "admin" | null;
+  count: number;
+  stacked?: boolean;
+}) {
+  const item = `min-h-12 content-center text-ink hover:underline ${stacked ? "px-2" : ""}`;
+  return (
+    <>
+      {NAV.map((entry) => (
+        <Link key={entry.to} to={entry.to} className={item}>
+          {entry.label}
+        </Link>
+      ))}
+      <Link to="/cart" className={item}>
+        Keranjang{count > 0 ? ` (${count})` : ""}
+      </Link>
+      {signedIn ? (
+        <>
+          <Link to="/profile" className={item}>
+            Akun
+          </Link>
+          <Link to="/orders" className={item}>
+            Pesanan Saya
+          </Link>
+        </>
+      ) : (
+        <Link to="/login" className={`${item} font-semibold text-brand underline`}>
+          Masuk
+        </Link>
+      )}
+      {operatorRole ? (
+        <Link to="/team" className={item}>
+          Workspace tim
+        </Link>
+      ) : null}
+    </>
+  );
+}
+
 function Routes({ path }: { path: string }) {
   const parts = path.split("/").filter(Boolean);
 
@@ -53,11 +106,12 @@ function Routes({ path }: { path: string }) {
   if (parts[0] === "team" && !parts[1]) return <TeamDashboardPage />;
   if (parts[0] === "team" && parts[1] === "orders" && !parts[2]) return <TeamOrdersPage />;
   if (parts[0] === "team" && parts[1] === "orders" && parts[2]) return <TeamOrderDetailPage id={parts[2]} />;
+  if (parts[0] === "admin" && !parts[1]) return <AdminRedirect />;
   if (parts[0] === "admin") return <AdminPage section={parts[1]} />;
   if (parts[0] === "privacy" || parts[0] === "terms") return <StaticPage page={parts[0]} />;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <h1 className="text-2xl font-bold text-ink">Halaman tidak ditemukan</h1>
       <p className="text-muted">Alamat ini tidak ada di aplikasi demo.</p>
       <Link to="/" className="font-semibold text-brand underline">
@@ -74,6 +128,7 @@ export default function App() {
   const operatorRole = operator.state === "ready" && (operator.role === "staff" || operator.role === "admin") ? operator.role : null;
   const signedIn = workspace.state === "ready" && workspace.user !== null;
   const [count, setCount] = useState(cartCount);
+  const [menuOpen, setMenuOpen] = useState(false);
   useAuthRevalidation();
 
   useEffect(() => {
@@ -86,6 +141,10 @@ export default function App() {
   useEffect(() => {
     ensureSession().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [path]);
 
   useEffect(() => {
     const titles: Record<string, string> = {
@@ -120,34 +179,21 @@ export default function App() {
           <Link to="/" className="min-h-12 content-center text-lg font-bold text-brand-dark">
             MabaKit
           </Link>
-          <nav aria-label="Navigasi utama" className="flex flex-wrap items-center gap-x-4 text-sm font-medium">
-            {NAV.map((item) => (
-              <Link key={item.to} to={item.to} className="min-h-12 content-center text-ink hover:underline">
-                {item.label}
-              </Link>
-            ))}
-            <Link to="/cart" className="min-h-12 content-center text-ink hover:underline">
-              Keranjang{count > 0 ? ` (${count})` : ""}
-            </Link>
-            {signedIn ? (
-              <>
-                <Link to="/profile" className="min-h-12 content-center text-ink hover:underline">
-                  Akun
-                </Link>
-                <Link to="/orders" className="min-h-12 content-center text-ink hover:underline">
-                  Pesanan Saya
-                </Link>
-              </>
-            ) : (
-              <Link to="/login" className="min-h-12 content-center font-semibold text-brand underline">
-                Masuk
-              </Link>
-            )}
-            {operatorRole ? (
-              <Link to="/team" className="min-h-12 content-center text-ink hover:underline">
-                Workspace tim
-              </Link>
-            ) : null}
+          <button
+            type="button"
+            aria-expanded={menuOpen}
+            aria-controls="nav-utama"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="min-h-12 rounded-lg border border-line px-4 font-semibold text-ink md:hidden"
+          >
+            Menu
+          </button>
+          <nav
+            id="nav-utama"
+            aria-label="Navigasi utama"
+            className={`${menuOpen ? "flex" : "hidden"} w-full flex-col gap-x-4 text-sm font-medium md:flex md:w-auto md:flex-row md:flex-wrap md:items-center`}
+          >
+            <NavLinks signedIn={signedIn} operatorRole={operatorRole} count={count} />
           </nav>
         </div>
       </header>
@@ -157,7 +203,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-sm text-muted">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 text-sm text-muted">
           <p>Demo simulasi perlengkapan PKKMB. Bukan toko resmi kampus.</p>
           <nav aria-label="Navigasi kaki" className="flex flex-wrap gap-4">
             <Link to="/about" className="min-h-12 content-center hover:underline">

@@ -8,16 +8,19 @@ export function Link({
   children,
   className = "",
   onClick,
+  ariaCurrent,
 }: {
   to: string;
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  ariaCurrent?: "page";
 }) {
   return (
     <a
       href={to}
       className={className}
+      aria-current={ariaCurrent}
       onClick={(event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
@@ -56,7 +59,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex min-h-12 items-center justify-center rounded-lg px-5 font-semibold transition-colors ${BUTTON_STYLES[variant]} ${className}`}
+      className={`inline-flex min-h-12 items-center justify-center rounded-lg px-6 font-semibold transition-colors ${BUTTON_STYLES[variant]} ${className}`}
     >
       {children}
     </button>
@@ -77,7 +80,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <label htmlFor={id} className="block font-medium text-ink">
         {label}
       </label>
@@ -97,7 +100,7 @@ export function Field({
 }
 
 const CONTROL =
-  "min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink placeholder:text-muted";
+  "min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base text-ink placeholder:text-muted";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${CONTROL} ${props.className ?? ""}`} />;
@@ -119,7 +122,7 @@ export function Alert({ tone = "info", children }: { tone?: "info" | "warn" | "e
         ? "border-warn-fg bg-warn-bg text-warn-fg"
         : "border-brand bg-brand-tint text-brand-dark";
   return (
-    <div className={`rounded-lg border p-3 text-sm ${styles}`} role={tone === "error" ? "alert" : "status"}>
+    <div className={`rounded-lg border p-4 text-sm ${styles}`} role={tone === "error" ? "alert" : "status"}>
       {children}
     </div>
   );
@@ -132,7 +135,7 @@ export function StatusBadge({ status }: { status: string }) {
       : status === "EXPIRED" || status === "CANCELLED"
         ? "bg-slate-100 text-muted border-line"
         : "bg-warn-bg text-warn-fg border-warn-fg";
-  return <span className={`inline-block rounded-full border px-3 py-1 text-sm font-medium ${tone}`}>{statusLabel(status)}</span>;
+  return <span className={`inline-block rounded-full border px-4 py-2 text-sm font-medium ${tone}`}>{statusLabel(status)}</span>;
 }
 
 export function PageHeader({ title, description }: { title: string; description?: string }) {
@@ -147,7 +150,7 @@ export function PageHeader({ title, description }: { title: string; description?
 /** Keterangan percobaan pembayaran. Hanya dipakai di alur pembayaran dan invoice. */
 export function SimulasiBadge() {
   return (
-    <p className="inline-flex items-center rounded-full bg-warn-bg px-3 py-1 text-sm font-semibold text-warn-fg">
+    <p className="inline-flex items-center rounded-full bg-warn-bg px-4 py-2 text-sm font-semibold text-warn-fg">
       SIMULASI, bukan pembayaran nyata
     </p>
   );

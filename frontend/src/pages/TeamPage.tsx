@@ -24,10 +24,10 @@ function useTeamGate() {
 function Denied({ workspace }: { workspace: Workspace }) {
   if (workspace.state === "loading") return <Spinner label="Memeriksa akses tim" />;
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <PageHeader title="Workspace tim" description="Halaman ini hanya untuk admin dan tim MabaKit yang terverifikasi server." />
       <Alert tone="error">{workspace.error ?? "Akun ini bukan bagian dari tim MabaKit."}</Alert>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-4">
         <Button variant="secondary" onClick={workspace.reload}>
           Coba lagi
         </Button>
@@ -58,13 +58,13 @@ export function TeamShell({ role, children }: { role: WorkspaceRole; children: R
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-brand">Workspace tim</p>
           <p className="text-lg font-bold text-ink">MabaKit</p>
           <p className="text-sm text-muted">Masuk sebagai {role === "admin" ? "admin" : "tim MabaKit"}</p>
         </div>
-        <nav aria-label="Navigasi tim" className="flex flex-wrap items-center gap-3 text-sm font-semibold">
+        <nav aria-label="Navigasi tim" className="flex flex-wrap items-center gap-4 text-sm font-semibold">
           <Link to="/team" className="min-h-12 content-center text-ink hover:underline">
             Ringkasan
           </Link>
@@ -135,7 +135,7 @@ export function TeamDashboardPage() {
         ))}
       </div>
       {error ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Alert tone="error">{error}</Alert>
           <Button variant="secondary" onClick={() => void load()}>
             Coba lagi
@@ -145,7 +145,7 @@ export function TeamDashboardPage() {
       {loading && !summary ? <Spinner label="Memuat ringkasan" /> : null}
       {summary ? (
         <>
-          <section className="grid gap-3 sm:grid-cols-2" aria-label="Penjualan">
+          <section className="grid gap-4 sm:grid-cols-2" aria-label="Penjualan">
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <p className="text-sm text-muted">Nilai penjualan dibayar</p>
               <p className="text-3xl font-bold text-ink">{rupiah(summary.sales.paidValueRp)}</p>
@@ -159,7 +159,7 @@ export function TeamDashboardPage() {
               </p>
             </div>
           </section>
-          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Status pesanan">
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Status pesanan">
             {(
               [
                 ["pending", "Menunggu pembayaran", "/team/orders?payment=PENDING"],
@@ -195,7 +195,7 @@ function WhatsAppShortcut({ order }: { order: Order }) {
   const href = `https://wa.me/${waNumber(order.contactPhone)}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className="space-y-2 rounded-lg border border-slate-200 p-3 text-sm">
+    <div className="space-y-2 rounded-lg border border-slate-200 p-4 text-sm">
       <p className="font-semibold text-ink">Draft WhatsApp</p>
       <p className="text-muted">Tujuan: {order.contactPhone}. Membuka chat tidak mengubah status pesanan.</p>
       <p className="rounded bg-slate-50 p-2 text-ink">{message}</p>
@@ -276,13 +276,13 @@ export function TeamOrdersPage() {
   return (
     <TeamShell role={role}>
       <PageHeader title="Pesanan tim" description="Semua pesanan lintas pembeli. Data kontak adalah snapshot saat checkout." />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="space-y-2">
           <span className="block font-medium text-ink">Status pembayaran</span>
           <select
             value={payment}
             onChange={(event) => setPayment(event.target.value)}
-            className="min-h-12 w-full rounded-lg border border-line bg-white px-3 text-ink"
+            className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-ink"
           >
             <option value="">Semua</option>
             <option value="PENDING">Menunggu pembayaran</option>
@@ -290,12 +290,12 @@ export function TeamOrdersPage() {
             <option value="EXPIRED">Kedaluwarsa</option>
           </select>
         </label>
-        <label className="space-y-1">
+        <label className="space-y-2">
           <span className="block font-medium text-ink">Status pengerjaan</span>
           <select
             value={fulfillment}
             onChange={(event) => setFulfillment(event.target.value)}
-            className="min-h-12 w-full rounded-lg border border-line bg-white px-3 text-ink"
+            className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-ink"
           >
             <option value="">Semua</option>
             <option value="UNFULFILLED">Belum disiapkan</option>
@@ -307,7 +307,7 @@ export function TeamOrdersPage() {
       </div>
 
       {error ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Alert tone="error">{error}</Alert>
           <Button variant="secondary" onClick={() => void load()}>
             Coba lagi
@@ -317,7 +317,7 @@ export function TeamOrdersPage() {
       {loading && !page ? <Spinner label="Memuat pesanan" /> : null}
       {page && page.orders.length === 0 ? <Alert tone="warn">Tidak ada pesanan untuk filter ini.</Alert> : null}
       {page && page.orders.length > 0 ? (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {page.orders.map((order) => (
             <li key={order.id} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -403,8 +403,8 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             <StatusBadge status={order.fulfillmentStatus} />
           </div>
 
-          <section className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1 rounded-xl border border-slate-200 bg-white p-4">
+          <section className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
               <h2 className="font-semibold text-ink">Pembeli</h2>
               <p className="font-medium text-ink">{order.buyerName}</p>
               <p className="text-sm text-muted">{order.contactPhone}</p>
@@ -413,7 +413,7 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
                 Dibayar {dateTime(order.paidAt)} WIB, siap {dateTime(order.readyAt)} WIB, diterima {dateTime(order.pickedUpAt)} WIB.
               </p>
             </div>
-            <div className="space-y-1 rounded-xl border border-slate-200 bg-white p-4">
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
               <h2 className="font-semibold text-ink">Pengambilan</h2>
               <p className="font-medium text-ink">{order.pickup.label}</p>
               <p className="text-sm text-muted">{order.pickup.details}</p>
@@ -426,7 +426,7 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             <h2 className="font-semibold text-ink">Item dan komponen</h2>
             <ul className="divide-y divide-slate-200">
               {order.items.map((item) => (
-                <li key={item.id} className="space-y-1 py-2">
+                <li key={item.id} className="space-y-2 py-2">
                   <div className="flex flex-wrap justify-between gap-2">
                     <span className="text-ink">
                       {item.title} x {item.quantity}
@@ -453,7 +453,7 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             </p>
           </section>
 
-          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+          <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
             <h2 className="font-semibold text-ink">Tindakan</h2>
             {role === "admin" ? (
               <p className="text-sm text-muted">
@@ -467,7 +467,7 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
             ) : null}
             {role === "staff" && order.paymentStatus === "PAID" && order.fulfillmentStatus === "READY" && can("orders.complete") ? (
               confirming ? (
-                <div className="space-y-2 rounded-lg border border-brand bg-brand-tint p-3">
+                <div className="space-y-2 rounded-lg border border-brand bg-brand-tint p-4">
                   <p className="font-medium text-brand-dark">Konfirmasi barang sudah diterima pembeli?</p>
                   <p className="text-sm text-ink">Tindakan ini mengubah status menjadi sudah diterima dan tercatat di audit.</p>
                   <div className="flex flex-wrap gap-2">

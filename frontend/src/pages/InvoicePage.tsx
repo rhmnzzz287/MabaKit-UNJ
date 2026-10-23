@@ -50,7 +50,7 @@ export default function InvoicePage({ id }: { id: string }) {
 
   if (error) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <Alert tone="error">{error}</Alert>
         <Link to="/orders" className="font-semibold text-brand underline">
           Kembali ke daftar pesanan
@@ -64,14 +64,14 @@ export default function InvoicePage({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="no-print flex flex-wrap items-center justify-between gap-3">
+      <div className="no-print flex flex-wrap items-center justify-between gap-4">
         <PageHeader title="Invoice digital" description="Dibuat dari snapshot pesanan saat pembayaran simulasi dikonfirmasi." />
         <Button variant="secondary" onClick={() => window.print()}>
           Cetak
         </Button>
       </div>
 
-      <div className="rounded-lg border border-warn-fg bg-warn-bg p-3 font-semibold text-warn-fg" role="note">
+      <div className="rounded-lg border border-warn-fg bg-warn-bg p-4 font-semibold text-warn-fg" role="note">
         Dokumen percobaan, bukan bukti pembayaran sah. {invoice.watermark}.
       </div>
 
@@ -141,7 +141,7 @@ export default function InvoicePage({ id }: { id: string }) {
                 <td className="py-2 text-right text-ink">{item.quantity}</td>
                 <td className="py-2 text-right text-ink">
                   {(item.discountBasisPoints ?? 0) > 0 ? (
-                    <s className="mr-1 text-xs text-muted">{rupiah(item.basePriceRp ?? item.unitPriceRp)}</s>
+                    <s className="mr-2 text-xs text-muted">{rupiah(item.basePriceRp ?? item.unitPriceRp)}</s>
                   ) : null}
                   {rupiah(item.unitPriceRp)}
                 </td>
@@ -151,10 +151,10 @@ export default function InvoicePage({ id }: { id: string }) {
           </tbody>
           <tfoot>
             <tr>
-              <th scope="row" colSpan={3} className="py-3 text-right">
+              <th scope="row" colSpan={3} className="py-4 text-right">
                 Total
               </th>
-              <td className="py-3 text-right text-lg font-bold text-ink">
+              <td className="py-4 text-right text-lg font-bold text-ink">
                 {order.totalRp === 0 ? "Gratis" : rupiah(order.totalRp)}
               </td>
             </tr>
@@ -176,7 +176,7 @@ export default function InvoicePage({ id }: { id: string }) {
         {!preview && !previewError ? <p className="text-muted">Memuat pratinjau...</p> : null}
         {preview ? (
           <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <dl className="grid gap-1 text-sm sm:grid-cols-[120px_minmax(0,1fr)]">
+            <dl className="grid gap-2 text-sm sm:grid-cols-[120px_minmax(0,1fr)]">
               <dt className="text-muted">Penerima</dt>
               <dd className="font-medium text-ink">{preview.recipient}</dd>
               <dt className="text-muted">Subject</dt>

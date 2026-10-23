@@ -36,7 +36,7 @@ export default function StaticPage({ page }: { page: keyof typeof COPY }) {
     <div className="space-y-6">
       <PageHeader title={copy.title} description="Konten demo, bukan dokumen legal produksi." />
       <Alert tone="warn">Halaman ini masih draft demo dan belum ditinjau untuk kebutuhan produksi.</Alert>
-      <ul className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <ul className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         {copy.body.map((paragraph) => (
           <li key={paragraph} className="text-ink">
             {paragraph}

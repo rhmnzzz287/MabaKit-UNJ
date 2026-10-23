@@ -60,7 +60,7 @@ function ProductCard({ product }: { product: Product }) {
           {(product.discountBasisPoints ?? 0) > 0 ? (
             <>
               <p className="text-sm text-muted line-through">{rupiah(product.basePriceRp ?? product.priceRp)}</p>
-              <span className="rounded bg-brand-tint px-2 py-0.5 text-xs font-bold text-brand-dark">
+              <span className="rounded bg-brand-tint px-2 py-1 text-xs font-bold text-brand-dark">
                 -{(product.discountBasisPoints ?? 0) / 100}%
               </span>
             </>
@@ -121,7 +121,7 @@ export default function CatalogPage() {
       />
 
       {error ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Alert tone="error">{error}</Alert>
           <Button variant="secondary" onClick={() => setReload((value) => value + 1)}>
             Coba lagi
@@ -133,7 +133,7 @@ export default function CatalogPage() {
       {data ? (
         <>
           <section aria-labelledby="paket-heading" className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h2 id="paket-heading" className="text-xl font-bold text-ink">
                   Paket
@@ -141,7 +141,7 @@ export default function CatalogPage() {
                 <p className="text-sm text-muted">Isi paket mengikuti fakultas yang dipilih.</p>
               </div>
               <div className="w-full sm:w-72">
-                <label htmlFor="faculty-filter" className="mb-1 block text-sm font-medium text-ink">
+                <label htmlFor="faculty-filter" className="mb-2 block text-sm font-medium text-ink">
                   Filter fakultas
                 </label>
                 <Select id="faculty-filter" value={facultyId} onChange={(event) => setFacultyId(event.target.value)}>

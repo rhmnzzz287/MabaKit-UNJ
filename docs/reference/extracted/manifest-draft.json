@@ -1,0 +1,635 @@
+{
+  "source": "docs/reference/updatekatalog.pdf",
+  "images": [
+    {
+      "page": 1,
+      "index": 0,
+      "file": "updatekatalog/p-001-000.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 359128,
+      "small": false
+    },
+    {
+      "page": 1,
+      "index": 1,
+      "file": "updatekatalog/p-001-001.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 268967,
+      "small": false
+    },
+    {
+      "page": 2,
+      "index": 2,
+      "file": "updatekatalog/p-002-002.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 251670,
+      "small": false
+    },
+    {
+      "page": 2,
+      "index": 3,
+      "file": "updatekatalog/p-002-003.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 348191,
+      "small": false
+    },
+    {
+      "page": 3,
+      "index": 4,
+      "file": "updatekatalog/p-003-004.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 241600,
+      "small": false
+    },
+    {
+      "page": 3,
+      "index": 5,
+      "file": "updatekatalog/p-003-005.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 308953,
+      "small": false
+    },
+    {
+      "page": 4,
+      "index": 6,
+      "file": "updatekatalog/p-004-006.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 345764,
+      "small": false
+    },
+    {
+      "page": 4,
+      "index": 7,
+      "file": "updatekatalog/p-004-007.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 281923,
+      "small": false
+    },
+    {
+      "page": 4,
+      "index": 8,
+      "file": "updatekatalog/p-004-008.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 640535,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 9,
+      "file": "updatekatalog/p-005-009.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 579987,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 10,
+      "file": "updatekatalog/p-005-010.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 587264,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 11,
+      "file": "updatekatalog/p-005-011.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 645839,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 12,
+      "file": "updatekatalog/p-005-012.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 560359,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 13,
+      "file": "updatekatalog/p-005-013.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 636420,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 14,
+      "file": "updatekatalog/p-005-014.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 618412,
+      "small": false
+    },
+    {
+      "page": 5,
+      "index": 15,
+      "file": "updatekatalog/p-005-015.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 654511,
+      "small": false
+    },
+    {
+      "page": 6,
+      "index": 16,
+      "file": "updatekatalog/p-006-016.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 800256,
+      "small": false
+    },
+    {
+      "page": 6,
+      "index": 17,
+      "file": "updatekatalog/p-006-017.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 751145,
+      "small": false
+    },
+    {
+      "page": 6,
+      "index": 18,
+      "file": "updatekatalog/p-006-018.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 771986,
+      "small": false
+    },
+    {
+      "page": 6,
+      "index": 19,
+      "file": "updatekatalog/p-006-019.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 709690,
+      "small": false
+    },
+    {
+      "page": 6,
+      "index": 20,
+      "file": "updatekatalog/p-006-020.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 748236,
+      "small": false
+    },
+    {
+      "page": 7,
+      "index": 21,
+      "file": "updatekatalog/p-007-021.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 618954,
+      "small": false
+    },
+    {
+      "page": 7,
+      "index": 22,
+      "file": "updatekatalog/p-007-022.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 695377,
+      "small": false
+    },
+    {
+      "page": 7,
+      "index": 23,
+      "file": "updatekatalog/p-007-023.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 718126,
+      "small": false
+    },
+    {
+      "page": 7,
+      "index": 24,
+      "file": "updatekatalog/p-007-024.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 741755,
+      "small": false
+    },
+    {
+      "page": 8,
+      "index": 25,
+      "file": "updatekatalog/p-008-025.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 327089,
+      "small": false
+    },
+    {
+      "page": 8,
+      "index": 26,
+      "file": "updatekatalog/p-008-026.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 319056,
+      "small": false
+    },
+    {
+      "page": 9,
+      "index": 27,
+      "file": "updatekatalog/p-009-027.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 236551,
+      "small": false
+    },
+    {
+      "page": 9,
+      "index": 28,
+      "file": "updatekatalog/p-009-028.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 263913,
+      "small": false
+    },
+    {
+      "page": 10,
+      "index": 29,
+      "file": "updatekatalog/p-010-029.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 262608,
+      "small": false
+    },
+    {
+      "page": 10,
+      "index": 30,
+      "file": "updatekatalog/p-010-030.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 253202,
+      "small": false
+    },
+    {
+      "page": 11,
+      "index": 31,
+      "file": "updatekatalog/p-011-031.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 298767,
+      "small": false
+    },
+    {
+      "page": 11,
+      "index": 32,
+      "file": "updatekatalog/p-011-032.jpg",
+      "width": 1920,
+      "height": 1280,
+      "format": "jpg",
+      "bytes": 323898,
+      "small": false
+    },
+    {
+      "page": 12,
+      "index": 33,
+      "file": "updatekatalog/p-012-033.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 701489,
+      "small": false
+    },
+    {
+      "page": 12,
+      "index": 34,
+      "file": "updatekatalog/p-012-034.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 637817,
+      "small": false
+    },
+    {
+      "page": 12,
+      "index": 35,
+      "file": "updatekatalog/p-012-035.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 669337,
+      "small": false
+    },
+    {
+      "page": 12,
+      "index": 36,
+      "file": "updatekatalog/p-012-036.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 793975,
+      "small": false
+    },
+    {
+      "page": 12,
+      "index": 37,
+      "file": "updatekatalog/p-012-037.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 775988,
+      "small": false
+    },
+    {
+      "page": 13,
+      "index": 38,
+      "file": "updatekatalog/p-013-038.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 761345,
+      "small": false
+    },
+    {
+      "page": 13,
+      "index": 39,
+      "file": "updatekatalog/p-013-039.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 849496,
+      "small": false
+    },
+    {
+      "page": 13,
+      "index": 40,
+      "file": "updatekatalog/p-013-040.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 680850,
+      "small": false
+    },
+    {
+      "page": 13,
+      "index": 41,
+      "file": "updatekatalog/p-013-041.png",
+      "width": 1024,
+      "height": 765,
+      "format": "png",
+      "bytes": 955393,
+      "small": false
+    },
+    {
+      "page": 13,
+      "index": 42,
+      "file": "updatekatalog/p-013-042.png",
+      "width": 268,
+      "height": 170,
+      "format": "png",
+      "bytes": 26881,
+      "small": true
+    },
+    {
+      "page": 14,
+      "index": 43,
+      "file": "updatekatalog/p-014-043.png",
+      "width": 262,
+      "height": 166,
+      "format": "png",
+      "bytes": 26528,
+      "small": true
+    },
+    {
+      "page": 14,
+      "index": 44,
+      "file": "updatekatalog/p-014-044.png",
+      "width": 263,
+      "height": 155,
+      "format": "png",
+      "bytes": 22425,
+      "small": true
+    },
+    {
+      "page": 14,
+      "index": 45,
+      "file": "updatekatalog/p-014-045.png",
+      "width": 255,
+      "height": 148,
+      "format": "png",
+      "bytes": 18710,
+      "small": true
+    },
+    {
+      "page": 14,
+      "index": 46,
+      "file": "updatekatalog/p-014-046.png",
+      "width": 262,
+      "height": 153,
+      "format": "png",
+      "bytes": 18942,
+      "small": true
+    },
+    {
+      "page": 14,
+      "index": 47,
+      "file": "updatekatalog/p-014-047.png",
+      "width": 268,
+      "height": 156,
+      "format": "png",
+      "bytes": 20461,
+      "small": true
+    },
+    {
+      "page": 15,
+      "index": 48,
+      "file": "updatekatalog/p-015-048.png",
+      "width": 1024,
+      "height": 604,
+      "format": "png",
+      "bytes": 278054,
+      "small": false
+    },
+    {
+      "page": 15,
+      "index": 49,
+      "file": "updatekatalog/p-015-049.png",
+      "width": 264,
+      "height": 151,
+      "format": "png",
+      "bytes": 28818,
+      "small": true
+    },
+    {
+      "page": 15,
+      "index": 50,
+      "file": "updatekatalog/p-015-050.jpg",
+      "width": 2048,
+      "height": 1365,
+      "format": "jpg",
+      "bytes": 459526,
+      "small": false
+    },
+    {
+      "page": 15,
+      "index": 51,
+      "file": "updatekatalog/p-015-051.png",
+      "width": 700,
+      "height": 700,
+      "format": "png",
+      "bytes": 103722,
+      "small": false
+    },
+    {
+      "page": 16,
+      "index": 52,
+      "file": "updatekatalog/p-016-052.jpg",
+      "width": 447,
+      "height": 447,
+      "format": "jpg",
+      "bytes": 16341,
+      "small": true
+    },
+    {
+      "page": 16,
+      "index": 53,
+      "file": "updatekatalog/p-016-053.jpg",
+      "width": 554,
+      "height": 554,
+      "format": "jpg",
+      "bytes": 35994,
+      "small": false
+    },
+    {
+      "page": 16,
+      "index": 54,
+      "file": "updatekatalog/p-016-054.jpg",
+      "width": 1366,
+      "height": 768,
+      "format": "jpg",
+      "bytes": 62676,
+      "small": false
+    },
+    {
+      "page": 16,
+      "index": 55,
+      "file": "updatekatalog/p-016-055.jpg",
+      "width": 1371,
+      "height": 784,
+      "format": "jpg",
+      "bytes": 70495,
+      "small": false
+    },
+    {
+      "page": 16,
+      "index": 56,
+      "file": "updatekatalog/p-016-056.jpg",
+      "width": 1371,
+      "height": 784,
+      "format": "jpg",
+      "bytes": 74876,
+      "small": false
+    },
+    {
+      "page": 16,
+      "index": 57,
+      "file": "updatekatalog/p-016-057.jpg",
+      "width": 1371,
+      "height": 784,
+      "format": "jpg",
+      "bytes": 68345,
+      "small": false
+    },
+    {
+      "page": 17,
+      "index": 58,
+      "file": "updatekatalog/p-017-058.png",
+      "width": 800,
+      "height": 800,
+      "format": "png",
+      "bytes": 144810,
+      "small": false
+    },
+    {
+      "page": 17,
+      "index": 59,
+      "file": "updatekatalog/p-017-059.jpg",
+      "width": 1376,
+      "height": 768,
+      "format": "jpg",
+      "bytes": 66922,
+      "small": false
+    },
+    {
+      "page": 17,
+      "index": 60,
+      "file": "updatekatalog/p-017-060.jpg",
+      "width": 1152,
+      "height": 925,
+      "format": "jpg",
+      "bytes": 56976,
+      "small": false
+    },
+    {
+      "page": 17,
+      "index": 61,
+      "file": "updatekatalog/p-017-061.jpg",
+      "width": 1376,
+      "height": 768,
+      "format": "jpg",
+      "bytes": 67674,
+      "small": false
+    },
+    {
+      "page": 17,
+      "index": 62,
+      "file": "updatekatalog/p-017-062.jpg",
+      "width": 1376,
+      "height": 768,
+      "format": "jpg",
+      "bytes": 45237,
+      "small": false
+    }
+  ]
+}

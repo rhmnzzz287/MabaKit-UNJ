@@ -86,7 +86,7 @@ export default function PaymentPage({ id }: { id: string }) {
       <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="font-semibold text-ink">Ringkasan</h2>
           <p className="text-3xl font-bold text-ink">{rupiah(order.totalRp)}</p>
           <p className="text-sm text-muted">Metode: {order.method ? METHOD_LABEL[order.method] : "-"}</p>
@@ -101,7 +101,7 @@ export default function PaymentPage({ id }: { id: string }) {
           <p className="text-sm text-muted">Dibuat {dateTime(order.createdAt)} WIB</p>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="font-semibold text-ink">Pengambilan</h2>
           <p className="font-medium text-ink">{order.pickup.label}</p>
           <p className="text-sm text-muted">{order.pickup.details}</p>
@@ -112,11 +112,11 @@ export default function PaymentPage({ id }: { id: string }) {
         </section>
       </div>
 
-      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="font-semibold text-ink">Item</h2>
         <ul className="divide-y divide-slate-200">
           {order.items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-3 py-2">
+            <li key={item.id} className="flex justify-between gap-4 py-2">
               <span className="text-ink">
                 {item.title} x {item.quantity}
               </span>
@@ -127,14 +127,14 @@ export default function PaymentPage({ id }: { id: string }) {
       </section>
 
       {paid ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Alert tone="info">
             {order.method === "FREE"
               ? "Pesanan gratis dibuat tanpa pembayaran. Status " + statusLabel(order.fulfillmentStatus) + "."
               : "Pesanan simulasi berhasil dibuat. Status " + statusLabel(order.fulfillmentStatus) + "."}{" "}
             Invoice digital tersedia dan bukan bukti pembayaran nyata.
           </Alert>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4">
             <Link
               to={`/orders/${order.id}/invoice`}
               className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white"
@@ -150,7 +150,7 @@ export default function PaymentPage({ id }: { id: string }) {
           </div>
         </div>
       ) : expired ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Alert tone="warn">Draft kedaluwarsa. Stok sudah dilepas. Silakan buat pesanan baru dari katalog.</Alert>
           <Link
             to="/catalog"
@@ -160,7 +160,7 @@ export default function PaymentPage({ id }: { id: string }) {
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Button onClick={checkPayment} disabled={busy}>
             {busy ? "Memeriksa..." : "Cek status pembayaran"}
           </Button>

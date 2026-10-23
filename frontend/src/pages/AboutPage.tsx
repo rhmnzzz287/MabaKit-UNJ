@@ -36,9 +36,9 @@ export default function AboutPage() {
         ))}
       </ul>
 
-      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-semibold text-ink">Cara memesan</h2>
-        <ol className="list-decimal space-y-2 pl-5 text-ink">
+        <ol className="list-decimal space-y-2 pl-6 text-ink">
           <li>Pilih paket atau produk, lalu tentukan fakultas.</li>
           <li>Periksa isi dan harga, lalu tambahkan ke keranjang.</li>
           <li>Masuk atau daftar akun untuk melanjutkan checkout.</li>

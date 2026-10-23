@@ -30,7 +30,7 @@ export function OrderReviewForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4" noValidate>
+    <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" noValidate>
       <h2 className="font-semibold text-ink">Beri ulasan</h2>
       <p className="text-sm text-muted">Satu ulasan per pesanan. Ulasan tampil sebagai ulasan demo, bukan testimoni terverifikasi.</p>
       <Field id="review-rating" label="Rating">
@@ -38,7 +38,7 @@ export function OrderReviewForm({
           id="review-rating"
           value={rating}
           onChange={(event) => setRating(Number(event.target.value))}
-          className="min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink"
+          className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base text-ink"
         >
           {[5, 4, 3, 2, 1].map((value) => (
             <option key={value} value={value}>
@@ -56,7 +56,7 @@ export function OrderReviewForm({
           maxLength={1000}
           rows={4}
           required
-          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-base text-ink"
+          className="w-full rounded-lg border border-line bg-white px-4 py-2 text-base text-ink"
         />
       </Field>
       {error ? <Alert tone="error">{error}</Alert> : null}

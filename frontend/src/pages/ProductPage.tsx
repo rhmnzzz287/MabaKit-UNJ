@@ -59,16 +59,16 @@ export default function ProductPage({ id }: { id: string }) {
         <Alert tone="info">
           Isi dan harga paket bergantung pada fakultas. Sesuaikan paket untuk melihat rincian dan stok yang benar.
         </Alert>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4">
           <Link
             to={`/packages/${product.id}/customize`}
-            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-dark"
           >
             Sesuaikan paket
           </Link>
           <Link
             to="/catalog"
-            className="inline-flex min-h-12 items-center justify-center rounded-lg border border-line bg-white px-5 font-semibold text-ink"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg border border-line bg-white px-6 font-semibold text-ink"
           >
             Kembali ke katalog
           </Link>
@@ -99,7 +99,7 @@ export default function ProductPage({ id }: { id: string }) {
             eager
           />
           <PageHeader title={product.title} description={product.description} />
-          <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <dl className="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 bg-white p-4 text-sm">
             <div>
               <dt className="text-muted">Jenis</dt>
               <dd className="font-semibold text-ink">Satuan</dd>

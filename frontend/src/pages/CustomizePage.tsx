@@ -97,7 +97,7 @@ export default function CustomizePage({ id }: { id: string }) {
       <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <label htmlFor="faculty" className="mb-1 block font-medium text-ink">
+            <label htmlFor="faculty" className="mb-2 block font-medium text-ink">
               Fakultas
             </label>
             <Select
@@ -131,13 +131,13 @@ export default function CustomizePage({ id }: { id: string }) {
           {error && quote ? <Alert tone="error">{error}</Alert> : null}
 
           {quote ? (
-            <section aria-labelledby="isi-paket" className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+            <section aria-labelledby="isi-paket" className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
               <h2 id="isi-paket" className="text-lg font-semibold text-ink">
                 Isi paket untuk {quote.faculty.name}
               </h2>
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {quote.components.map((component) => (
-                  <li key={component.variantId} className="flex flex-wrap items-center gap-3 border-b border-slate-100 pb-3">
+                  <li key={component.variantId} className="flex flex-wrap items-center gap-4 border-b border-slate-100 pb-4">
                     <ProductPhoto
                       src={component.imagePath}
                       alt={`Foto ${component.title} ${variantLabel(component.attributes)}`}
@@ -156,7 +156,7 @@ export default function CustomizePage({ id }: { id: string }) {
                   </li>
                 ))}
               </ul>
-              <p className="flex justify-between border-t border-slate-200 pt-3">
+              <p className="flex justify-between border-t border-slate-200 pt-4">
                 <span className="text-muted">Total satuan</span>
                 <span className="text-ink">{rupiah(quote.unitTotalRp)}</span>
               </p>
@@ -173,7 +173,7 @@ export default function CustomizePage({ id }: { id: string }) {
             <h2 className="text-lg font-semibold text-ink">Daftar periksa</h2>
             <p className="text-sm text-muted">Daftar referensi MabaKit, bukan kewajiban resmi fakultas atau program studi.</p>
             {CHECKLIST.map((item) => (
-              <label key={item} className="flex min-h-12 items-center gap-3">
+              <label key={item} className="flex min-h-12 items-center gap-4">
                 <input
                   type="checkbox"
                   className="size-4"
@@ -194,7 +194,7 @@ export default function CustomizePage({ id }: { id: string }) {
             {quote ? (quote.available ? `Stok paket: ${quote.stock}` : "Stok paket habis untuk fakultas ini") : "Pilih fakultas"}
           </p>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <label htmlFor="package-quantity" className="block font-medium text-ink">
               Jumlah paket
             </label>
@@ -206,7 +206,7 @@ export default function CustomizePage({ id }: { id: string }) {
               max={maxQuantity}
               value={quantity}
               onChange={(event) => setQuantity(Math.max(1, Math.min(maxQuantity, Number(event.target.value) || 1)))}
-              className="min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base"
+              className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base"
             />
           </div>
 

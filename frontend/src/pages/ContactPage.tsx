@@ -27,12 +27,12 @@ export default function ContactPage() {
           </address>
         </section>
 
-        <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-ink">WhatsApp</h2>
           <p className="text-ink">{WHATSAPP_DISPLAY}</p>
           <a
             href={WHATSAPP_URL}
-            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-dark"
             rel="noreferrer noopener"
             target="_blank"
           >

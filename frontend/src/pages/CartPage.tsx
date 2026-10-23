@@ -25,7 +25,7 @@ export default function CartPage() {
             {lines.map((line) => {
               const key = lineKey(line);
               return (
-                <li key={key} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <li key={key} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
                   <div className="flex-1">
                     <p className="font-semibold text-ink">{line.title}</p>
                     {line.facultyName ? <p className="text-sm text-muted">Fakultas {line.facultyName}</p> : null}
@@ -72,7 +72,7 @@ export default function CartPage() {
             </p>
             <Link
               to="/checkout"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
+              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-dark"
             >
               Lanjut checkout
             </Link>

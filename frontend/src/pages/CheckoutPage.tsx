@@ -129,7 +129,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader
           title="Checkout"
           description="Pesanan dibuat atas nama akun yang sedang masuk. Kontak di bawah menjadi snapshot pesanan ini."
@@ -174,11 +174,11 @@ export default function CheckoutPage() {
 
           <fieldset className="space-y-2">
             <legend className="font-medium text-ink">Metode pengambilan</legend>
-            <label className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 px-3">
+            <label className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4">
               <input type="radio" name="delivery" value="pickup" checked readOnly className="size-4" />
               <span className="text-ink">Ambil di kampus</span>
             </label>
-            <label className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 px-3 opacity-60">
+            <label className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4 opacity-60">
               <input type="radio" name="delivery" value="courier" disabled className="size-4" />
               <span className="text-muted">Kurir, segera tersedia</span>
             </label>
@@ -187,7 +187,7 @@ export default function CheckoutPage() {
           <fieldset className="space-y-2">
             <legend className="font-medium text-ink">Metode pembayaran simulasi</legend>
             {METHODS.map((option) => (
-              <label key={option.value} className="flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 px-3">
+              <label key={option.value} className="flex min-h-12 items-center gap-4 rounded-lg border border-slate-200 px-4">
                 <input
                   type="radio"
                   name="method"
@@ -208,11 +208,11 @@ export default function CheckoutPage() {
           </Button>
         </form>
 
-        <aside className="h-fit space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <aside className="h-fit space-y-4 rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="font-semibold text-ink">Ringkasan</h2>
           <ul className="space-y-2 text-sm">
             {lines.map((line) => (
-              <li key={`${line.productId}:${line.variantId ?? ""}:${line.facultyId ?? ""}`} className="flex justify-between gap-3">
+              <li key={`${line.productId}:${line.variantId ?? ""}:${line.facultyId ?? ""}`} className="flex justify-between gap-4">
                 <span className="text-ink">
                   {line.title} x {line.quantity}
                   {line.facultyName ? <span className="block text-muted">Fakultas {line.facultyName}</span> : null}
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
               </li>
             ))}
           </ul>
-          <p className="flex justify-between border-t border-slate-200 pt-3 text-lg">
+          <p className="flex justify-between border-t border-slate-200 pt-4 text-lg">
             <span>Total estimasi</span>
             <strong className="text-ink">{rupiah(cartTotal())}</strong>
           </p>

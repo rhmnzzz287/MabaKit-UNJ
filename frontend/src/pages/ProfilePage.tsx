@@ -127,7 +127,7 @@ export default function ProfilePage() {
             ))}
           </Select>
         </Field>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4">
           <Button type="submit" disabled={busy}>
             {busy ? "Menyimpan..." : "Simpan profil"}
           </Button>

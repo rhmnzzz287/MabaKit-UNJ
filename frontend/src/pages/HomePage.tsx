@@ -46,8 +46,8 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       <section className="grid items-center gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="space-y-5">
-          <p className="inline-flex rounded-full bg-brand-tint px-3 py-1 text-sm font-semibold text-brand-dark">
+        <div className="space-y-6">
+          <p className="inline-flex rounded-full bg-brand-tint px-4 py-2 text-sm font-semibold text-brand-dark">
             Perlengkapan PKKMB untuk mahasiswa baru UNJ
           </p>
           <h1 className="text-3xl font-bold leading-tight text-ink sm:text-4xl">
@@ -57,16 +57,16 @@ export default function HomePage() {
             Membeli perlengkapan PKKMB satu per satu memakan waktu dan rawan ada yang terlewat. MabaKit menyusun
             komponennya per fakultas, dengan harga dan isi yang bisa diperiksa sebelum checkout.
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4">
             <Link
               to="/catalog"
-              className="inline-flex min-h-12 items-center rounded-lg bg-brand px-5 font-semibold text-white hover:bg-brand-dark"
+              className="inline-flex min-h-12 items-center rounded-lg bg-brand px-6 font-semibold text-white hover:bg-brand-dark"
             >
               Lihat paket
             </Link>
             <Link
               to="/about"
-              className="inline-flex min-h-12 items-center rounded-lg border border-line bg-white px-5 font-semibold text-ink hover:bg-brand-tint"
+              className="inline-flex min-h-12 items-center rounded-lg border border-line bg-white px-6 font-semibold text-ink hover:bg-brand-tint"
             >
               Tentang MabaKit
             </Link>
@@ -83,7 +83,7 @@ export default function HomePage() {
       </section>
 
       <section aria-labelledby="paket-utama" className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 id="paket-utama" className="text-2xl font-bold text-ink">
               Paket sesuai fakultas
@@ -131,7 +131,7 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="cara-pesan" className="grid gap-6 rounded-xl border border-slate-200 bg-white p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <section aria-labelledby="cara-pesan" className="grid gap-6 rounded-xl border border-slate-200 bg-white p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         <div className="space-y-2">
           <h2 id="cara-pesan" className="text-2xl font-bold text-ink">
             Cara memesan
@@ -141,9 +141,9 @@ export default function HomePage() {
             Ada pertanyaan? Hubungi kami
           </Link>
         </div>
-        <ol className="space-y-3">
+        <ol className="space-y-4">
           {STEPS.map((step, index) => (
-            <li key={step} className="flex gap-3">
+            <li key={step} className="flex gap-4">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-tint font-semibold text-brand-dark">
                 {index + 1}
               </span>

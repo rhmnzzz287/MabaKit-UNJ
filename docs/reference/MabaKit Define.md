@@ -145,7 +145,7 @@ Gue sarankan menggunakan harga bertingkat berdasarkan jumlah pesanan.
 | 1 kelompok | 1 × 30 \= 30 paket | Rp47.500 | Rp1.425.000 |
 | Total | 70 paket |  | Rp3.325.000 |
 
-# **Value Proposition Canvas — MabaKit UNJ**
+# **Value Proposition Canvas: MabaKit UNJ**
 
 ## **1\. Customer Profile (lingkaran merah)**
 

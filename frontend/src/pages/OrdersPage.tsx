@@ -52,7 +52,7 @@ export function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader
           title="Pesanan saya"
           description="Riwayat terikat pada akun yang sedang masuk. Masuk dari browser lain untuk melihat pesanan yang sama."
@@ -64,7 +64,7 @@ export function OrdersPage() {
       {error ? <Alert tone="error">{error}</Alert> : null}
       {!orders && !error ? <Spinner label="Memuat pesanan" /> : null}
       {orders && orders.length === 0 ? (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-6">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
           <p className="text-muted">Belum ada pesanan.</p>
           <Link to="/catalog" className="font-semibold text-brand underline">
             Lihat katalog
@@ -72,7 +72,7 @@ export function OrdersPage() {
         </div>
       ) : null}
       {orders && orders.length > 0 ? (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {orders.map((order) => (
             <li key={order.id} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -86,7 +86,7 @@ export function OrdersPage() {
                 {dateTime(order.createdAt)} WIB, {order.totalRp === 0 ? "Gratis" : rupiah(order.totalRp)}
               </p>
               <p className="text-sm text-muted">{order.items.map((item) => `${item.title} x ${item.quantity}`).join(", ")}</p>
-              <div className="flex flex-wrap gap-3 pt-1 text-sm font-semibold">
+              <div className="flex flex-wrap gap-4 pt-2 text-sm font-semibold">
                 {order.paymentStatus === "PENDING" ? (
                   <Link to={`/orders/${order.id}/payment`} className="text-brand underline">
                     Lanjut bayar
@@ -136,16 +136,16 @@ function OrderTimeline({ order }: { order: Order }) {
   }
 
   return (
-    <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="timeline-heading">
+    <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="timeline-heading">
       <h2 id="timeline-heading" className="font-semibold text-ink">
         Progres pesanan
       </h2>
-      <ol className="space-y-3">
+      <ol className="space-y-4">
         {stages(order).map((stage) => (
-          <li key={stage.label} className="flex gap-3">
+          <li key={stage.label} className="flex gap-4">
             <span
               aria-hidden="true"
-              className={`mt-1 size-3 shrink-0 rounded-full border ${stage.done ? "border-brand bg-brand" : "border-line bg-white"}`}
+              className={`mt-2 size-3 shrink-0 rounded-full border ${stage.done ? "border-brand bg-brand" : "border-line bg-white"}`}
             />
             <div>
               <p className={stage.done ? "font-medium text-ink" : "text-muted"}>{stage.label}</p>
@@ -193,7 +193,7 @@ export function OrderDetailPage({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title={order.orderNumber} description={`Dibuat ${dateTime(order.createdAt)} WIB`} />
         <Button variant="secondary" onClick={() => void load()} disabled={loading}>
           {loading ? "Memuat..." : "Muat ulang"}
@@ -210,8 +210,8 @@ export function OrderDetailPage({ id }: { id: string }) {
         <h2 className="font-semibold text-ink">Item</h2>
         <ul className="divide-y divide-slate-200">
           {order.items.map((item) => (
-            <li key={item.id} className="space-y-1 py-2">
-              <div className="flex justify-between gap-3">
+            <li key={item.id} className="space-y-2 py-2">
+              <div className="flex justify-between gap-4">
                 <span className="text-ink">
                   {item.title} x {item.quantity}
                   {variantLabel(item.attributes) ? <span className="block text-sm text-muted">{variantLabel(item.attributes)}</span> : null}

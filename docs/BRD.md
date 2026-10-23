@@ -1,6 +1,6 @@
 # Business Requirements Document: MabaKit UNJ
 
-Revisi: 22 Oktober 2026. Target aktif: demo presentasi dosen, Cloudflare penuh dengan pembayaran simulasi dan invoice digital. Booking/reservasi tetap di luar scope. Keputusan bisnis produksi tetap memerlukan persetujuan pemilik.
+Revisi v2: 22 Oktober 2026. Target aktif: demo presentasi dosen, Cloudflare penuh dengan pembayaran simulasi dan invoice digital. Booking/reservasi tetap di luar scope. Keputusan bisnis produksi tetap memerlukan persetujuan pemilik.
 
 ## 1. Masalah, tujuan dan pelanggan
 
@@ -8,7 +8,7 @@ Mahasiswa baru kesulitan menemukan perlengkapan PKKMB dengan spesifikasi jelas, 
 
 Tujuan website adalah membantu pelanggan memilih perlengkapan sesuai kebutuhan dan anggaran, menyelesaikan pembelian, serta mengetahui progres sampai barang diserahkan. Keberhasilan dinilai dari alur belanja dan pemenuhan pesanan, bukan jumlah booking atau pemesanan waktu.
 
-Pembeli mencakup mahasiswa, orang tua/wali dan koordinator kelompok. Pembeli tidak wajib memiliki NIM. Penerima barang dapat berbeda dari pemilik akun. MabaKit bukan marketplace dan belum terbukti sebagai kanal resmi UNJ/BEM/HIMA.
+Pembeli mencakup mahasiswa, orang tua/wali dan koordinator kelompok. Pembeli tidak wajib memiliki NIM. Pembeli dapat bertransaksi untuk penerima lain tanpa field penerima terpisah. MabaKit bukan marketplace dan belum terbukti sebagai kanal resmi UNJ/BEM/HIMA. Kontak resmi toko: Jalan R.Mangun Muka Raya No. 11, Kelurahan Rawamangun, Kecamatan Pulo Gadung, Kota Jakarta Timur, DKI Jakarta 13220; WhatsApp +6283874234882.
 
 Sumber: `../MabaKit Define.md`. Angka simulasi pendapatan dan biaya pada sumber bukan harga publik atau realisasi usaha.
 
@@ -16,14 +16,14 @@ Sumber: `../MabaKit Define.md`. Angka simulasi pendapatan dan biaya pada sumber 
 
 | Tahap | Ruang lingkup | Syarat aktivasi |
 |---|---|---|
-| Demo presentasi, aktif | Katalog, satuan/paket, keranjang lokal, sesi tamu demo, checkout, pilihan metode simulasi, tombol Cek status pembayaran, konfirmasi pesanan dan invoice digital HTML; pengambilan tanpa booking | Fixture SIMULASI, keamanan akses dan invariant D1 diuji; tidak menerima uang |
-| Produksi, ditunda | Akun pelanggan produksi, satu gateway Midtrans atau Xendit, rekonsiliasi, kebijakan/refund dan operasional nyata | Pemilik memutuskan lanjut setelah presentasi; kontrak gateway/sandbox serta keputusan D01-D08 lengkap |
-| Berikutnya | Paket rakitan khusus, kustomisasi berbayar, harga kolektif otomatis, pengiriman kurir | Harga, kapasitas kerja, aturan biaya, SLA dan kebijakan pembatalan disetujui |
+| Demo presentasi, aktif | Katalog paket-first dan satuan, akun pembeli persisten email/password, kustomisasi isi paket per fakultas, keranjang lokal, checkout, pilihan metode simulasi, tombol Cek status pembayaran, konfirmasi pesanan dan invoice digital HTML; pengambilan tanpa booking; dashboard admin dan workspace tim | Fixture SIMULASI, keamanan akses dan invariant D1 diuji; tidak menerima uang; komposisi dan harga paket per fakultas disahkan pemilik |
+| Produksi, ditunda | Hardening akun produksi (verifikasi email, recovery, MFA), satu gateway Midtrans atau Xendit, rekonsiliasi, kebijakan/refund dan operasional nyata | Pemilik memutuskan lanjut setelah presentasi; kontrak gateway/sandbox serta keputusan D01-D08 lengkap |
+| Berikutnya | Desain kustom berbayar (warna, teks, bordir), harga kolektif otomatis, pengiriman kurir | Harga, kapasitas kerja, aturan biaya, SLA dan kebijakan pembatalan disetujui |
 | Opsional | QR/kamera scanner, WhatsApp otomatis, PDF invoice, video/testimoni | Ada kebutuhan operasional dan aset/izin; kanal cadangan tersedia |
 
 **Di luar cakupan project:** booking dan reservasi, termasuk kalender kedatangan, pemilihan slot, kuota kunjungan, booking fee dan reschedule. Fitur tersebut tidak masuk roadmap. Pengambilan barang adalah tahap pemenuhan pembelian; pembeli mengikuti informasi lokasi/jam layanan dan menunggu status siap, tanpa memesan jadwal.
 
-Pembeli tetap dapat merakit kebutuhannya lewat item satuan dan jumlah di keranjang. Rilis pertama tidak menawarkan diskon kelompok otomatis, bundel bersarang, preorder, pembayaran sebagian, pengambilan sebagian atau multi-lokasi. Model awal adalah pembelian stok tersedia, bukan pesan barang untuk dibayar nanti. Alokasi stok sementara selama pembayaran diproses hanya pengaman transaksi internal.
+Pembeli tetap dapat merakit kebutuhannya lewat item satuan dan jumlah di keranjang. Kustomisasi paket berarti penyesuaian isi/varian terhadap fakultas, bukan editor bebas: warna, teks, bordir dan tambah/hapus komponen tetap di luar scope. Rilis pertama tidak menawarkan diskon kelompok otomatis, bundel bersarang, preorder, pembayaran sebagian, pengambilan sebagian atau multi-lokasi. Model awal adalah pembelian stok tersedia, bukan pesan barang untuk dibayar nanti. Alokasi stok sementara selama pembayaran diproses hanya pengaman transaksi internal.
 
 Pesanan besar melebihi batas checkout diarahkan ke kontak operator tanpa janji harga khusus otomatis. Penundaan fitur sumber merupakan rekomendasi untuk mengurangi risiko awal; pemilik menyetujui rollout sebelum implementasi. Fitur tertunda yang diminta masuk rilis pertama memerlukan kontrak lengkap sebelum pengerjaan.
 

@@ -1,0 +1,1231 @@
+{
+  "source": "docs/reference/updatekatalog.pdf",
+  "generatedAt": "2026-10-22T15:36:25+00:00",
+  "images": [
+    {
+      "slug": "slayer-feb",
+      "faculty": "FEB",
+      "kind": "slayer",
+      "sourceFile": "p-001-000.jpg",
+      "page": 1,
+      "index": 0,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-feb-480.webp",
+        "slayer-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fip",
+      "faculty": "FIP",
+      "kind": "slayer",
+      "sourceFile": "p-001-001.jpg",
+      "page": 1,
+      "index": 1,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fip-480.webp",
+        "slayer-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fik",
+      "faculty": "FIK",
+      "kind": "slayer",
+      "sourceFile": "p-002-002.jpg",
+      "page": 2,
+      "index": 2,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fik-480.webp",
+        "slayer-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fppsi",
+      "faculty": "FPPSI",
+      "kind": "slayer",
+      "sourceFile": "p-002-003.jpg",
+      "page": 2,
+      "index": 3,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fppsi-480.webp",
+        "slayer-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-ft",
+      "faculty": "FT",
+      "kind": "slayer",
+      "sourceFile": "p-003-004.jpg",
+      "page": 3,
+      "index": 4,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-ft-480.webp",
+        "slayer-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fis",
+      "faculty": "FIS",
+      "kind": "slayer",
+      "sourceFile": "p-003-005.jpg",
+      "page": 3,
+      "index": 5,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fis-480.webp",
+        "slayer-fis-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fmipa",
+      "faculty": "FMIPA",
+      "kind": "slayer",
+      "sourceFile": "p-004-006.jpg",
+      "page": 4,
+      "index": 6,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fmipa-480.webp",
+        "slayer-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "slayer-fbs",
+      "faculty": "FBS",
+      "kind": "slayer",
+      "sourceFile": "p-004-007.jpg",
+      "page": 4,
+      "index": 7,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-fbs-480.webp",
+        "slayer-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "topi-feb",
+      "faculty": "FEB",
+      "kind": "topi",
+      "sourceFile": "p-004-008.png",
+      "page": 4,
+      "index": 8,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-feb-480.webp",
+        "topi-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-feb",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fip",
+      "faculty": "FIP",
+      "kind": "topi",
+      "sourceFile": "p-005-009.png",
+      "page": 5,
+      "index": 9,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fip-480.webp",
+        "topi-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fip",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fik",
+      "faculty": "FIK",
+      "kind": "topi",
+      "sourceFile": "p-005-010.png",
+      "page": 5,
+      "index": 10,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fik-480.webp",
+        "topi-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fik",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fppsi",
+      "faculty": "FPPSI",
+      "kind": "topi",
+      "sourceFile": "p-005-011.png",
+      "page": 5,
+      "index": 11,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fppsi-480.webp",
+        "topi-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fpsi",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-ft",
+      "faculty": "FT",
+      "kind": "topi",
+      "sourceFile": "p-005-012.png",
+      "page": 5,
+      "index": 12,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-ft-480.webp",
+        "topi-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-ft",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fis",
+      "faculty": "FIS",
+      "kind": "topi",
+      "sourceFile": "p-005-013.png",
+      "page": 5,
+      "index": 13,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fis-480.webp",
+        "topi-fis-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fis",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fmipa",
+      "faculty": "FMIPA",
+      "kind": "topi",
+      "sourceFile": "p-005-014.png",
+      "page": 5,
+      "index": 14,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fmipa-480.webp",
+        "topi-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fmipa",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "topi-fbs",
+      "faculty": "FBS",
+      "kind": "topi",
+      "sourceFile": "p-005-015.png",
+      "page": 5,
+      "index": 15,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "topi-fbs-480.webp",
+        "topi-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-topi-fbs",
+      "productId": "p-topi"
+    },
+    {
+      "slug": "kipas",
+      "faculty": null,
+      "kind": "kipas",
+      "sourceFile": "p-006-016.png",
+      "page": 6,
+      "index": 16,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-480.webp",
+        "kipas-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fbs",
+      "productId": "p-kipas",
+      "reason": "Belum dipetakan ke SKU aktif."
+    },
+    {
+      "slug": "notebook-fbs",
+      "faculty": "FBS",
+      "kind": "notebook",
+      "sourceFile": "p-006-017.png",
+      "page": 6,
+      "index": 17,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fbs-480.webp",
+        "notebook-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-fmipa",
+      "faculty": "FMIPA",
+      "kind": "notebook",
+      "sourceFile": "p-006-018.png",
+      "page": 6,
+      "index": 18,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fmipa-480.webp",
+        "notebook-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-fish",
+      "faculty": "FISH",
+      "kind": "notebook",
+      "sourceFile": "p-006-019.png",
+      "page": 6,
+      "index": 19,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fish-480.webp",
+        "notebook-fish-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-ft",
+      "faculty": "FT",
+      "kind": "notebook",
+      "sourceFile": "p-006-020.png",
+      "page": 6,
+      "index": 20,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-ft-480.webp",
+        "notebook-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-fik",
+      "faculty": "FIK",
+      "kind": "notebook",
+      "sourceFile": "p-007-021.png",
+      "page": 7,
+      "index": 21,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fik-480.webp",
+        "notebook-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-fppsi",
+      "faculty": "FPPSI",
+      "kind": "notebook",
+      "sourceFile": "p-007-022.png",
+      "page": 7,
+      "index": 22,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fppsi-480.webp",
+        "notebook-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-feb",
+      "faculty": "FEB",
+      "kind": "notebook",
+      "sourceFile": "p-007-023.png",
+      "page": 7,
+      "index": 23,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-feb-480.webp",
+        "notebook-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "notebook-fip",
+      "faculty": "FIP",
+      "kind": "notebook",
+      "sourceFile": "p-007-024.png",
+      "page": 7,
+      "index": 24,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "notebook-fip-480.webp",
+        "notebook-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-feb",
+      "faculty": "FEB",
+      "kind": "dasi",
+      "sourceFile": "p-008-025.jpg",
+      "page": 8,
+      "index": 25,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-feb-480.webp",
+        "dasi-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fip",
+      "faculty": "FIP",
+      "kind": "dasi",
+      "sourceFile": "p-008-026.jpg",
+      "page": 8,
+      "index": 26,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fip-480.webp",
+        "dasi-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fik",
+      "faculty": "FIK",
+      "kind": "dasi",
+      "sourceFile": "p-009-027.jpg",
+      "page": 9,
+      "index": 27,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fik-480.webp",
+        "dasi-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fppsi",
+      "faculty": "FPPSI",
+      "kind": "dasi",
+      "sourceFile": "p-009-028.jpg",
+      "page": 9,
+      "index": 28,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fppsi-480.webp",
+        "dasi-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-ft",
+      "faculty": "FT",
+      "kind": "dasi",
+      "sourceFile": "p-010-029.jpg",
+      "page": 10,
+      "index": 29,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-ft-480.webp",
+        "dasi-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fis",
+      "faculty": "FIS",
+      "kind": "dasi",
+      "sourceFile": "p-010-030.jpg",
+      "page": 10,
+      "index": 30,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fis-480.webp",
+        "dasi-fis-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fmipa",
+      "faculty": "FMIPA",
+      "kind": "dasi",
+      "sourceFile": "p-011-031.jpg",
+      "page": 11,
+      "index": 31,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fmipa-480.webp",
+        "dasi-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "dasi-fbs",
+      "faculty": "FBS",
+      "kind": "dasi",
+      "sourceFile": "p-011-032.jpg",
+      "page": 11,
+      "index": 32,
+      "sourceWidth": 1920,
+      "sourceHeight": 1280,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "dasi-fbs-480.webp",
+        "dasi-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-fbs",
+      "faculty": "FBS",
+      "kind": "totebag",
+      "sourceFile": "p-012-033.png",
+      "page": 12,
+      "index": 33,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-fbs-480.webp",
+        "totebag-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-fmipa",
+      "faculty": "FMIPA",
+      "kind": "totebag",
+      "sourceFile": "p-012-034.png",
+      "page": 12,
+      "index": 34,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-fmipa-480.webp",
+        "totebag-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-fish",
+      "faculty": "FISH",
+      "kind": "totebag",
+      "sourceFile": "p-012-035.png",
+      "page": 12,
+      "index": 35,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-fish-480.webp",
+        "totebag-fish-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-ft",
+      "faculty": "FT",
+      "kind": "totebag",
+      "sourceFile": "p-012-036.png",
+      "page": 12,
+      "index": 36,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-ft-480.webp",
+        "totebag-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-fppsi",
+      "faculty": "FPPSI",
+      "kind": "totebag",
+      "sourceFile": "p-013-038.png",
+      "page": 13,
+      "index": 38,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-fppsi-480.webp",
+        "totebag-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-fip",
+      "faculty": "FIP",
+      "kind": "totebag",
+      "sourceFile": "p-013-039.png",
+      "page": 13,
+      "index": 39,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-fip-480.webp",
+        "totebag-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "totebag-feb",
+      "faculty": "FEB",
+      "kind": "totebag",
+      "sourceFile": "p-013-040.png",
+      "page": 13,
+      "index": 40,
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "totebag-feb-480.webp",
+        "totebag-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-fmipa",
+      "faculty": "FMIPA",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-016-054.jpg",
+      "page": 16,
+      "index": 54,
+      "sourceWidth": 1366,
+      "sourceHeight": 768,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-fmipa-480.webp",
+        "slayer-segitiga-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-fip",
+      "faculty": "FIP",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-016-055.jpg",
+      "page": 16,
+      "index": 55,
+      "sourceWidth": 1371,
+      "sourceHeight": 784,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-fip-480.webp",
+        "slayer-segitiga-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-fbs",
+      "faculty": "FBS",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-016-056.jpg",
+      "page": 16,
+      "index": 56,
+      "sourceWidth": 1371,
+      "sourceHeight": 784,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-fbs-480.webp",
+        "slayer-segitiga-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-fish",
+      "faculty": "FISH",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-016-057.jpg",
+      "page": 16,
+      "index": 57,
+      "sourceWidth": 1371,
+      "sourceHeight": 784,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-fish-480.webp",
+        "slayer-segitiga-fish-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-fppsi",
+      "faculty": "FPPSI",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-017-059.jpg",
+      "page": 17,
+      "index": 59,
+      "sourceWidth": 1376,
+      "sourceHeight": 768,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-fppsi-480.webp",
+        "slayer-segitiga-fppsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-feb",
+      "faculty": "FEB",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-017-060.jpg",
+      "page": 17,
+      "index": 60,
+      "sourceWidth": 1152,
+      "sourceHeight": 925,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-feb-480.webp",
+        "slayer-segitiga-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "slayer-segitiga-ft",
+      "faculty": "FT",
+      "kind": "slayer-segitiga",
+      "sourceFile": "p-017-061.jpg",
+      "page": 17,
+      "index": 61,
+      "sourceWidth": 1376,
+      "sourceHeight": 768,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "slayer-segitiga-ft-480.webp",
+        "slayer-segitiga-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "unused",
+      "reason": "Kategori belum dijual pada versi ini (notebook, dasi, totebag berwarna, slayer segitiga)."
+    },
+    {
+      "slug": "kipas-feb",
+      "faculty": "FEB",
+      "kind": "kipas",
+      "sourceFile": "kipas-feb.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-feb-480.webp",
+        "kipas-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-feb",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fip",
+      "faculty": "FIP",
+      "kind": "kipas",
+      "sourceFile": "kipas-fip.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fip-480.webp",
+        "kipas-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fip",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fik",
+      "faculty": "FIK",
+      "kind": "kipas",
+      "sourceFile": "kipas-fik.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fik-480.webp",
+        "kipas-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fik",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fpsi",
+      "faculty": "FPPsi",
+      "kind": "kipas",
+      "sourceFile": "kipas-fpsi.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fpsi-480.webp",
+        "kipas-fpsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fpsi",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-ft",
+      "faculty": "FT",
+      "kind": "kipas",
+      "sourceFile": "kipas-ft.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-ft-480.webp",
+        "kipas-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-ft",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fish",
+      "faculty": "FISH",
+      "kind": "kipas",
+      "sourceFile": "kipas-fish.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fish-480.webp",
+        "kipas-fish-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fish",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fmipa",
+      "faculty": "FMIPA",
+      "kind": "kipas",
+      "sourceFile": "kipas-fmipa.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fmipa-480.webp",
+        "kipas-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fmipa",
+      "productId": "p-kipas"
+    },
+    {
+      "slug": "kipas-fbs",
+      "faculty": "FBS",
+      "kind": "kipas",
+      "sourceFile": "kipas-fbs.jpg",
+      "page": null,
+      "index": null,
+      "sourceWidth": null,
+      "sourceHeight": null,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "kipas-fbs-480.webp",
+        "kipas-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "variantId": "v-kipas-fbs",
+      "productId": "p-kipas"
+    }
+  ],
+  "excluded": [
+    {
+      "sourceFile": "p-012-037.png",
+      "reason": "totebag putih FIKK, dikecualikan oleh aturan tas putih"
+    },
+    {
+      "sourceFile": "p-013-041.png",
+      "reason": "kolase bundle, bukan foto produk tunggal"
+    },
+    {
+      "sourceFile": "p-013-042.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-014-043.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-014-044.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-014-045.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-014-046.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-014-047.png",
+      "reason": "swatch warna fakultas"
+    },
+    {
+      "sourceFile": "p-015-048.png",
+      "reason": "foto kampus, bukan produk"
+    },
+    {
+      "sourceFile": "p-015-049.png",
+      "reason": "foto kampus, bukan produk"
+    },
+    {
+      "sourceFile": "p-017-058.png",
+      "reason": "foto rok span, sudah ada rok-span.jpg"
+    },
+    {
+      "sourceFile": "p-017-062.jpg",
+      "reason": "slayer segitiga putih FIKK, dikecualikan oleh aturan produk putih"
+    }
+  ],
+  "used": 25,
+  "unused": 30
+}

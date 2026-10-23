@@ -151,11 +151,12 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
   const [denied, setDenied] = useState(false);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
   const [catalog, setCatalog] = useState<AdminCatalog | null>(null);
-  const [operators, setOperators] = useState<Operator[] | null>(null);
-  const [audit, setAudit] = useState<AuditLog[] | null>(null);
+  const [operators, setOperators] = useState<Operator[]>([]);
+  const [audit, setAudit] = useState<AuditLog[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const active = SECTIONS.some((item) => item.id === section) ? section : "ringkasan";
   const role = workspace.state === "ready" ? workspace.role : null;
   const onAuthError = useCallback(() => setDenied(true), []);
 
@@ -163,16 +164,15 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
     setLoading(true);
     setError(null);
     try {
-      const [nextSummary, nextCatalog, nextOperators, nextAudit] = await Promise.all([
+      // Ringkasan dan katalog dipakai lintas bagian; akun dan audit dimuat saat dibuka.
+      const [nextSummary, nextCatalog] = await Promise.all([
         get<AdminSummary>("/api/admin/summary"),
         get<AdminCatalog>("/api/admin/catalog"),
-        get<{ operators: Operator[] }>("/api/admin/operators"),
-        get<{ logs: AuditLog[] }>("/api/admin/audit"),
       ]);
       setSummary(nextSummary);
       setCatalog(nextCatalog);
-      setOperators(nextOperators.operators);
-      setAudit(nextAudit.logs);
+      if (active === "akses") setOperators((await get<{ operators: Operator[] }>("/api/admin/operators")).operators);
+      if (active === "audit") setAudit((await get<{ logs: AuditLog[] }>("/api/admin/audit")).logs);
     } catch (issue) {
       if (isAuthError(issue)) {
         setDenied(true);
@@ -182,7 +182,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [active]);
 
   useEffect(() => {
     if (role !== "admin" || denied) return;
@@ -216,7 +216,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
     );
   }
 
-  if (!summary || !catalog || !operators || !audit) {
+  if (!summary || !catalog) {
     return (
       <div className="space-y-4">
         <PageHeader title="Admin" />
@@ -228,7 +228,6 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
     );
   }
 
-  const active = SECTIONS.some((item) => item.id === section) ? section : "ringkasan";
   const singleVariants = catalog.products
     .filter((product) => product.kind === "single")
     .flatMap((product) =>
@@ -247,7 +246,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
           <Link
             key={item.id}
             to={`/admin/${item.id}`}
-            aria-current={active === item.id ? "page" : undefined}
+            ariaCurrent={active === item.id ? "page" : undefined}
             className={`inline-flex min-h-12 items-center rounded-lg border px-4 text-sm font-semibold ${
               active === item.id ? "border-brand bg-brand-tint text-brand-dark" : "border-line bg-white text-ink hover:bg-brand-tint"
             }`}
