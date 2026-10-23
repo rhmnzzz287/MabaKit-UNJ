@@ -1341,3 +1341,33 @@ describe("diskon persen dan pesanan gratis", () => {
     expect(stock).toEqual({ stock_on_hand: 8, stock_reserved: 1 });
   });
 });
+
+describe("ekspor penjualan", () => {
+  test("CSV admin memuat penjualan tanpa PII dan menetralkan formula", async () => {
+    const { csvCell } = await import("../../src/admin-export");
+    const admin = await signInAs(ADMIN);
+    const buyer = await signInAs(BUYER);
+    const order = await createOrder(buyer, {
+      idempotencyKey: "checkout-export-001",
+      items: [{ productId: "p-topi", variantId: "v-topi-feb", quantity: 1 }],
+    });
+    const paid = await call(`/api/demo/orders/${order.id}/check-payment`, mutate(buyer));
+    expect(paid.status).toBe(200);
+
+    const response = await call("/api/admin/export/sales.csv", { cookie: admin.cookie });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/csv");
+    const body = await response.text();
+    expect(body.split("\r\n")[0]).toBe(
+      "invoice,pesanan,dibayar_wib,fakultas,metode,subtotal_rp,diskon_rp,total_rp",
+    );
+    expect(body).toContain(order.orderNumber);
+    expect(body).not.toContain(BUYER.email);
+    expect(body).not.toContain("081234567890");
+
+    const forbidden = await call("/api/admin/export/sales.csv", { cookie: buyer.cookie });
+    expect([401, 403]).toContain(forbidden.status);
+    expect(csvCell("=1+1")).toBe("'=1+1");
+    expect(csvCell('a,"b"')).toBe('"a,""b"""');
+  });
+});

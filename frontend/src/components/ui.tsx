@@ -1,8 +1,19 @@
 import type { ReactNode } from "react";
 import { navigate } from "../lib/router";
+import { photoSize } from "../lib/photo-size";
 import { statusLabel } from "../lib/format";
 
-export function Link({ to, children, className = "" }: { to: string; children: ReactNode; className?: string }) {
+export function Link({
+  to,
+  children,
+  className = "",
+  onClick,
+}: {
+  to: string;
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
   return (
     <a
       href={to}
@@ -10,6 +21,7 @@ export function Link({ to, children, className = "" }: { to: string; children: R
       onClick={(event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
+        onClick?.();
         navigate(to);
       }}
     >
@@ -84,13 +96,19 @@ export function Field({
   );
 }
 
+const CONTROL =
+  "min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink placeholder:text-muted";
+
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink placeholder:text-muted ${props.className ?? ""}`}
-    />
-  );
+  return <input {...props} className={`${CONTROL} ${props.className ?? ""}`} />;
+}
+
+export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select {...props} className={`${CONTROL} ${props.className ?? ""}`} />;
+}
+
+export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea {...props} className={`${CONTROL} min-h-24 py-2 ${props.className ?? ""}`} />;
 }
 
 export function Alert({ tone = "info", children }: { tone?: "info" | "warn" | "error"; children: ReactNode }) {
@@ -126,6 +144,7 @@ export function PageHeader({ title, description }: { title: string; description?
   );
 }
 
+/** Keterangan percobaan pembayaran. Hanya dipakai di alur pembayaran dan invoice. */
 export function SimulasiBadge() {
   return (
     <p className="inline-flex items-center rounded-full bg-warn-bg px-3 py-1 text-sm font-semibold text-warn-fg">
@@ -134,7 +153,27 @@ export function SimulasiBadge() {
   );
 }
 
-export function ProductPhoto({ src, alt, className = "" }: { src: string | null; alt: string; className?: string }) {
+/**
+ * Foto produk memakai rasio asli (object-contain), lebar/tinggi eksplisit, dan srcset 480/960
+ * hanya bila turunan tersebut ada di manifest. Tidak pernah di-upscale.
+ */
+export function ProductPhoto({
+  src,
+  srcSet480,
+  alt,
+  width,
+  height,
+  className = "",
+  eager = false,
+}: {
+  src: string | null;
+  srcSet480?: string | null;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  eager?: boolean;
+}) {
   if (!src) {
     return (
       <div className={`flex items-center justify-center bg-brand-tint text-sm font-medium text-brand-dark ${className}`}>
@@ -142,13 +181,18 @@ export function ProductPhoto({ src, alt, className = "" }: { src: string | null;
       </div>
     );
   }
+  const intrinsic = photoSize(src);
   return (
     <img
       src={src}
+      srcSet={srcSet480 ? `${srcSet480} 480w, ${src} 960w` : undefined}
+      sizes={srcSet480 ? "(min-width: 768px) 480px, 100vw" : undefined}
       alt={alt}
-      loading="lazy"
+      width={width ?? intrinsic?.[0] ?? 960}
+      height={height ?? intrinsic?.[1] ?? 720}
+      loading={eager ? "eager" : "lazy"}
       decoding="async"
-      className={`bg-white object-cover ${className}`}
+      className={`bg-white object-contain ${className}`}
     />
   );
 }

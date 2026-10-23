@@ -14,6 +14,7 @@ import {
   adminKpi,
   adminUpdateStaff,
 } from "./admin-team";
+import { adminExportSales } from "./admin-export";
 import { catalog, packageQuote, productDetail } from "./catalog";
 import { createCheckout } from "./checkout";
 import {
@@ -216,6 +217,7 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
   const known =
     (rest[0] === "summary" && method === "GET") ||
     (rest[0] === "kpi" && method === "GET") ||
+    (rest[0] === "export" && rest[1] === "sales.csv" && method === "GET") ||
     (rest[0] === "audit" && method === "GET") ||
     (rest[0] === "catalog" && !rest[1] && method === "GET") ||
     (rest[0] === "products" && !rest[1] && method === "POST") ||
@@ -238,6 +240,7 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
 
   if (rest[0] === "summary" && method === "GET") return adminSummary(ctx);
   if (rest[0] === "kpi" && method === "GET") return adminKpi(ctx);
+  if (rest[0] === "export" && rest[1] === "sales.csv") return adminExportSales(ctx, operator);
   if (rest[0] === "operators" && !rest[1] && method === "POST") {
     const blocked = await requireMutation(ctx, session);
     return blocked ?? adminCreateStaff(ctx, operator);

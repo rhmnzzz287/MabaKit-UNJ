@@ -384,6 +384,7 @@ export default function AdminPage() {
       </Section>
 
       <KpiSection onAuthError={onAuthError} />
+      <SalesExportSection />
 
       <Section
         id="akses"
@@ -1271,6 +1272,37 @@ const PERMISSION_LABELS: [string, string][] = [
   ["orders.ready", "Tandai siap diambil"],
   ["orders.complete", "Catat serah terima"],
 ];
+
+function SalesExportSection() {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const query = new URLSearchParams();
+  if (from) query.set("from", from);
+  if (to) query.set("to", to);
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return (
+    <section aria-labelledby="ekspor-heading" className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+      <h2 id="ekspor-heading" className="font-semibold text-ink">Ekspor penjualan</h2>
+      <p className="text-sm text-muted">
+        CSV semua transaksi berstatus dibayar pada rentang tanggal WIB. Tanpa nama, email, atau nomor telepon pembeli.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field id="export-from" label="Dari tanggal">
+          <Input id="export-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+        </Field>
+        <Field id="export-to" label="Sampai tanggal">
+          <Input id="export-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+        </Field>
+      </div>
+      <a
+        href={`/api/admin/export/sales.csv${suffix}`}
+        className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white"
+      >
+        Unduh CSV
+      </a>
+    </section>
+  );
+}
 
 function KpiSection({ onAuthError }: { onAuthError: () => void }) {
   const [period, setPeriod] = useState<AdminKpi["period"]>("today");
