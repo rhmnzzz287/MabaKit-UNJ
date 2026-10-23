@@ -1447,3 +1447,123 @@ describe("galeri foto admin", () => {
     expect(bad.status).toBe(400);
   });
 });
+
+describe("perbaikan audit review", () => {
+  const webp = (width: number, height: number, animated = false) => {
+    const bytes = new Uint8Array(30);
+    const ascii = (offset: number, text: string) => {
+      for (let i = 0; i < text.length; i += 1) bytes[offset + i] = text.charCodeAt(i);
+    };
+    ascii(0, "RIFF");
+    ascii(8, "WEBP");
+    ascii(12, "VP8X");
+    bytes[20] = animated ? 0x02 : 0;
+    const w = width - 1;
+    const h = height - 1;
+    bytes[24] = w & 0xff;
+    bytes[25] = (w >> 8) & 0xff;
+    bytes[26] = (w >> 16) & 0xff;
+    bytes[27] = h & 0xff;
+    bytes[28] = (h >> 8) & 0xff;
+    bytes[29] = (h >> 16) & 0xff;
+    return bytes;
+  };
+
+  const png = (width = 2, height = 2) =>
+    new Uint8Array([
+      137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
+      (width >>> 24) & 255, (width >>> 16) & 255, (width >>> 8) & 255, width & 255,
+      (height >>> 24) & 255, (height >>> 16) & 255, (height >>> 8) & 255, height & 255,
+      8, 6, 0, 0, 0,
+    ]);
+
+  const upload = (admin: Session, bytes: Uint8Array, type = "image/png") =>
+    call("/api/admin/products/p-topi/photos", {
+      method: "POST",
+      cookie: admin.cookie,
+      csrf: admin.csrf,
+      headers: { "content-type": type },
+      body: bytes,
+    });
+
+  test("WebP little-endian diterima dengan dimensi benar dan WebP animasi ditolak", async () => {
+    const admin = await signInAs(ADMIN);
+    const ok = await upload(admin, webp(480, 320), "image/webp");
+    expect(ok.status).toBe(201);
+    const body = (await ok.json()) as { photo: { width: number; height: number } };
+    expect(body.photo).toMatchObject({ width: 480, height: 320 });
+
+    const animated = await upload(admin, webp(480, 320, true), "image/webp");
+    expect(animated.status).toBe(400);
+  });
+
+  test("hapus foto tengah lalu unggah lagi tetap berhasil", async () => {
+    const admin = await signInAs(ADMIN);
+    for (let i = 0; i < 5; i += 1) expect((await upload(admin, png())).status).toBe(201);
+    const list = (await (await call("/api/admin/products/p-topi/photos", { cookie: admin.cookie })).json()) as {
+      photos: { id: string }[];
+    };
+    const deleted = await call(`/api/admin/products/p-topi/photos/${list.photos[0].id}`, {
+      method: "DELETE",
+      cookie: admin.cookie,
+      csrf: admin.csrf,
+    });
+    expect(deleted.status).toBe(200);
+    const again = await upload(admin, png());
+    expect(again.status).toBe(201);
+  });
+
+  test("unggah pertama menggantikan sampul lama produk seed", async () => {
+    const admin = await signInAs(ADMIN);
+    const before = await ctx_db_image_path();
+    expect(before).not.toContain("/media/");
+    const uploaded = await upload(admin, png());
+    expect(uploaded.status).toBe(201);
+    expect(await ctx_db_image_path()).toContain("/media/");
+  });
+
+  async function ctx_db_image_path() {
+    const row = db.raw().prepare("SELECT image_path FROM products WHERE id = 'p-topi'").get() as { image_path: string | null };
+    return row.image_path ?? "";
+  }
+
+  test("diskon paket ditolak, bukan disimpan tanpa efek", async () => {
+    const admin = await signInAs(ADMIN);
+    const response = await call("/api/admin/products/p-paket-starter", mutate(admin, { discountBasisPoints: 2000 }, "PATCH"));
+    expect(response.status).toBe(400);
+    expect(((await response.json()) as { field?: string }).field).toBe("discountBasisPoints");
+  });
+
+  test("pesanan gratis dibatasi per akun agar stok tidak terkuras", async () => {
+    const admin = await signInAs(ADMIN);
+    const buyer = await signInAs(BUYER);
+    await call("/api/admin/products/p-topi", mutate(admin, { discountBasisPoints: 10000 }, "PATCH"));
+    const statuses: number[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      const response = await call("/api/checkout/create", {
+        ...mutate(buyer, {
+          buyerName: "Siti Rahma",
+          contactPhone: "081234567890",
+          email: "pembeli@demo.mabakit",
+          method: "QRIS",
+          idempotencyKey: `checkout-gratis-000${i}`,
+          items: [{ productId: "p-topi", variantId: "v-topi-feb", quantity: 1 }],
+        }),
+      });
+      statuses.push(response.status);
+    }
+    expect(statuses[0]).toBe(201);
+    expect(statuses.filter((status) => status === 201).length).toBeLessThan(3);
+    expect(statuses).toContain(429);
+  });
+
+  test("ekspor penjualan tercatat di audit", async () => {
+    const admin = await signInAs(ADMIN);
+    const response = await call("/api/admin/export/sales.csv", { cookie: admin.cookie });
+    expect(response.status).toBe(200);
+    const audit = (await (await call("/api/admin/audit", { cookie: admin.cookie })).json()) as {
+      logs: { action: string }[];
+    };
+    expect(audit.logs.some((log) => log.action === "sales_exported")).toBe(true);
+  });
+});

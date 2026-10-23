@@ -153,9 +153,11 @@ export async function adminCreateProduct(ctx: Ctx, operator: OperatorRow): Promi
 export async function adminUpdateProduct(ctx: Ctx, operator: OperatorRow, id: string): Promise<Response> {
   const body = await readJsonLimited(ctx.request);
   if (!body) return fail("invalid_payload");
-  const current = await ctx.env.DB.prepare("SELECT id, title, description, image_path, active, discount_basis_points FROM products WHERE id = ?")
+  const current = await ctx.env.DB.prepare(
+    "SELECT id, kind, title, description, image_path, active, discount_basis_points FROM products WHERE id = ?",
+  )
     .bind(id)
-    .first<{ id: string; title: string; description: string; image_path: string | null; active: number; discount_basis_points: number }>();
+    .first<{ id: string; kind: string; title: string; description: string; image_path: string | null; active: number; discount_basis_points: number }>();
   if (!current) return fail("not_found");
 
   const title = body.title === undefined ? current.title : text(body.title, 1, 80);
@@ -170,6 +172,10 @@ export async function adminUpdateProduct(ctx: Ctx, operator: OperatorRow, id: st
         ? body.discountBasisPoints
         : null;
   if (discount === null) return fail("invalid_payload", { field: "discountBasisPoints" });
+  // Harga paket berasal dari bundle_configs per fakultas, jadi diskon persen tidak berlaku.
+  if (current.kind !== "single" && discount !== current.discount_basis_points) {
+    return fail("invalid_payload", { field: "discountBasisPoints" });
+  }
   if (!title || description === null || (body.imagePath !== undefined && body.imagePath !== null && !imagePath)) {
     return fail("invalid_payload");
   }

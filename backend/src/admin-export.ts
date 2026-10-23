@@ -1,4 +1,5 @@
-import { type Ctx, type OperatorRow, fail } from "./http";
+import { type Ctx, type OperatorRow, audit, fail, ipHash } from "./http";
+import { allowAttempt } from "./session";
 
 type Row = {
   order_number: string;
@@ -29,7 +30,8 @@ function dayStart(value: string): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-export async function adminExportSales(ctx: Ctx, _operator: OperatorRow): Promise<Response> {
+export async function adminExportSales(ctx: Ctx, operator: OperatorRow): Promise<Response> {
+  if (!(await allowAttempt(ctx, "export_sales", await ipHash(ctx), 20))) return fail("rate_limited");
   const url = new URL(ctx.request.url);
   const fromRaw = url.searchParams.get("from");
   const toRaw = url.searchParams.get("to");
@@ -95,6 +97,14 @@ export async function adminExportSales(ctx: Ctx, _operator: OperatorRow): Promis
     const last = results[results.length - 1];
     cursor = { t: last.paid_at, i: last.id };
   }
+
+  await audit(ctx, {
+    actorId: operator.id,
+    action: "sales_exported",
+    entityType: "report",
+    entityId: "sales.csv",
+    metadata: { from: fromRaw ?? null, to: toRaw ?? null, rows: lines.length - 1 },
+  });
 
   return new Response(lines.join("\r\n") + "\r\n", {
     headers: {

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import App from "@/App";
 import type { CatalogResponse, Order, PackageQuote } from "@/lib/types";
+import { percentToBasisPoints } from "@/pages/AdminPage";
 
 const NOW = Date.now();
 
@@ -142,6 +143,17 @@ beforeEach(() => {
   document.cookie = "mbk_csrf=csrf; path=/";
   window.history.replaceState({}, "", "/");
   vi.stubGlobal("fetch", routes());
+});
+
+describe("konversi diskon admin", () => {
+  test("koma dan titik desimal sama-sama diterima, nilai luar rentang ditolak", () => {
+    expect(percentToBasisPoints("12,5")).toBe(1250);
+    expect(percentToBasisPoints("12.5")).toBe(1250);
+    expect(percentToBasisPoints("100")).toBe(10000);
+    expect(percentToBasisPoints("")).toBe(0);
+    expect(percentToBasisPoints("101")).toBe(-1);
+    expect(percentToBasisPoints("abc")).toBe(-1);
+  });
 });
 
 describe("alur belanja demo v2", () => {

@@ -18,6 +18,14 @@ type AuditLog = {
 type FacultyRow = AdminCatalog["faculties"][number];
 type ActionError = { message: string; field?: string };
 
+/** Koma desimal Indonesia diterima: "12,5" dan "12.5" sama-sama 1250 basis poin. */
+export function percentToBasisPoints(value: FormDataEntryValue | null): number {
+  const text = String(value ?? "0").trim().replace(",", ".");
+  const percent = Number(text === "" ? "0" : text);
+  if (!Number.isFinite(percent) || percent < 0 || percent > 100) return -1;
+  return Math.round(percent * 100);
+}
+
 const SECTIONS = [
   { id: "ringkasan", label: "Ringkasan" },
   { id: "pesanan", label: "Pesanan" },
@@ -706,11 +714,15 @@ function ProductCard({
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
+          const discountBasisPoints = percentToBasisPoints(data.get("discountPercent"));
           void action.exec(async () => {
+            if (discountBasisPoints < 0) {
+              throw new ApiError("invalid_payload", "Diskon harus angka 0 sampai 100.", 400, "discountPercent");
+            }
             await patch(`/api/admin/products/${product.id}`, {
               title: String(data.get("title") ?? ""),
               description: String(data.get("description") ?? ""),
-              discountBasisPoints: Math.round(Number(data.get("discountPercent") ?? 0) * 100),
+              ...(product.kind === "single" ? { discountBasisPoints } : {}),
               active: data.get("active") === "on",
             });
             return "Produk diperbarui.";
@@ -792,16 +804,22 @@ function ProductCard({
             <p className="text-sm text-muted">Batas lima foto tercapai. Hapus satu foto untuk mengunggah yang baru.</p>
           )}
         </div>
-        <Field id={`discount-${product.id}`} label="Diskon (%)" hint="0 sampai 100. Dua desimal, misalnya 12,5.">
+        <Field
+          id={`discount-${product.id}`}
+          label="Diskon (%)"
+          hint={
+            product.kind === "bundle"
+              ? "Harga paket diatur per fakultas di bagian Paket, jadi diskon persen hanya untuk produk satuan."
+              : "0 sampai 100. Boleh pakai koma, misalnya 12,5. Isi 100 untuk gratis."
+          }
+        >
           <Input
             id={`discount-${product.id}`}
             name="discountPercent"
-            type="number"
+            type="text"
             inputMode="decimal"
-            min={0}
-            max={100}
-            step="0.01"
             defaultValue={((product.discountBasisPoints ?? 0) / 100).toString()}
+            disabled={product.kind === "bundle"}
           />
         </Field>
         <CheckboxField id={`active-${product.id}`} name="active" label="Tampilkan di katalog" checked={product.active} />

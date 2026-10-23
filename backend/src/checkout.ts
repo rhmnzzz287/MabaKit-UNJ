@@ -172,6 +172,16 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
   if (!free && !chosenMethod) return fail("invalid_method");
   const method = free ? "FREE" : chosenMethod;
 
+  if (free) {
+    // Pesanan gratis langsung PAID sehingga batas draf HELD tidak berlaku; batasi per akun per jam.
+    const recent = await ctx.env.DB.prepare(
+      "SELECT COUNT(*) AS total FROM orders WHERE user_id = ? AND amount_due_rp = 0 AND created_at > ?",
+    )
+      .bind(user.id, ctx.now - 3_600_000)
+      .first<number>("total");
+    if ((recent ?? 0) >= 2) return fail("rate_limited");
+  }
+
   const orderId = crypto.randomUUID();
   const expiresAt = ctx.now + DRAFT_MINUTES * 60_000;
   const pickupSnapshot = JSON.stringify({

@@ -59,32 +59,35 @@ export async function adminUploadPhoto(ctx: Ctx, operator: OperatorRow, productI
 
   const id = `ph-${crypto.randomUUID().slice(0, 8)}`;
   const key = `products/${productId}/${id}.${EXT[type]}`;
-  await ctx.env.MEDIA.put(key, bytes, { httpMetadata: { contentType: type } });
   try {
-    const position = await ctx.env.DB.prepare(
-      "SELECT COALESCE(MAX(position) + 1, 0) AS next FROM product_photos WHERE product_id = ?",
-    )
+    // Posisi diisi slot kosong terkecil supaya penghapusan di tengah tidak menabrak CHECK 0..4.
+    const { results: taken } = await ctx.env.DB.prepare("SELECT position FROM product_photos WHERE product_id = ?")
       .bind(productId)
-      .first<number>("next");
+      .all<{ position: number }>();
+    const used = new Set(taken.map((row) => row.position));
+    let position = 0;
+    while (used.has(position) && position < 5) position += 1;
+    if (position > 4) return fail("photo_limit");
+
+    await ctx.env.MEDIA.put(key, bytes, { httpMetadata: { contentType: type } });
     await ctx.env.DB.prepare(
       `INSERT INTO product_photos (id, product_id, object_key, content_type, bytes, width, height, position, created_at)
        SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
        WHERE (SELECT COUNT(*) FROM product_photos WHERE product_id = ?) < 5`,
     )
-      .bind(id, productId, key, type, bytes.length, info.width, info.height, position ?? 0, ctx.now, productId)
+      .bind(id, productId, key, type, bytes.length, info.width, info.height, position, ctx.now, productId)
       .run();
     const saved = await ctx.env.DB.prepare("SELECT id FROM product_photos WHERE id = ?").bind(id).first();
     if (!saved) {
       await ctx.env.MEDIA.delete(key);
       return fail("photo_limit");
     }
-    await ctx.env.DB.prepare(
-      "UPDATE products SET image_path = ?, updated_at = ? WHERE id = ? AND (image_path IS NULL OR image_path = '' OR image_path LIKE '/media/%')",
-    )
+    // Sampul selalu mengikuti foto pertama, termasuk menggantikan gambar lama produk seed.
+    await ctx.env.DB.prepare("UPDATE products SET image_path = ?, updated_at = ? WHERE id = ?")
       .bind(`/media/${key}`, ctx.now, productId)
       .run();
     await audit(ctx, { actorId: operator.id, action: "photo_uploaded", entityType: "product", entityId: productId, metadata: { photoId: id } });
-    return json({ photo: { id, url: `/media/${key}`, contentType: type, bytes: bytes.length, width: info.width, height: info.height, position: position ?? 0 } }, 201);
+    return json({ photo: { id, url: `/media/${key}`, contentType: type, bytes: bytes.length, width: info.width, height: info.height, position } }, 201);
   } catch (error) {
     await ctx.env.MEDIA.delete(key);
     return fail(errorName(error));
@@ -97,7 +100,7 @@ export async function adminDeletePhoto(ctx: Ctx, operator: OperatorRow, productI
     .first<{ object_key: string }>();
   if (!row) return fail("not_found");
   await ctx.env.DB.prepare("DELETE FROM product_photos WHERE id = ? AND product_id = ?").bind(photoId, productId).run();
-  if (ctx.env.MEDIA) await ctx.env.MEDIA.delete(row.object_key);
+  await ctx.env.MEDIA?.delete(row.object_key).catch(() => undefined);
   const cover = await ctx.env.DB.prepare(
     "SELECT object_key FROM product_photos WHERE product_id = ? ORDER BY position, id LIMIT 1",
   )
@@ -116,6 +119,7 @@ export async function adminReorderPhotos(ctx: Ctx, operator: OperatorRow, produc
     return fail("invalid_payload");
   }
   const ids = body.ids as string[];
+  if (ids.length === 0) return fail("invalid_payload");
   const { results } = await ctx.env.DB.prepare("SELECT id FROM product_photos WHERE product_id = ?")
     .bind(productId)
     .all<{ id: string }>();
@@ -144,6 +148,7 @@ export async function mediaObject(ctx: Ctx, key: string): Promise<Response> {
     headers: {
       "content-type": object.httpMetadata?.contentType ?? "application/octet-stream",
       "cache-control": "public, max-age=31536000, immutable",
+      "x-content-type-options": "nosniff",
       etag: object.httpEtag,
     },
   });

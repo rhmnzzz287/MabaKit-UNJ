@@ -20,7 +20,7 @@ Satu deployment Worker melayani API dan static assets. Source UI frontend/src/, 
 
 D1 hanya diakses Worker, tidak dari SDK browser. Sesi cookie opaque HttpOnly dengan hash token di D1; role berasal dari server, bukan pilihan pengguna. SQL guard dan batch menjadi otoritas mutasi. Tidak ada transaksi interaktif yang menunggu keputusan JavaScript di antara statement.
 
-R2 dipakai untuk galeri unggahan admin: objek privat `products/<productId>/<photoId>`, disajikan lewat `/media/*` dengan cache immutable; metadata dan batas lima foto per produk dijaga D1. Gambar pilot lama tetap memakai Static Assets dari manifest ekstraksi PDF. Cron Triggers untuk rekonsiliasi gateway ditunda, sama seperti integrasi Midtrans/Xendit, email otomatis dan MFA. Demo tidak memanggil gateway atau pengiriman email. Tidak perlu KV, Durable Objects, Queues, ORM atau Express.
+R2 dipakai untuk galeri unggahan admin: objek privat `products/<productId>/<photoId>`, disajikan lewat `/media/*` dengan header nosniff dan cache immutable; metadata dan batas lima foto per produk dijaga D1. Gambar pilot lama tetap memakai Static Assets dari manifest ekstraksi PDF. Cron Triggers untuk rekonsiliasi gateway ditunda, sama seperti integrasi Midtrans/Xendit, email otomatis dan MFA. Demo tidak memanggil gateway atau pengiriman email. Tidak perlu KV, Durable Objects, Queues, ORM atau Express.
 
 Environment lokal, demo staging dan produksi memakai binding/database berbeda. Demo diberi mode DEMO server-side, tanpa secret merchant. Konfigurasi Wrangler menyimpan binding non-secret; token deploy dan secret operator hanya di environment/Workers Secrets, tidak VITE_* atau repo. Resource cloud, biaya, domain dan deployment memerlukan persetujuan terpisah.
 
