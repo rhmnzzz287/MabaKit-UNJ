@@ -18,7 +18,7 @@ function PackageCard({ product, facultyId }: { product: Product; facultyId: stri
       <div className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-lg font-bold tracking-tight text-ink">
-            <Link to={`/packages/${product.id}/customize`} className="hover:underline">
+            <Link to={`/packages/${product.id}/customize`}>
               {product.title}
             </Link>
           </h2>
@@ -56,7 +56,7 @@ function ProductCard({ product }: { product: Product }) {
       />
       <div className="flex flex-1 flex-col gap-3 p-6">
         <h2 className="text-lg font-bold tracking-tight text-ink">
-          <Link to={`/products/${product.id}`} className="hover:underline">
+          <Link to={`/products/${product.id}`}>
             {product.title}
           </Link>
         </h2>

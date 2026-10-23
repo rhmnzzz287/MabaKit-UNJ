@@ -217,8 +217,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
             Periksa ulang sesi
           </Button>
           <Link
-            to="/operator/login?next=/admin"
-            className="inline-flex min-h-12 items-center font-semibold text-brand underline"
+            to="/operator/login?next=/admin" className="inline-flex min-h-12 items-center font-semibold text-brand"
           >
             Masuk sebagai admin
           </Link>
@@ -310,8 +309,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
             pembeli.
           </p>
           <Link
-            to="/team/orders"
-            className="mt-2 inline-flex min-h-12 items-center font-semibold text-brand underline"
+            to="/team/orders" className="mt-2 inline-flex min-h-12 items-center font-semibold text-brand"
           >
             Buka antrean pesanan tim
           </Link>

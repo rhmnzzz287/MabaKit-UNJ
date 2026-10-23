@@ -84,7 +84,7 @@ export default function RegisterPage() {
 
         <p className="border-t border-slate-200 pt-6 text-center text-sm text-muted">
           Sudah punya akun?{" "}
-          <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark underline">
+          <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark">
             Masuk
           </Link>
         </p>

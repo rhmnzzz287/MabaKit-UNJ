@@ -172,8 +172,7 @@ export default function PaymentPage({ id }: { id: string }) {
               {error ? <Alert tone="error">{error}</Alert> : null}
               {notice ? <Alert tone="info">{notice}</Alert> : null}
               <Link
-                to="/orders"
-                className="block text-center text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+                to="/orders" className="block text-center text-sm font-semibold text-brand-dark"
               >
                 Kembali ke daftar pesanan
               </Link>

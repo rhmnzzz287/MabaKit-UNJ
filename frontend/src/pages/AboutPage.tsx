@@ -76,8 +76,7 @@ export default function AboutPage() {
             Lihat paket
           </ButtonLink>
           <Link
-            to="/contact"
-            className="inline-flex min-h-12 items-center rounded-xl px-4 font-semibold text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
+            to="/contact" className="inline-flex min-h-12 items-center rounded-xl px-4 font-semibold text-white"
           >
             Hubungi kami
           </Link>

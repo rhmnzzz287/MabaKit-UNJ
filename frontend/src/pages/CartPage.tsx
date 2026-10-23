@@ -54,8 +54,7 @@ export default function CartPage() {
                       <p className="text-sm text-muted">{rupiah(line.priceRp)} per unit</p>
                       {line.variantId === null ? (
                         <Link
-                          to={`/packages/${line.productId}/customize?replace=${encodeURIComponent(key)}`}
-                          className="inline-flex min-h-12 items-center text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+                          to={`/packages/${line.productId}/customize?replace=${encodeURIComponent(key)}`} className="inline-flex min-h-12 items-center text-sm font-semibold text-brand-dark"
                         >
                           Ubah fakultas paket
                         </Link>

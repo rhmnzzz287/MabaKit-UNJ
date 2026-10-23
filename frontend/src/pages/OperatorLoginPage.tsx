@@ -54,7 +54,7 @@ export default function OperatorLoginPage() {
       {already ? (
         <Alert tone="info">
           Sesi ini sudah masuk sebagai {already}.{" "}
-          <Link to="/team" className="font-semibold underline">
+          <Link to="/team" className="font-semibold">
             Buka workspace tim
           </Link>
           .
@@ -94,13 +94,13 @@ export default function OperatorLoginPage() {
 
       <div className="space-y-2 text-center text-sm text-muted">
         <p>
-          <Link to="/catalog" className="font-semibold text-brand-dark underline">
+          <Link to="/catalog" className="font-semibold text-brand-dark">
             Kembali ke katalog
           </Link>
         </p>
         <p>
           Bukan tim MabaKit?{" "}
-          <Link to="/login" className="font-semibold text-brand-dark underline">
+          <Link to="/login" className="font-semibold text-brand-dark">
             Masuk sebagai pembeli
           </Link>
           .

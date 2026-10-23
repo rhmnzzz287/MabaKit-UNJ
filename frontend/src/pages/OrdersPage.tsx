@@ -95,15 +95,15 @@ export function OrdersPage() {
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm font-semibold">
                   {order.paymentStatus === "PENDING" ? (
-                    <Link to={`/orders/${order.id}/payment`} className="text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+                    <Link to={`/orders/${order.id}/payment`} className="text-brand-dark">
                       Lanjut bayar
                     </Link>
                   ) : null}
-                  <Link to={`/orders/${order.id}`} className="text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+                  <Link to={`/orders/${order.id}`} className="text-brand-dark">
                     Detail
                   </Link>
                   {order.paymentStatus === "PAID" ? (
-                    <Link to={`/orders/${order.id}/invoice`} className="text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+                    <Link to={`/orders/${order.id}/invoice`} className="text-brand-dark">
                       Invoice
                     </Link>
                   ) : null}

@@ -21,7 +21,7 @@ import {
 function Breadcrumb({ title }: { title: string }) {
   return (
     <nav aria-label="Remah roti" className="text-sm text-muted">
-      <Link to="/catalog" className="font-medium text-brand-dark hover:underline">
+      <Link to="/catalog" className="font-medium text-brand-dark">
         Paket dan Produk
       </Link>
       <span aria-hidden="true"> / </span>
@@ -73,7 +73,7 @@ export default function ProductPage({ id }: { id: string }) {
     return (
       <div className="space-y-4">
         <Alert tone="error">{error}</Alert>
-        <Link to="/catalog" className="font-semibold text-brand-dark underline">
+        <Link to="/catalog" className="font-semibold text-brand-dark">
           Kembali ke katalog
         </Link>
       </div>

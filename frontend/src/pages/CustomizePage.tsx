@@ -107,7 +107,7 @@ export default function CustomizePage({ id }: { id: string }) {
   return (
     <div className="space-y-8">
       <nav aria-label="Remah roti" className="text-sm text-muted">
-        <Link to="/catalog" className="font-medium text-brand-dark hover:underline">
+        <Link to="/catalog" className="font-medium text-brand-dark">
           Paket dan Produk
         </Link>
         <span aria-hidden="true"> / </span>

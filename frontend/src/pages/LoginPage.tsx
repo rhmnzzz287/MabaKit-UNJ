@@ -76,7 +76,7 @@ export default function LoginPage() {
 
         <p className="border-t border-slate-200 pt-6 text-center text-sm text-muted">
           Belum punya akun?{" "}
-          <Link to={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark underline">
+          <Link to={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand-dark">
             Daftar
           </Link>
         </p>
@@ -85,14 +85,14 @@ export default function LoginPage() {
       <div className="space-y-2 text-center text-sm text-muted">
         <p>
           Tim MabaKit masuk lewat{" "}
-          <Link to="/operator/login" className="font-semibold text-brand-dark underline">
+          <Link to="/operator/login" className="font-semibold text-brand-dark">
             halaman operator
           </Link>
           .
         </p>
         <p>
           Ingin melihat katalog dulu?{" "}
-          <Link to="/catalog" className="font-semibold text-brand-dark underline">
+          <Link to="/catalog" className="font-semibold text-brand-dark">
             Buka katalog
           </Link>
           .

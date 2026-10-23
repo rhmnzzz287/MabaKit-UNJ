@@ -201,7 +201,7 @@ export default function InvoicePage({ id }: { id: string }) {
       </Card>
 
       <p className="no-print text-sm text-muted">
-        <Link to="/orders" className="font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+        <Link to="/orders" className="font-semibold text-brand-dark">
           Kembali ke daftar pesanan
         </Link>
       </p>

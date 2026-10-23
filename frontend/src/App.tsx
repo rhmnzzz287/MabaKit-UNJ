@@ -127,7 +127,7 @@ function Routes({ path }: { path: string }) {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-ink">Halaman tidak ditemukan</h1>
       <p className="text-muted">Alamat ini tidak ada di aplikasi demo.</p>
-      <Link to="/" className="font-semibold text-brand underline">
+      <Link to="/" className="font-semibold text-brand">
         Kembali ke beranda
       </Link>
     </div>
@@ -239,16 +239,16 @@ export default function App() {
             </p>
           </div>
           <nav aria-label="Navigasi kaki" className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
-            <Link to="/about" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
+            <Link to="/about" className="inline-flex min-h-12 items-center hover:text-ink">
               Tentang
             </Link>
-            <Link to="/contact" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
+            <Link to="/contact" className="inline-flex min-h-12 items-center hover:text-ink">
               Kontak
             </Link>
-            <Link to="/privacy" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
+            <Link to="/privacy" className="inline-flex min-h-12 items-center hover:text-ink">
               Privasi
             </Link>
-            <Link to="/terms" className="inline-flex min-h-12 items-center hover:text-ink hover:underline">
+            <Link to="/terms" className="inline-flex min-h-12 items-center hover:text-ink">
               Ketentuan
             </Link>
           </nav>

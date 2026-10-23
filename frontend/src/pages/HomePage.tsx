@@ -104,7 +104,7 @@ export default function HomePage() {
           title="Paket sesuai fakultas"
           description="Setiap paket punya isi dan harga sendiri. Pilih fakultas untuk melihat rincian yang berlaku."
           action={
-            <Link to="/catalog" className="text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+            <Link to="/catalog" className="text-sm font-semibold text-brand-dark">
               Semua paket dan produk
             </Link>
           }
@@ -161,7 +161,7 @@ export default function HomePage() {
             Cara memesan
           </h2>
           <p className="text-muted">Tiga langkah, tanpa perlu menghubungi admin untuk memesan.</p>
-          <Link to="/contact" className="inline-block text-sm font-semibold text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand">
+          <Link to="/contact" className="inline-block text-sm font-semibold text-brand-dark">
             Ada pertanyaan? Hubungi kami
           </Link>
         </div>

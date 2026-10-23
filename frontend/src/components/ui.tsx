@@ -38,7 +38,7 @@ const BUTTON_STYLES = {
     "bg-brand text-white shadow-sm hover:bg-brand-dark hover:shadow-md active:translate-y-px disabled:opacity-60 disabled:shadow-none",
   secondary:
     "border border-slate-300 bg-white text-ink hover:border-brand hover:bg-brand-tint active:translate-y-px disabled:opacity-60",
-  quiet: "text-brand-dark underline decoration-brand/40 underline-offset-4 hover:decoration-brand disabled:opacity-60",
+  quiet: "text-brand-dark hover:text-brand disabled:opacity-60",
   danger:
     "border border-danger bg-white text-danger hover:bg-red-50 active:translate-y-px disabled:opacity-60",
 } as const;
