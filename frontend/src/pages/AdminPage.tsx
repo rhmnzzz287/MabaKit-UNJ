@@ -609,12 +609,10 @@ function CatalogSection({
           const form = event.currentTarget;
           const data = new FormData(form);
           void action.exec(async () => {
-            const imagePath = String(data.get("imagePath") ?? "").trim();
             await post("/api/admin/products", {
               kind: String(data.get("kind") ?? "single"),
               title: String(data.get("title") ?? ""),
               description: String(data.get("description") ?? ""),
-              imagePath: imagePath ? imagePath : null,
             });
             return "Produk dibuat dan masih nonaktif.";
           }).then((ok) => {
@@ -642,9 +640,7 @@ function CatalogSection({
         <Field id="product-description" label="Deskripsi">
           <Textarea id="product-description" name="description" maxLength={600} />
         </Field>
-        <Field id="product-image" label="Path gambar" hint="Contoh /images/produk.webp, boleh dikosongkan.">
-          <Input id="product-image" name="imagePath" maxLength={200} aria-describedby="product-image-hint" />
-        </Field>
+        <p className="text-sm text-muted">Foto diunggah dari galeri setelah produk dibuat. Maksimal lima foto per produk.</p>
         <Feedback action={action} />
         <Button type="submit" disabled={action.busy}>
           {action.busy ? "Menyimpan..." : "Buat produk"}
@@ -710,12 +706,10 @@ function ProductCard({
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
-          const imagePath = String(data.get("imagePath") ?? "").trim();
           void action.exec(async () => {
             await patch(`/api/admin/products/${product.id}`, {
               title: String(data.get("title") ?? ""),
               description: String(data.get("description") ?? ""),
-              imagePath: imagePath ? imagePath : null,
               discountBasisPoints: Math.round(Number(data.get("discountPercent") ?? 0) * 100),
               active: data.get("active") === "on",
             });
