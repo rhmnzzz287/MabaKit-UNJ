@@ -14,14 +14,13 @@ export default function ContactPage() {
   return (
     <div className="space-y-12">
       <div className="max-w-2xl space-y-4">
-        <p className="text-sm font-bold uppercase tracking-wider text-brand-dark">Hubungi kami</p>
         <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">Ada yang perlu ditanyakan?</h1>
         <p className="text-lg text-muted">Alamat dan WhatsApp resmi untuk pertanyaan seputar pesanan demo.</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
         <Card className="space-y-4 p-6 sm:p-8">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Alamat</h2>
+          <h2 className="text-sm font-bold text-ink">Alamat</h2>
           <address className="space-y-1 text-lg not-italic font-medium leading-relaxed text-ink">
             {ADDRESS.map((line) => (
               <span key={line} className="block">
@@ -36,7 +35,7 @@ export default function ContactPage() {
         </Card>
 
         <Card className="space-y-4 p-6 sm:p-8">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted">WhatsApp</h2>
+          <h2 className="text-sm font-bold text-ink">WhatsApp</h2>
           <p className="font-mono text-2xl font-bold tracking-tight text-ink">{WHATSAPP_DISPLAY}</p>
           <ButtonLink to={WHATSAPP_URL} external>
             Buka chat WhatsApp

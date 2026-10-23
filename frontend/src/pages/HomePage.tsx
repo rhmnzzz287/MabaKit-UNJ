@@ -53,10 +53,6 @@ export default function HomePage() {
       <section className="hero-wash -mx-4 overflow-hidden rounded-b-3xl px-4 pb-12 pt-8 sm:-mx-8 sm:px-8">
         <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
           <div className="space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-brand-dark">
-              <span aria-hidden="true" className="size-2 rounded-full bg-brand" />
-              Perlengkapan PKKMB mahasiswa baru UNJ
-            </p>
             <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-ink sm:text-5xl">
               Satu paket, semua kebutuhan ospek.
             </h1>

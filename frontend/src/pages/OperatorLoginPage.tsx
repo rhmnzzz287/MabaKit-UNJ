@@ -45,9 +45,6 @@ export default function OperatorLoginPage() {
   return (
     <div className="mx-auto max-w-md space-y-8 py-4">
       <div className="space-y-2 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand-dark px-4 py-2 text-xs font-bold uppercase tracking-wide text-white">
-          Workspace tim
-        </span>
         <h1 className="text-3xl font-black tracking-tight text-ink">Masuk operator</h1>
         <p className="text-muted">
           Halaman ini untuk tim MabaKit. Pembeli tidak perlu masuk di sini dan tidak mendapat akses workspace tim.

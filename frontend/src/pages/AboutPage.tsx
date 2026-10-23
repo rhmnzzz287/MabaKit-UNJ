@@ -34,7 +34,6 @@ export default function AboutPage() {
   return (
     <div className="space-y-16">
       <div className="max-w-2xl space-y-4">
-        <p className="text-sm font-bold uppercase tracking-wider text-brand-dark">Tentang kami</p>
         <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">Biar urusan ospek cukup sekali jalan.</h1>
         <p className="text-lg text-muted">
           MabaKit menyiapkan perlengkapan PKKMB per fakultas dalam satu alur pesan yang ringkas.

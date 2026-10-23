@@ -247,7 +247,7 @@ export default function AdminPage({ section = "ringkasan" }: { section?: string 
       <header className="rounded-2xl bg-ink px-6 py-5 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-white/60">Panel admin</p>
+            <p className="text-sm font-semibold text-white/80">Panel admin</p>
             <p className="text-xl font-black tracking-tight">MabaKit</p>
             <p className="text-sm text-white/70">Setiap perubahan dicatat di audit log.</p>
           </div>

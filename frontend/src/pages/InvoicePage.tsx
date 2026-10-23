@@ -103,13 +103,13 @@ export default function InvoicePage({ id }: { id: string }) {
 
         <section className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Pemesan</h2>
+            <h2 className="text-sm font-bold text-ink">Pemesan</h2>
             <p className="font-semibold text-ink">{order.buyerName}</p>
             <p className="text-sm text-muted">{order.contactPhone}</p>
             {order.email ? <p className="text-sm text-muted">{order.email}</p> : null}
           </div>
           <div className="space-y-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Pengambilan</h2>
+            <h2 className="text-sm font-bold text-ink">Pengambilan</h2>
             <p className="font-semibold text-ink">{order.pickup.label}</p>
             <p className="text-sm text-muted">{order.pickup.details}</p>
             <p className="text-sm text-muted">Jam layanan: {order.pickup.hours}</p>
@@ -120,7 +120,7 @@ export default function InvoicePage({ id }: { id: string }) {
           <table className="w-full min-w-[480px] text-left text-sm">
             <caption className="sr-only">Item pesanan</caption>
             <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-muted">
+              <tr className="border-b border-slate-200 text-xs font-semibold text-muted">
                 <th scope="col" className="py-3">
                   Item
                 </th>

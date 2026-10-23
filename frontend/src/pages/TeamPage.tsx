@@ -67,7 +67,7 @@ export function TeamShell({ role, children }: { role: WorkspaceRole; children: R
       <header className="rounded-2xl bg-brand-dark px-6 py-5 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-white/70">Workspace tim</p>
+            <p className="text-sm font-semibold text-white/80">Workspace tim</p>
             <p className="text-xl font-black tracking-tight">MabaKit</p>
             <p className="text-sm text-white/70">Masuk sebagai {role === "admin" ? "admin" : "tim MabaKit"}</p>
           </div>
