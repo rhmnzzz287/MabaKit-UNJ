@@ -258,8 +258,8 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
   } catch (error) {
     const code = errorName(error);
     if (code === "conflict") {
-      const raced = await ctx.env.DB.prepare("SELECT id, request_hash FROM orders WHERE session_id = ? AND checkout_key = ?")
-        .bind(session.id, input.idempotencyKey)
+      const raced = await ctx.env.DB.prepare("SELECT id, request_hash FROM orders WHERE user_id = ? AND checkout_key = ?")
+        .bind(user.id, input.idempotencyKey)
         .first<{ id: string; request_hash: string }>();
       if (raced?.request_hash === requestHash) {
         const order = await loadOrder(ctx, raced.id);

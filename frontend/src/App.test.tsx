@@ -421,6 +421,27 @@ describe("alur belanja demo v2", () => {
     expect(screen.getByRole("link", { name: "Stok" })).toHaveAttribute("aria-current", "page");
   });
 
+  test("/admin tanpa bagian dialihkan ke ringkasan", async () => {
+    const admin = { ...buyer, id: "usr-admin", email: "mabakita@admin", role: "admin" as const };
+    vi.stubGlobal(
+      "fetch",
+      routes((url) => {
+        if (url === "/api/auth/session?portal=operator") {
+          return json({ session: { expiresAt: NOW + 1000 }, user: admin, role: "admin", portal: "operator" });
+        }
+        if (url === "/api/auth/session") return json({ session: null, user: null, role: "buyer" });
+        if (url === "/api/admin/summary") {
+          return json({ settings: null, counts: { pending: 0, paid: 0, expired: 0, ready: 0, pickedUp: 0 }, variants: [] });
+        }
+        if (url === "/api/admin/catalog") return json({ products: [], faculties: [] });
+        return null;
+      }),
+    );
+    window.history.replaceState({}, "", "/admin");
+    render(<App />);
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/ringkasan"));
+  });
+
   test("keranjang kosong menawarkan kembali ke katalog", async () => {
     window.history.replaceState({}, "", "/cart");
     render(<App />);
