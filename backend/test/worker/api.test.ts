@@ -409,6 +409,53 @@ describe("checkout", () => {
     expect(stockOf("v-kauskaki").stock_reserved).toBe(1);
   });
 
+  test("checkout paket ditolak bila satu komponen tidak layak (B01)", async () => {
+    const session = await signInAs(BUYER);
+    const ok = await createOrder(session, {
+      items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }],
+    });
+    expect(ok.totalRp).toBe(30000);
+
+    db.raw().exec("UPDATE variants SET active = 0 WHERE id = 'v-kipas-fip'");
+    const blocked = await call(
+      "/api/checkout/create",
+      mutate(session, checkoutBody({ idempotencyKey: "checkout-key-000002", items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }] })),
+    );
+    expect(blocked.status).toBe(409);
+    expect(await blocked.json()).toMatchObject({ error: "catalog_changed" });
+    expect((await call("/api/packages/p-paket-hemat/quote?faculty=fac-fip")).status).toBe(409); // quote juga ikut ditolak
+    expect(db.raw().prepare("SELECT COUNT(*) AS n FROM orders").get()).toEqual({ n: 1 });
+    const rejectedStock = db.raw().prepare("SELECT stock_reserved, stock_on_hand FROM variants WHERE id = 'v-kipas-fip'").get() as {
+      stock_reserved: number;
+      stock_on_hand: number;
+    };
+    expect(rejectedStock.stock_reserved).toBe(1); // hanya order pertama yang mereservasi
+    expect(stockOf("v-kauskaki").stock_reserved).toBe(1);
+  });
+
+  test("konfigurasi paket seed dapat disimpan ulang dengan ID existing (B02)", async () => {
+    const admin = await signInAs(ADMIN);
+    const saved = await call(
+      "/api/admin/packages/p-paket-hemat/configs/fac-fbs",
+      mutate(admin, { priceRp: 42000, published: true, components: [{ variantId: "v-kauskaki", quantity: 2 }] }, "PUT"),
+    );
+    expect(saved.status).toBe(200);
+    expect(await saved.json()).toMatchObject({
+      config: { id: "cfg-hemat-fbs", priceRp: 42000, published: true, components: [{ variantId: "v-kauskaki", quantity: 2 }] },
+    });
+    const row = db.raw().prepare("SELECT price_rp, published FROM bundle_configs WHERE id = 'cfg-hemat-fbs'").get() as {
+      price_rp: number;
+      published: number;
+    };
+    expect(row).toMatchObject({ price_rp: 42000, published: 1 });
+    expect(
+      db.raw().prepare("SELECT variant_id, quantity FROM bundle_config_components WHERE config_id = 'cfg-hemat-fbs'").all(),
+    ).toEqual([{ variant_id: "v-kauskaki", quantity: 2 }]);
+
+    const quote = (await (await call("/api/packages/p-paket-hemat/quote?faculty=fac-fbs")).json()) as { priceRp: number };
+    expect(quote.priceRp).toBe(42000);
+  });
+
   test("bentuk item satuan dan paket tidak boleh tertukar", async () => {
     const session = await signInAs(BUYER);
     const singleWithFaculty = await call(

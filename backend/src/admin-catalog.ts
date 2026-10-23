@@ -312,7 +312,13 @@ export async function adminSavePackageConfig(
     components.push({ variantId, quantity });
   }
 
-  const id = `cfg-${packageId}-${facultyId}`;
+  // DNA seed berbeda dari pola cfg-product-fakultas; pakai ID row existing agar penggantian komponen tidak memutus FK.
+  const existing = await ctx.env.DB.prepare(
+    "SELECT id FROM bundle_configs WHERE bundle_product_id = ? AND faculty_id = ?",
+  )
+    .bind(packageId, facultyId)
+    .first<{ id: string }>();
+  const id = existing?.id ?? `cfg-${packageId}-${facultyId}`;
   try {
     await ctx.env.DB.batch([
       ctx.env.DB.prepare(

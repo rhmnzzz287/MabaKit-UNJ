@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiError, get } from "../lib/api";
-import { addToCart } from "../lib/cart";
+import { addToCart, replaceLine } from "../lib/cart";
 import { variantLabel } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { CatalogResponse, PackageQuote } from "../lib/types";
@@ -33,6 +33,7 @@ export default function CustomizePage({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
+  const replaceKey = new URLSearchParams(window.location.search).get("replace");
 
   useEffect(() => {
     let active = true;
@@ -80,6 +81,7 @@ export default function CustomizePage({ id }: { id: string }) {
   }, [id, facultyId]);
 
   const maxQuantity = useMemo(() => Math.max(1, Math.min(99, quote?.stock ?? 1)), [quote]);
+  const recalculating = state === "loading" || (quote !== null && quote.faculty.id !== facultyId);
 
   if (state === "error" && !quote) {
     return (
@@ -239,10 +241,10 @@ export default function CustomizePage({ id }: { id: string }) {
 
           <Button
             full
-            disabled={!quote?.available}
+            disabled={recalculating || !quote?.available}
             onClick={() => {
-              if (!quote) return;
-              addToCart({
+              if (recalculating || !quote) return;
+              const line = {
                 productId: quote.package.id,
                 variantId: null,
                 facultyId: quote.faculty.id,
@@ -251,11 +253,13 @@ export default function CustomizePage({ id }: { id: string }) {
                 variantLabel: quote.faculty.name,
                 priceRp: quote.priceRp,
                 quantity: Math.min(quantity, maxQuantity),
-              });
+              };
+              if (replaceKey) replaceLine(replaceKey, line);
+              else addToCart(line);
               navigate("/cart");
             }}
           >
-            {quote?.available ? "Tambah paket ke keranjang" : "Belum tersedia"}
+            {recalculating ? "Menghitung ulang..." : quote?.available ? "Tambah paket ke keranjang" : "Belum tersedia"}
           </Button>
           {notice ? <Alert tone="info">{notice}</Alert> : null}
           <p className="text-sm text-muted">

@@ -15,7 +15,8 @@ const initial = (): AuthSnapshot => ({ state: "loading", role: null, user: null,
 
 const snapshots: Record<Portal, AuthSnapshot> = { buyer: initial(), operator: initial() };
 const listeners: Record<Portal, Set<() => void>> = { buyer: new Set(), operator: new Set() };
-let inFlight: Record<Portal, Promise<AuthSnapshot> | null> = { buyer: null, operator: null };
+/** Nomor versi request terakhir per portal; respons dari versi lama dibuang agar sesi tamu tidak memulihkan state. */
+const requested: Record<Portal, number> = { buyer: 0, operator: 0 };
 
 function emit(portal: Portal): void {
   for (const listener of listeners[portal]) listener();
@@ -40,28 +41,24 @@ export function setAuth(portal: Portal, info: SessionInfo): void {
   store(portal, { state: "ready", role: info.role, user: info.user, error: null });
 }
 
-/** Server tetap otoritas; snapshot hanya menyimpan hasil pemeriksaan terakhir. */
+/** Tiap panggilan selalu fetch baru; hanya respons dari request terakhir yang dipakai. */
 export async function refreshAuth(portal: Portal = "buyer"): Promise<AuthSnapshot> {
-  if (inFlight[portal]) return inFlight[portal] as Promise<AuthSnapshot>;
+  const version = ++requested[portal];
   if (snapshots[portal].state !== "ready") store(portal, { ...snapshots[portal], state: "loading" });
   const suffix = portal === "operator" ? "?portal=operator" : "";
-  const run = get<SessionInfo>(`/api/auth/session${suffix}`)
-    .then((body) => {
-      return store(portal, { state: "ready", role: body.role, user: body.user, error: null });
-    })
-    .catch((issue: unknown) => {
-      return store(portal, {
-        state: "error",
-        role: null,
-        user: null,
-        error: issue instanceof Error ? issue.message : "Sesi gagal diperiksa.",
-      });
-    })
-    .finally(() => {
-      inFlight[portal] = null;
+  try {
+    const body = await get<SessionInfo>(`/api/auth/session${suffix}`);
+    if (version !== requested[portal]) return snapshots[portal];
+    return store(portal, { state: "ready", role: body.role, user: body.user, error: null });
+  } catch (issue: unknown) {
+    if (version !== requested[portal]) return snapshots[portal];
+    return store(portal, {
+      state: "error",
+      role: null,
+      user: null,
+      error: issue instanceof Error ? issue.message : "Sesi gagal diperiksa.",
     });
-  inFlight[portal] = run;
-  return run;
+  }
 }
 
 export function useAuth(portal: Portal = "buyer"): AuthSnapshot {

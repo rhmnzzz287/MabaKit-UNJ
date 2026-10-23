@@ -70,6 +70,15 @@ export function updateLine(key: string, changes: Partial<Pick<CartLine, "quantit
   );
 }
 
+/** Penggantian aman: baris lama hilang hanya setelah baris baru tersimpan. */
+export function replaceLine(key: string, line: CartLine): void {
+  const lines = read().filter((item) => lineKey(item) !== key);
+  const target = lines.find((item) => lineKey(item) === lineKey(line));
+  if (target) target.quantity = Math.min(99, target.quantity + line.quantity);
+  else lines.push(line);
+  write(lines);
+}
+
 export function setQuantity(key: string, quantity: number): void {
   updateLine(key, { quantity: Math.max(1, Math.min(99, quantity)) });
 }

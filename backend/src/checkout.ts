@@ -124,17 +124,19 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
     }
 
     if (item.variantId) return fail("invalid_item");
+    if (!item.facultyId) return fail("catalog_changed");
+    // Muat seluruh komponen konfigurasi: satu komponen tidak layak menolak seluruh paket.
     const { results: parts } = await ctx.env.DB.prepare(
-      `SELECT bc.variant_id, bc.quantity, v.sku, v.attributes, v.version, p.title
+      `SELECT bc.variant_id, bc.quantity, v.sku, v.active, v.sellable, v.attributes, v.version, p.title
        FROM bundle_config_components bc
        JOIN bundle_configs c ON c.id = bc.config_id
        JOIN variants v ON v.id = bc.variant_id
        JOIN products p ON p.id = v.product_id
-       WHERE c.bundle_product_id = ? AND c.faculty_id = ? AND c.published = 1 AND v.active = 1 AND v.sellable = 1`,
+       WHERE c.bundle_product_id = ? AND c.faculty_id = ? AND c.published = 1`,
     )
       .bind(product.id, item.facultyId)
-      .all<{ variant_id: string; quantity: number; sku: string; attributes: string; version: number; title: string }>();
-    if (!item.facultyId || parts.length === 0) return fail("catalog_changed");
+      .all<{ variant_id: string; quantity: number; sku: string; active: number; sellable: number; attributes: string; version: number; title: string }>();
+    if (parts.length === 0 || parts.some((part) => part.active !== 1 || part.sellable !== 1)) return fail("catalog_changed");
     const bundleConfig = await ctx.env.DB.prepare(
       "SELECT price_rp FROM bundle_configs WHERE bundle_product_id = ? AND faculty_id = ? AND published = 1",
     )

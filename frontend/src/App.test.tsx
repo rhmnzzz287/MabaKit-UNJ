@@ -461,3 +461,93 @@ describe("alur belanja demo v2", () => {
     expect(screen.getByRole("link", { name: "Lihat katalog" })).toHaveAttribute("href", "/catalog");
   });
 });
+
+describe("penggantian fakultas aman di keranjang", () => {
+  const febCartLine = {
+    productId: "p-paket-hemat",
+    variantId: null,
+    facultyId: "fac-feb",
+    facultyName: "Fakultas Ekonomi dan Bisnis",
+    title: "Paket Hemat",
+    variantLabel: "Fakultas Ekonomi dan Bisnis",
+    priceRp: 50000,
+    quantity: 2,
+  };
+
+  const ftQuote: PackageQuote = {
+    ...quote,
+    faculty: { id: "fac-ft", name: "Fakultas Teknik" },
+    priceRp: 52000,
+  };
+
+  beforeEach(() => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+  });
+
+  test("mengubah fakultas mempertahankan baris keranjang hingga penggantian dikonfirmasi", async () => {
+    vi.stubGlobal(
+      "fetch",
+      routes((url) => {
+        if (url === "/api/packages/p-paket-hemat/quote?faculty=fac-ft") return json(ftQuote);
+        return null;
+      }),
+    );
+    localStorage.setItem("mabakit.cart.v2", JSON.stringify([febCartLine]));
+    window.history.replaceState({}, "", "/cart");
+    const user = userEvent.setup();
+    render(<App />);
+
+    const link = screen.getByRole("link", { name: "Ubah fakultas paket" });
+    expect(link).toHaveAttribute("href", expect.stringContaining("/packages/p-paket-hemat/customize?replace="));
+    await user.click(link);
+
+    await waitFor(() => expect(window.location.pathname).toBe("/packages/p-paket-hemat/customize"));
+    expect(JSON.parse(localStorage.getItem("mabakit.cart.v2") ?? "[]")).toEqual([febCartLine]);
+
+    await screen.findByText(/Isi paket untuk Fakultas Ekonomi dan Bisnis/);
+    await user.selectOptions(screen.getByLabelText("Fakultas"), "fac-ft");
+    await screen.findByText(/Isi paket untuk Fakultas Teknik/);
+    await user.click(screen.getByRole("button", { name: "Tambah paket ke keranjang" }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/cart"));
+    const cart = JSON.parse(localStorage.getItem("mabakit.cart.v2") ?? "[]");
+    expect(cart).toEqual([
+      {
+        productId: "p-paket-hemat",
+        variantId: null,
+        facultyId: "fac-ft",
+        facultyName: "Fakultas Teknik",
+        title: "Paket Hemat",
+        variantLabel: "Fakultas Teknik",
+        priceRp: 52000,
+        quantity: 1,
+      },
+    ]);
+  });
+
+  test("tombol tambah terkunci saat penawaran dihitung ulang", async () => {
+    window.history.replaceState({}, "", "/packages/p-paket-hemat/customize");
+    let releaseFt!: (response: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      routes((url, init) => {
+        if (url === "/api/packages/p-paket-hemat/quote?faculty=fac-ft") {
+          return new Promise((resolve) => {
+            releaseFt = (response) => resolve(response);
+          });
+        }
+        return null;
+      }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByText(/Isi paket untuk Fakultas Ekonomi dan Bisnis/);
+    await user.selectOptions(screen.getByLabelText("Fakultas"), "fac-ft");
+
+    expect(screen.getByRole("button", { name: "Menghitung ulang..." })).toBeDisabled();
+
+    releaseFt(json(ftQuote));
+    expect(await screen.findByRole("button", { name: "Tambah paket ke keranjang" })).toBeEnabled();
+  });
+});
