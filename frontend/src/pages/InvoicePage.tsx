@@ -64,51 +64,48 @@ export default function InvoicePage({ id }: { id: string }) {
 
   return (
     <div className="space-y-8">
-      <div className="no-print flex flex-wrap items-center justify-between gap-4">
-        <PageHeader title="Invoice digital" description="Dibuat dari snapshot pesanan saat pembayaran simulasi dikonfirmasi." />
-        <Button variant="secondary" onClick={() => window.print()}>
-          Cetak
-        </Button>
+      <div className="no-print">
+        <PageHeader
+          title="Invoice digital"
+          description="Dibuat dari snapshot pesanan saat pembayaran simulasi dikonfirmasi."
+          actions={
+            <Button variant="secondary" onClick={() => window.print()}>
+              Cetak
+            </Button>
+          }
+        />
       </div>
 
-      <div className="rounded-2xl border border-warn-fg/30 bg-warn-bg px-5 py-4 font-semibold text-warn-fg" role="note">
+      <div className="rounded-2xl border border-warn-fg/30 bg-warn-bg px-6 py-4 font-semibold text-warn-fg" role="note">
         Dokumen percobaan, bukan bukti pembayaran sah. {invoice.watermark}.
       </div>
 
       <article className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
-        <header className="flex flex-wrap justify-between gap-6 border-b border-slate-200 pb-6">
-          <div className="space-y-1">
+        <header className="flex flex-wrap justify-between gap-8 border-b border-slate-200 pb-8">
+          <div className="space-y-2">
             <p className="text-2xl font-black tracking-tight text-brand-dark">MabaKit</p>
             <p className="text-sm text-muted">Demo perlengkapan PKKMB</p>
           </div>
-          <dl className="grid gap-2 text-sm">
-            <div className="flex gap-3">
-              <dt className="min-w-32 text-muted">Nomor invoice</dt>
-              <dd className="font-mono font-semibold text-ink">{invoice.invoiceNumber}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="min-w-32 text-muted">Nomor pesanan</dt>
-              <dd className="font-mono text-ink">{order.orderNumber}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="min-w-32 text-muted">Tanggal</dt>
-              <dd className="text-ink">{dateTime(invoice.issuedAt)} WIB</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="min-w-32 text-muted">Mode</dt>
-              <dd className="text-ink">{invoice.mode}</dd>
-            </div>
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2 text-sm">
+            <dt className="text-muted">Nomor invoice</dt>
+            <dd className="break-all font-mono font-semibold text-ink">{invoice.invoiceNumber}</dd>
+            <dt className="text-muted">Nomor pesanan</dt>
+            <dd className="break-all font-mono text-ink">{order.orderNumber}</dd>
+            <dt className="text-muted">Tanggal</dt>
+            <dd className="text-ink">{dateTime(invoice.issuedAt)} WIB</dd>
+            <dt className="text-muted">Mode</dt>
+            <dd className="text-ink">{invoice.mode}</dd>
           </dl>
         </header>
 
-        <section className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-1">
+        <section className="grid gap-8 sm:grid-cols-2">
+          <div className="space-y-2">
             <h2 className="text-sm font-bold text-ink">Pemesan</h2>
             <p className="font-semibold text-ink">{order.buyerName}</p>
             <p className="text-sm text-muted">{order.contactPhone}</p>
             {order.email ? <p className="text-sm text-muted">{order.email}</p> : null}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h2 className="text-sm font-bold text-ink">Pengambilan</h2>
             <p className="font-semibold text-ink">{order.pickup.label}</p>
             <p className="text-sm text-muted">{order.pickup.details}</p>
@@ -121,16 +118,16 @@ export default function InvoicePage({ id }: { id: string }) {
             <caption className="sr-only">Item pesanan</caption>
             <thead>
               <tr className="border-b border-slate-200 text-xs font-semibold text-muted">
-                <th scope="col" className="py-3">
+                <th scope="col" className="pb-2 pl-0">
                   Item
                 </th>
-                <th scope="col" className="py-3 text-right">
+                <th scope="col" className="pb-2 text-right">
                   Jumlah
                 </th>
-                <th scope="col" className="py-3 text-right">
+                <th scope="col" className="pb-2 text-right">
                   Harga
                 </th>
-                <th scope="col" className="py-3 text-right">
+                <th scope="col" className="pb-2 pr-0 text-right">
                   Subtotal
                 </th>
               </tr>
@@ -138,9 +135,9 @@ export default function InvoicePage({ id }: { id: string }) {
             <tbody>
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-slate-100">
-                  <td className="py-3 text-ink">{item.title}</td>
-                  <td className="py-3 text-right text-ink">{item.quantity}</td>
-                  <td className="py-3 text-right">
+                  <td className="py-4 pl-0 text-ink">{item.title}</td>
+                  <td className="py-4 text-right text-ink">{item.quantity}</td>
+                  <td className="py-4 text-right">
                     <Price
                       finalRp={item.unitPriceRp}
                       baseRp={(item.discountBasisPoints ?? 0) > 0 ? item.basePriceRp : undefined}
@@ -148,7 +145,7 @@ export default function InvoicePage({ id }: { id: string }) {
                       size="sm"
                     />
                   </td>
-                  <td className="py-3 text-right font-medium text-ink">
+                  <td className="py-4 pr-0 text-right font-medium text-ink">
                     <Price
                       finalRp={item.lineTotalRp}
                       baseRp={(item.discountBasisPoints ?? 0) > 0 ? (item.basePriceRp ?? item.unitPriceRp) * item.quantity : undefined}
@@ -161,10 +158,10 @@ export default function InvoicePage({ id }: { id: string }) {
             </tbody>
             <tfoot>
               <tr>
-                <th scope="row" colSpan={3} className="py-5 text-right text-base">
+                <th scope="row" colSpan={3} className="pb-0 pl-0 pt-4 text-right text-base">
                   Total
                 </th>
-                <td className="py-5 text-right">
+                <td className="pb-0 pr-0 pt-4 text-right">
                   <Price finalRp={order.totalRp} size="lg" />
                 </td>
               </tr>
@@ -172,13 +169,24 @@ export default function InvoicePage({ id }: { id: string }) {
           </table>
         </div>
 
-        <p className="text-sm text-muted">
-          Metode: {order.method ?? "-"}. Status pembayaran: {order.paymentStatus}. Status pemenuhan: {order.fulfillmentStatus}.
-        </p>
+        <dl className="grid gap-8 border-t border-slate-200 pt-8 text-sm sm:grid-cols-3">
+          <div className="space-y-2">
+            <dt className="text-muted">Metode</dt>
+            <dd className="font-medium text-ink">{order.method ?? "-"}</dd>
+          </div>
+          <div className="space-y-2">
+            <dt className="text-muted">Status pembayaran</dt>
+            <dd className="font-medium text-ink">{order.paymentStatus}</dd>
+          </div>
+          <div className="space-y-2">
+            <dt className="text-muted">Status pemenuhan</dt>
+            <dd className="font-medium text-ink">{order.fulfillmentStatus}</dd>
+          </div>
+        </dl>
       </article>
 
-      <Card className="space-y-4 p-6">
-        <div className="space-y-1">
+      <Card className="space-y-8 p-8">
+        <div className="space-y-2">
           <h2 className="text-lg font-bold tracking-tight text-ink">Pratinjau email invoice</h2>
           <p className="text-sm text-muted">
             Simulasi email, tidak ada email dikirim. Preview memakai snapshot email dan invoice pesanan ini.
@@ -187,21 +195,21 @@ export default function InvoicePage({ id }: { id: string }) {
         {previewError ? <Alert tone="warn">{previewError}</Alert> : null}
         {!preview && !previewError ? <p className="text-muted">Memuat pratinjau...</p> : null}
         {preview ? (
-          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-6">
             <dl className="grid gap-2 text-sm sm:grid-cols-[100px_minmax(0,1fr)]">
               <dt className="text-muted">Penerima</dt>
               <dd className="font-medium text-ink">{preview.recipient}</dd>
               <dt className="text-muted">Subject</dt>
               <dd className="font-medium text-ink">{preview.subject}</dd>
             </dl>
-            <p className="whitespace-pre-line border-t border-slate-200 pt-3 text-sm text-ink">{preview.body}</p>
+            <p className="whitespace-pre-line border-t border-slate-200 pt-4 text-sm text-ink">{preview.body}</p>
             <p className="text-sm font-semibold text-warn-fg">Simulasi email, tidak ada email dikirim.</p>
           </div>
         ) : null}
       </Card>
 
-      <p className="no-print text-sm text-muted">
-        <Link to="/orders" className="font-semibold text-brand-dark">
+      <p className="no-print">
+        <Link to="/orders" className="text-sm font-semibold text-brand-dark">
           Kembali ke daftar pesanan
         </Link>
       </p>
