@@ -53,7 +53,7 @@ function Routes({ path }: { path: string }) {
   if (parts[0] === "team" && !parts[1]) return <TeamDashboardPage />;
   if (parts[0] === "team" && parts[1] === "orders" && !parts[2]) return <TeamOrdersPage />;
   if (parts[0] === "team" && parts[1] === "orders" && parts[2]) return <TeamOrderDetailPage id={parts[2]} />;
-  if (parts[0] === "admin") return <AdminPage />;
+  if (parts[0] === "admin") return <AdminPage section={parts[1]} />;
   if (parts[0] === "privacy" || parts[0] === "terms") return <StaticPage page={parts[0]} />;
 
   return (

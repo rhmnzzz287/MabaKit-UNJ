@@ -25,7 +25,8 @@ const SECTIONS = [
   { id: "paket", label: "Paket" },
   { id: "fakultas", label: "Fakultas" },
   { id: "stok", label: "Stok" },
-  { id: "akses", label: "Akses tim" },
+  { id: "pickup", label: "Pengambilan" },
+  { id: "akses", label: "Tim & izin" },
   { id: "audit", label: "Audit" },
 ] as const;
 
@@ -145,7 +146,7 @@ function CheckboxField({
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage({ section = "ringkasan" }: { section?: string }) {
   const workspace = useOperatorWorkspace();
   const [denied, setDenied] = useState(false);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
@@ -227,6 +228,7 @@ export default function AdminPage() {
     );
   }
 
+  const active = SECTIONS.some((item) => item.id === section) ? section : "ringkasan";
   const singleVariants = catalog.products
     .filter((product) => product.kind === "single")
     .flatMap((product) =>
@@ -241,19 +243,25 @@ export default function AdminPage() {
       />
 
       <nav aria-label="Bagian admin" className="flex flex-wrap gap-2">
-        {SECTIONS.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            className="inline-flex min-h-12 items-center rounded-lg border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-brand-tint"
+        {SECTIONS.map((item) => (
+          <Link
+            key={item.id}
+            to={`/admin/${item.id}`}
+            aria-current={active === item.id ? "page" : undefined}
+            className={`inline-flex min-h-12 items-center rounded-lg border px-4 text-sm font-semibold ${
+              active === item.id ? "border-brand bg-brand-tint text-brand-dark" : "border-line bg-white text-ink hover:bg-brand-tint"
+            }`}
           >
-            {section.label}
-          </a>
+            {item.label}
+          </Link>
         ))}
       </nav>
 
+      <div hidden={active !== "ringkasan"}>
       <SummarySection summary={summary} onAuthError={onAuthError} refresh={load} />
 
+      </div>
+      <div hidden={active !== "pesanan"}>
       <Section
         id="pesanan"
         title="Pesanan"
@@ -281,8 +289,12 @@ export default function AdminPage() {
         </div>
       </Section>
 
+      </div>
+      <div hidden={active !== "katalog"}>
       <CatalogSection catalog={catalog} onAuthError={onAuthError} refresh={load} />
 
+      </div>
+      <div hidden={active !== "paket"}>
       <Section
         id="paket"
         title="Paket"
@@ -340,6 +352,8 @@ export default function AdminPage() {
         </ul>
       </Section>
 
+      </div>
+      <div hidden={active !== "fakultas"}>
       <Section
         id="fakultas"
         title="Fakultas"
@@ -366,6 +380,19 @@ export default function AdminPage() {
         </ul>
       </Section>
 
+      </div>
+      <div hidden={active !== "pickup"}>
+        <Section id="pickup" title="Pengambilan" description="Perubahan hanya berlaku untuk pesanan baru; pesanan lama tetap memakai snapshot.">
+          <PickupForm
+            key={`${summary.settings?.pickup.version ?? 0}:${summary.settings?.pickup.label ?? ""}:${summary.settings?.pickup.details ?? ""}:${summary.settings?.pickup.hours ?? ""}`}
+            summary={summary}
+            onAuthError={onAuthError}
+            refresh={load}
+          />
+        </Section>
+      </div>
+
+      <div hidden={active !== "stok"}>
       <Section
         id="stok"
         title="Stok"
@@ -383,9 +410,13 @@ export default function AdminPage() {
         </ul>
       </Section>
 
+      </div>
+      <div hidden={active !== "ringkasan"}>
       <KpiSection onAuthError={onAuthError} />
       <SalesExportSection />
 
+      </div>
+      <div hidden={active !== "akses"}>
       <Section
         id="akses"
         title="Akses tim"
@@ -406,6 +437,8 @@ export default function AdminPage() {
         </ul>
       </Section>
 
+      </div>
+      <div hidden={active !== "audit"}>
       <Section id="audit" title="Audit" description="Seratus catatan terakhir. Respons audit tidak memuat email pelaku.">
         {audit.length === 0 ? <p className="text-muted">Belum ada catatan.</p> : null}
         {audit.length > 0 ? (
@@ -434,7 +467,8 @@ export default function AdminPage() {
             </table>
           </div>
         ) : null}
-      </Section>
+      </Section>      </div>
+
     </div>
   );
 }
@@ -491,12 +525,6 @@ function SummarySection({
         <Feedback action={action} />
       </div>
 
-      <PickupForm
-        key={`${settings?.pickup.version ?? 0}:${settings?.pickup.label ?? ""}:${settings?.pickup.details ?? ""}:${settings?.pickup.hours ?? ""}`}
-        summary={summary}
-        onAuthError={onAuthError}
-        refresh={refresh}
-      />
     </Section>
   );
 }
