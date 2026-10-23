@@ -25,6 +25,7 @@ type ResolvedItem = {
   attributes: string;
   catalogVersion: number;
   variantVersion: number | null;
+  bundleConfigVersion: number | null;
   quantity: number;
   unitPriceRp: number;
   basePriceRp: number;
@@ -106,6 +107,7 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
         attributes: JSON.stringify(parseAttributes(variant.attributes).attributes),
         catalogVersion: product.version,
         variantVersion: variant.version,
+        bundleConfigVersion: null,
         quantity: item.quantity,
         unitPriceRp: finalUnitPrice(variant.price_rp, product.discount_basis_points),
         basePriceRp: variant.price_rp,
@@ -127,22 +129,16 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
     if (!item.facultyId) return fail("catalog_changed");
     // Muat seluruh komponen konfigurasi: satu komponen tidak layak menolak seluruh paket.
     const { results: parts } = await ctx.env.DB.prepare(
-      `SELECT bc.variant_id, bc.quantity, v.sku, v.active, v.sellable, v.attributes, v.version, p.title
-       FROM bundle_config_components bc
-       JOIN bundle_configs c ON c.id = bc.config_id
+      `SELECT c.price_rp, c.version AS config_version, bc.variant_id, bc.quantity, v.sku, v.active, v.sellable, v.attributes, v.version, p.title
+       FROM bundle_configs c
+       JOIN bundle_config_components bc ON bc.config_id = c.id
        JOIN variants v ON v.id = bc.variant_id
        JOIN products p ON p.id = v.product_id
        WHERE c.bundle_product_id = ? AND c.faculty_id = ? AND c.published = 1`,
     )
       .bind(product.id, item.facultyId)
-      .all<{ variant_id: string; quantity: number; sku: string; active: number; sellable: number; attributes: string; version: number; title: string }>();
+      .all<{ price_rp: number; config_version: number; variant_id: string; quantity: number; sku: string; active: number; sellable: number; attributes: string; version: number; title: string }>();
     if (parts.length === 0 || parts.some((part) => part.active !== 1 || part.sellable !== 1)) return fail("catalog_changed");
-    const bundleConfig = await ctx.env.DB.prepare(
-      "SELECT price_rp FROM bundle_configs WHERE bundle_product_id = ? AND faculty_id = ? AND published = 1",
-    )
-      .bind(product.id, item.facultyId)
-      .first<{ price_rp: number }>();
-    if (!bundleConfig) return fail("catalog_changed");
     const faculty = await ctx.env.DB.prepare("SELECT name FROM faculties WHERE id = ?")
       .bind(item.facultyId)
       .first<{ name: string }>();
@@ -154,9 +150,10 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
       attributes: JSON.stringify({ fakultas: faculty?.name ?? "", fakultasId: item.facultyId }),
       catalogVersion: product.version,
       variantVersion: null,
+      bundleConfigVersion: parts[0].config_version,
       quantity: item.quantity,
-      unitPriceRp: bundleConfig.price_rp,
-      basePriceRp: bundleConfig.price_rp,
+      unitPriceRp: parts[0].price_rp,
+      basePriceRp: parts[0].price_rp,
       discountBasisPoints: 0,
       components: parts.map((part) => ({
         variantId: part.variant_id,
@@ -173,16 +170,6 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
   const free = total === 0;
   if (!free && !chosenMethod) return fail("invalid_method");
   const method = free ? "FREE" : chosenMethod;
-
-  if (free) {
-    // Pesanan gratis langsung PAID sehingga batas draf HELD tidak berlaku; batasi per akun per jam.
-    const recent = await ctx.env.DB.prepare(
-      "SELECT COUNT(*) AS total FROM orders WHERE user_id = ? AND amount_due_rp = 0 AND created_at > ?",
-    )
-      .bind(user.id, ctx.now - 3_600_000)
-      .first<number>("total");
-    if ((recent ?? 0) >= 2) return fail("rate_limited");
-  }
 
   const orderId = crypto.randomUUID();
   const expiresAt = ctx.now + DRAFT_MINUTES * 60_000;
@@ -225,9 +212,9 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
     statements.push(
       ctx.env.DB.prepare(
         `INSERT INTO order_items (id, order_id, product_id, variant_id, title_snapshot, attributes_snapshot,
-           catalog_version, variant_version, quantity, unit_price_rp, line_total_rp,
+           catalog_version, variant_version, bundle_config_version, quantity, unit_price_rp, line_total_rp,
            base_unit_price_rp, discount_basis_points, charged_unit_price_rp, charged_line_total_rp)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
         itemId,
         orderId,
@@ -237,6 +224,7 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
         item.attributes,
         item.catalogVersion,
         item.variantVersion,
+        item.bundleConfigVersion,
         item.quantity,
         item.basePriceRp,
         item.quantity * item.basePriceRp,
@@ -269,14 +257,15 @@ export async function createCheckout(ctx: Ctx, session: SessionRow): Promise<Res
     await ctx.env.DB.batch(statements);
   } catch (error) {
     const code = errorName(error);
-    if (code === "conflict") {
-      const raced = await ctx.env.DB.prepare("SELECT id, request_hash FROM orders WHERE user_id = ? AND checkout_key = ?")
-        .bind(user.id, input.idempotencyKey)
-        .first<{ id: string; request_hash: string }>();
-      if (raced?.request_hash === requestHash) {
-        const order = await loadOrder(ctx, raced.id);
-        if (order) return json({ order: await orderPayload(ctx, order) }, 200);
-      }
+    // Replay idempotensi dicari lebih dulu untuk kode apa pun: SQLite mengevaluasi
+    // trigger BEFORE INSERT sebelum UNIQUE(user_id, checkout_key), jadi retry dengan
+    // key yang sama bisa gagal `free_limit` padahal baris pertama sudah commit.
+    const raced = await ctx.env.DB.prepare("SELECT id, request_hash FROM orders WHERE user_id = ? AND checkout_key = ?")
+      .bind(user.id, input.idempotencyKey)
+      .first<{ id: string; request_hash: string }>();
+    if (raced?.request_hash === requestHash) {
+      const order = await loadOrder(ctx, raced.id);
+      if (order) return json({ order: await orderPayload(ctx, order) }, 200);
     }
     return fail(code === "internal" ? "internal" : code);
   }

@@ -115,7 +115,7 @@ function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
 }
 
-function routes(overrides: (url: string, init?: RequestInit) => Response | null = () => null) {
+function routes(overrides: (url: string, init?: RequestInit) => Response | Promise<Response> | null = () => null) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input.toString();
     const method = init?.method ?? "GET";
@@ -530,7 +530,7 @@ describe("penggantian fakultas aman di keranjang", () => {
     let releaseFt!: (response: Response) => void;
     vi.stubGlobal(
       "fetch",
-      routes((url, init) => {
+      routes((url) => {
         if (url === "/api/packages/p-paket-hemat/quote?faculty=fac-ft") {
           return new Promise((resolve) => {
             releaseFt = (response) => resolve(response);

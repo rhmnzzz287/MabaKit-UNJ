@@ -325,7 +325,8 @@ export async function adminSavePackageConfig(
         `INSERT INTO bundle_configs (id, bundle_product_id, faculty_id, price_rp, published, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (bundle_product_id, faculty_id) DO UPDATE SET
-           price_rp = excluded.price_rp, published = excluded.published, updated_at = excluded.updated_at`,
+           price_rp = excluded.price_rp, published = excluded.published,
+           version = version + 1, updated_at = excluded.updated_at`,
       ).bind(id, packageId, facultyId, priceRp, published ? 1 : 0, ctx.now, ctx.now),
       ctx.env.DB.prepare("DELETE FROM bundle_config_components WHERE config_id = ?").bind(id),
       ...components.map((component) =>

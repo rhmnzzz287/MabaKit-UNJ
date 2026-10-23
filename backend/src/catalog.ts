@@ -29,6 +29,13 @@ type ConfigRow = {
   faculty_name: string;
   price_rp: number;
 };
+type PhotoRow = {
+  id: string;
+  product_id: string;
+  object_key: string;
+  width: number;
+  height: number;
+};
 
 export type CatalogVariant = {
   id: string;
@@ -42,12 +49,14 @@ export type CatalogVariant = {
   stock: number;
   faculties: string[];
 };
+export type CatalogPhoto = { id: string; url: string; width: number; height: number };
 export type CatalogProduct = {
   id: string;
   kind: "single" | "bundle";
   title: string;
   description: string;
   imagePath: string | null;
+  photos?: CatalogPhoto[];
   basePriceRp: number;
   discountBasisPoints: number;
   finalPriceRp: number;
@@ -91,12 +100,23 @@ async function loadCatalog(ctx: Ctx) {
      FROM bundle_configs c JOIN faculties f ON f.id = c.faculty_id
      WHERE c.published = 1 ORDER BY f.name`,
   ).all<ConfigRow>();
-  return { products, variants, variantFaculties, configs };
+  const { results: photos } = await ctx.env.DB.prepare(
+    `SELECT ph.id, ph.product_id, ph.object_key, ph.width, ph.height
+     FROM product_photos ph JOIN products p ON p.id = ph.product_id
+     WHERE p.active = 1 ORDER BY ph.position, ph.id`,
+  ).all<PhotoRow>();
+  return { products, variants, variantFaculties, configs, photos };
 }
 
 export async function catalog(ctx: Ctx): Promise<Response> {
-  const { products, variants, variantFaculties, configs } = await loadCatalog(ctx);
+  const { products, variants, variantFaculties, configs, photos } = await loadCatalog(ctx);
   const byId = new Map(variants.map((variant) => [variant.id, variant]));
+  const photosByProduct = new Map<string, CatalogPhoto[]>();
+  for (const photo of photos) {
+    const list = photosByProduct.get(photo.product_id) ?? [];
+    list.push({ id: photo.id, url: `/media/${photo.object_key}`, width: photo.width, height: photo.height });
+    photosByProduct.set(photo.product_id, list);
+  }
   const facultiesByVariant = new Map<string, string[]>();
   for (const row of variantFaculties) {
     facultiesByVariant.set(row.variant_id, [...(facultiesByVariant.get(row.variant_id) ?? []), row.faculty_id]);
@@ -114,6 +134,7 @@ export async function catalog(ctx: Ctx): Promise<Response> {
         title: product.title,
         description: product.description,
         imagePath: product.image_path,
+        photos: photosByProduct.get(product.id) ?? [],
         basePriceRp: own[0]?.price_rp ?? 0,
         discountBasisPoints: product.discount_basis_points,
         finalPriceRp: finalUnitPrice(own[0]?.price_rp ?? 0, product.discount_basis_points),

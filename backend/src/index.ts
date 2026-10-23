@@ -11,6 +11,7 @@ import {
 import { authSession, login, logout, register } from "./auth";
 import {
   adminCreateStaff,
+  adminEnableStaff,
   adminKpi,
   adminUpdateStaff,
 } from "./admin-team";
@@ -244,7 +245,8 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
     (rest[0] === "operators" && !rest[1] && method === "GET") ||
     (rest[0] === "operators" && !rest[1] && method === "POST") ||
     (rest[0] === "operators" && rest[1] && !rest[2] && method === "PATCH") ||
-    (rest[0] === "operators" && rest[1] && rest[2] === "revoke" && method === "POST");
+    (rest[0] === "operators" && rest[1] && rest[2] === "revoke" && method === "POST") ||
+    (rest[0] === "operators" && rest[1] && rest[2] === "enable" && method === "POST");
   if (!known) return fail("not_found");
 
   const session = await requireSession(ctx, "operator");
@@ -305,9 +307,13 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
     return blocked ?? adminAliases(ctx, operator, rest[1]);
   }
   if (rest[0] === "operators" && !rest[1] && method === "GET") return adminOperators(ctx);
-  if (rest[0] === "operators" && rest[1] && method === "POST") {
+  if (rest[0] === "operators" && rest[1] && rest[2] === "revoke" && method === "POST") {
     const blocked = await requireMutation(ctx, session);
     return blocked ?? adminRevokeOperator(ctx, operator, rest[1]);
+  }
+  if (rest[0] === "operators" && rest[1] && rest[2] === "enable" && method === "POST") {
+    const blocked = await requireMutation(ctx, session);
+    return blocked ?? adminEnableStaff(ctx, operator, rest[1]);
   }
   const blocked = await requireMutation(ctx, session);
   return blocked ?? adminSettings(ctx, operator);

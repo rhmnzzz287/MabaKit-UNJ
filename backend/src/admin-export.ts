@@ -27,7 +27,11 @@ function wib(epochMs: number): string {
 function dayStart(value: string): number | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const ms = Date.parse(`${value}T00:00:00+07:00`);
-  return Number.isFinite(ms) ? ms : null;
+  if (!Number.isFinite(ms)) return null;
+  // Date.parse menormalkan tanggal mustahil (2026-02-30 menjadi Maret);
+  // cocokkan ulang kalender WIB dengan input agar tanggal invalid ditolak.
+  const wibDate = new Date(ms + 7 * 3_600_000).toISOString().slice(0, 10);
+  return wibDate === value ? ms : null;
 }
 
 export async function adminExportSales(ctx: Ctx, operator: OperatorRow): Promise<Response> {

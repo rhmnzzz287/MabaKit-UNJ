@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ApiError, get, opPost, post } from "../lib/api";
+import { ApiError, get, isAuthError, opPost, post } from "../lib/api";
+import { refreshAuth } from "../lib/auth-store";
 import { dateTime, rupiah, statusLabel, variantLabel } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { Order, TeamOrdersPage, TeamSummary } from "../lib/types";
@@ -414,7 +415,17 @@ export function TeamOrderDetailPage({ id }: { id: string }) {
       setNotice(body.replayed ? "Tindakan ini sudah pernah dicatat, tidak ada perubahan ganda." : success);
       setConfirming(false);
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : "Tindakan gagal.");
+      setConfirming(false);
+      const denied = isAuthError(issue);
+      if (denied) await refreshAuth("operator");
+      await load();
+      setError(
+        denied
+          ? "Izin tindakan ini sudah tidak berlaku. Sesi disegarkan; minta admin memeriksa izin Anda."
+          : issue instanceof Error
+            ? issue.message
+            : "Tindakan gagal.",
+      );
     } finally {
       setBusy(false);
     }

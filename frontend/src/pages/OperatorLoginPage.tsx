@@ -6,7 +6,7 @@ import { refreshAuth, useAuth } from "../lib/auth-store";
 import { Alert, Button, Card, Field, Input, Link } from "../components/ui";
 
 export default function OperatorLoginPage() {
-  const next = operatorNext(new URLSearchParams(window.location.search).get("next"));
+  const rawNext = new URLSearchParams(window.location.search).get("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -15,8 +15,8 @@ export default function OperatorLoginPage() {
   const already = auth.state === "ready" && (auth.role === "staff" || auth.role === "admin") ? auth.role : null;
 
   useEffect(() => {
-    if (already) navigate(next);
-  }, [already, next]);
+    if (already) navigate(operatorNext(rawNext, already));
+  }, [already, rawNext]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -31,7 +31,7 @@ export default function OperatorLoginPage() {
         setError("Akun ini bukan akun tim MabaKit. Gunakan halaman masuk pembeli.");
         return;
       }
-      navigate(next);
+      navigate(operatorNext(rawNext, body.role));
     } catch (issue) {
       if (issue instanceof ApiError && issue.status === 429) setError(issue.message);
       else if (issue instanceof ApiError && issue.code === "wrong_portal") setError("Akun ini akun pembeli. Gunakan halaman masuk pembeli.");

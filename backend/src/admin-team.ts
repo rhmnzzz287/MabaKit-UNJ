@@ -252,3 +252,25 @@ export async function adminUpdateStaff(ctx: Ctx, operator: OperatorRow, id: stri
     .first<StaffRow>();
   return json({ staff: updated ? staffPayload(updated) : null });
 }
+
+export async function adminEnableStaff(ctx: Ctx, operator: OperatorRow, id: string): Promise<Response> {
+  const target = await ctx.env.DB.prepare(
+    "SELECT id, role FROM users WHERE id = ? AND role IN ('staff', 'admin')",
+  )
+    .bind(id)
+    .first<{ id: string; role: string }>();
+  if (!target) return fail("not_found");
+  if (target.role === "admin") return fail("forbidden");
+  const enabled = await ctx.env.DB.prepare("UPDATE users SET disabled = 0, updated_at = ? WHERE id = ? AND disabled = 1")
+    .bind(ctx.now, id)
+    .run();
+  if (!enabled.meta.changes) return json({ enabled: true, disabled: false });
+  await audit(ctx, {
+    actorId: operator.id,
+    action: "staff_enabled",
+    entityType: "user",
+    entityId: id,
+    metadata: { disabled: false },
+  });
+  return json({ enabled: true, disabled: false });
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError, get, post } from "../lib/api";
-import { cartLines, cartTotal, checkoutPayload, clearCart, lineKey, newCheckoutKey, subscribeCart, updateLine } from "../lib/cart";
+import { cartLines, checkoutPayload, clearCart, lineKey, newCheckoutKey, subscribeCart, updateLine } from "../lib/cart";
 import { rupiah } from "../lib/format";
 import { navigate } from "../lib/router";
 import type { CatalogResponse, PackageQuote, Profile } from "../lib/types";
@@ -24,6 +24,8 @@ export default function CheckoutPage() {
   const [fieldError, setFieldError] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
+  const [serverTotal, setServerTotal] = useState<number | null>(null);
+  const [requoteError, setRequoteError] = useState<string | null>(null);
   const draftKey = useRef<string | null>(null);
   const fingerprint = useRef("");
 
@@ -52,12 +54,45 @@ export default function CheckoutPage() {
     };
   }, [workspace.state, workspace.user]);
 
+  const cartFingerprint = lines
+    .map((line) => [line.productId, line.variantId ?? "", line.facultyId ?? "", line.quantity, line.priceRp].join(":"))
+    .join("|");
+
+  useEffect(() => {
+    if (workspace.state === "loading" || !workspace.user || lines.length === 0) return;
+    let active = true;
+    void requote()
+      .then((result) => {
+        if (!active) return;
+        if (result.error) {
+          setError(result.error);
+          setRequoteError(result.error);
+          setServerTotal(null);
+          return;
+        }
+        setRequoteError(null);
+        setServerTotal(result.totalRp);
+        if (result.note) setError(result.note);
+      })
+      .catch((issue: unknown) => {
+        if (!active) return;
+        const message = issue instanceof Error ? issue.message : "Gagal memeriksa total pesanan.";
+        setError(message);
+        setRequoteError(message);
+        setServerTotal(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [workspace.state, workspace.user, cartFingerprint]);
+
   const payloadPreview = JSON.stringify(checkoutPayload({ buyerName, contactPhone, email, method }));
 
   /** Ambil harga server terbaru. Perubahan harga harus dikonfirmasi pembeli sebelum order dibuat. */
-  async function requote(): Promise<string | null> {
+  async function requote(): Promise<{ totalRp: number; note: string | null; error: string | null }> {
     const catalog = await get<CatalogResponse>("/api/catalog");
     const note: string[] = [];
+    let totalRp = 0;
     for (const line of cartLines()) {
       let priceRp: number | null = null;
       if (line.variantId === null) {
@@ -70,15 +105,22 @@ export default function CheckoutPage() {
         const product = catalog.products.find((entry) => entry.id === line.productId);
         priceRp = product?.variants.find((variant) => variant.id === line.variantId)?.priceRp ?? null;
       }
-      if (priceRp === null) return `${line.title} sudah tidak tersedia. Hapus dari keranjang untuk melanjutkan.`;
+      if (priceRp === null) {
+        return { totalRp: 0, note: null, error: `${line.title} sudah tidak tersedia. Hapus dari keranjang untuk melanjutkan.` };
+      }
       if (priceRp !== line.priceRp) {
         note.push(`${line.title}: ${rupiah(line.priceRp)} menjadi ${rupiah(priceRp)}`);
         updateLine(lineKey(line), { priceRp });
       }
+      totalRp += priceRp * line.quantity;
     }
-    return note.length
-      ? `Harga berubah dan sudah diperbarui di keranjang. Periksa total baru lalu tekan Buat pesanan lagi untuk menyetujui. ${note.join("; ")}`
-      : null;
+    return {
+      totalRp,
+      note: note.length
+        ? `Harga berubah dan sudah diperbarui di keranjang. Periksa total baru lalu tekan Buat pesanan lagi untuk menyetujui. ${note.join("; ")}`
+        : null,
+      error: null,
+    };
   }
 
   async function submit(event: React.FormEvent) {
@@ -87,9 +129,15 @@ export default function CheckoutPage() {
     setError(null);
     setFieldError({});
     try {
-      const changed = await requote();
-      if (changed) {
-        setError(changed);
+      const quote = await requote();
+      setServerTotal(quote.error ? null : quote.totalRp);
+      setRequoteError(quote.error);
+      if (quote.error) {
+        setError(quote.error);
+        return;
+      }
+      if (quote.note) {
+        setError(quote.note);
         return;
       }
       if (fingerprint.current !== payloadPreview || !draftKey.current) {
@@ -199,29 +247,37 @@ export default function CheckoutPage() {
               </label>
             </fieldset>
 
-            <fieldset className="space-y-3 border-t border-slate-200 pt-6">
-              <legend className="text-lg font-bold tracking-tight text-ink">Metode pembayaran simulasi</legend>
-              {METHODS.map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 transition-colors ${
-                    method === option.value ? "border-brand bg-brand-tint" : "border-slate-200 hover:border-slate-400"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="method"
-                    value={option.value}
-                    checked={method === option.value}
-                    onChange={() => setMethod(option.value)}
-                    className="size-5 text-brand"
-                  />
-                  <span className="text-ink">{option.label}</span>
-                </label>
-              ))}
-            </fieldset>
+            {serverTotal === null ? null : serverTotal === 0 ? (
+              <Alert tone="info">
+                Tidak perlu pembayaran karena total pesanan ini Rp 0. Pesanan langsung dibuat tanpa metode pembayaran.
+              </Alert>
+            ) : (
+              <>
+                <fieldset className="space-y-3 border-t border-slate-200 pt-6">
+                  <legend className="text-lg font-bold tracking-tight text-ink">Metode pembayaran simulasi</legend>
+                  {METHODS.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 transition-colors ${
+                        method === option.value ? "border-brand bg-brand-tint" : "border-slate-200 hover:border-slate-400"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="method"
+                        value={option.value}
+                        checked={method === option.value}
+                        onChange={() => setMethod(option.value)}
+                        className="size-5 text-brand"
+                      />
+                      <span className="text-ink">{option.label}</span>
+                    </label>
+                  ))}
+                </fieldset>
 
-            <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
+                <Alert tone="info">Tidak ada pembayaran atau penagihan nyata pada versi ini.</Alert>
+              </>
+            )}
 
             <Button type="submit" full disabled={busy}>
               {busy ? "Membuat pesanan..." : "Buat pesanan simulasi"}
@@ -243,10 +299,18 @@ export default function CheckoutPage() {
             ))}
           </ul>
           <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-            <span className="font-semibold text-ink">Total estimasi</span>
-            <Price finalRp={cartTotal()} />
+            <span className="font-semibold text-ink">Total</span>
+            {serverTotal === null ? (
+              requoteError ? (
+                <span className="text-sm font-medium text-danger">Total gagal diperiksa</span>
+              ) : (
+                <span className="text-sm text-muted">Memeriksa total...</span>
+              )
+            ) : (
+              <Price finalRp={serverTotal} />
+            )}
           </div>
-          <p className="text-sm text-muted">Harga final dan stok dihitung ulang di server saat pesanan dibuat.</p>
+          <p className="text-sm text-muted">Total di atas dihitung server. Harga final dan stok dihitung ulang saat pesanan dibuat.</p>
         </Card>
       </div>
     </div>

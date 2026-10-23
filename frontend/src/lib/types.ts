@@ -18,12 +18,20 @@ export type FacultyOption = {
   stock: number;
 };
 
+export type GalleryPhoto = {
+  id: string;
+  url: string;
+  width: number;
+  height: number;
+};
+
 export type Product = {
   id: string;
   kind: "single" | "bundle";
   title: string;
   description: string;
   imagePath: string | null;
+  photos?: GalleryPhoto[];
   basePriceRp?: number;
   discountBasisPoints?: number;
   finalPriceRp?: number;

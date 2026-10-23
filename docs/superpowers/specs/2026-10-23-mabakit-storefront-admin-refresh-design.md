@@ -1,6 +1,8 @@
 # MabaKit: storefront refresh and manageable admin
 
-Status: proposed comprehensive plan, not approved for implementation.
+Status: IMPLEMENTED. Approved by owner and executed.
+Implementation status (2026-10-23): visual system, 8px spacing, mobile navigation, routed admin sections, percentage discounts, free orders, upload-only five-photo gallery, CSV sales export and the auth-store fix are in place. Evidence: `frontend/src/index.css`, `frontend/src/components/ui.tsx`, `frontend/src/pages/*`, `backend/db/migrations/0011_discounts_free_orders.sql`, `backend/db/migrations/0012_product_photos.sql`, `backend/src/admin-media.ts`, `backend/src/admin-export.ts`, `backend/src/domain/pricing.ts`; audit and remaining findings in [audit end-to-end](2026-10-23-mabakit-end-to-end-audit.md).
+Riwayat: semula proposed comprehensive plan, belum disetujui untuk implementasi.
 Source: owner request, 2026-10-23. Extends business v2 and portals/team permissions specs. Existing security rules remain binding.
 
 ## 1. Scope and intended result
@@ -16,6 +18,11 @@ Owner requirements:
 - Numeric percentage discounts support decimals.
 - Diagnose staff inability to progress orders and stale `Masuk` after login.
 - This delivery is documentation only.
+
+Decisions after implementation review:
+- Admin URL contract: segmen Indonesia yang benar-benar dipakai adalah kontrak resmi (`/admin/ringkasan`, `/admin/pesanan`, `/admin/katalog`, `/admin/paket`, `/admin/fakultas`, `/admin/stok`, `/admin/pengambilan`, `/admin/tim`, `/admin/audit`). Nama Inggris pada rancangan awal (overview/orders/catalog/team) hanya alias desain, bukan kontrak. Segmen tak dikenal diarahkan ke `/admin/ringkasan`.
+- Scope galeri yang ditunda secara eksplisit: edit alt text, pengurutan arbitrer, pratinjau lokal sebelum unggah, dan bilah progres unggah belum termasuk. Yang berlaku sekarang: unggah maksimal lima foto, sampul dari foto pertama, jadikan sampul, dan hapus.
+- Memuat seluruh ringkasan dan katalog pada setiap section admin diterima untuk skala demo saat ini; optimasi per-halaman ditunda.
 
 ## 2. Evidence and boundaries
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactNode } from "react";
 import { navigate } from "../lib/router";
 import { photoSize } from "../lib/photo-size";
 import { statusLabel } from "../lib/format";
@@ -118,12 +118,30 @@ export function Field({
   error?: string;
   children: ReactNode;
 }) {
+  const child = isValidElement<{ "aria-describedby"?: string; "aria-invalid"?: boolean | "true" | "false" }>(children)
+    ? children
+    : null;
+  const describedBy = Array.from(
+    new Set([
+      ...(child?.props["aria-describedby"]?.split(/\s+/).filter(Boolean) ?? []),
+      ...(hint && !error ? [`${id}-hint`] : []),
+      ...(error ? [`${id}-error`] : []),
+    ]),
+  ).join(" ");
+  const control =
+    child === null
+      ? children
+      : cloneElement(child, {
+          "aria-describedby": describedBy || undefined,
+          ...(error ? { "aria-invalid": true } : {}),
+        });
+
   return (
     <div className="space-y-2">
       <label htmlFor={id} className="block text-sm font-semibold text-ink">
         {label}
       </label>
-      {children}
+      {control}
       {hint && !error ? (
         <p id={`${id}-hint`} className="text-sm text-muted">
           {hint}

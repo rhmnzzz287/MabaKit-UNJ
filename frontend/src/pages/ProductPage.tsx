@@ -34,11 +34,17 @@ export default function ProductPage({ id }: { id: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [variantId, setVariantId] = useState("");
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [pickedPhoto, setPickedPhoto] = useState(false);
+  const [choseVariant, setChoseVariant] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    setPhotoIndex(0);
+    setPickedPhoto(false);
+    setChoseVariant(false);
     get<{ product: Product }>(`/api/catalog/${id}`)
       .then((body) => {
         if (!active) return;
@@ -58,6 +64,11 @@ export default function ProductPage({ id }: { id: string }) {
     [product, variantId],
   );
 
+  // Pilih varian mengembalikan hero ke foto varian; galeri tetap bisa dibuka manual.
+  useEffect(() => {
+    setPickedPhoto(false);
+    setPhotoIndex(0);
+  }, [variantId]);
   if (error) {
     return (
       <div className="space-y-4">
@@ -90,6 +101,10 @@ export default function ProductPage({ id }: { id: string }) {
 
   const available = variant?.stock ?? 0;
   const unitPrice = variant?.finalPriceRp ?? variant?.priceRp ?? product.finalPriceRp ?? product.priceRp;
+  const gallery = product.photos ?? [];
+  const activePhoto = gallery[photoIndex] ?? gallery[0] ?? null;
+  // Default: foto galeri admin. Setelah pembeli memilih varian, foto varian yang tampil.
+  const useVariantHero = !pickedPhoto && (choseVariant || activePhoto === null) && variant?.imagePath !== undefined;
 
   return (
     <div className="space-y-8">
@@ -99,13 +114,36 @@ export default function ProductPage({ id }: { id: string }) {
         <div className="space-y-6">
           <Card className="overflow-hidden p-2">
             <ProductPhoto
-              src={variant?.imagePath ?? product.imagePath}
-              srcSet480={variant?.imagePath480 ?? null}
+              src={useVariantHero ? variant?.imagePath : (activePhoto?.url ?? variant?.imagePath ?? product.imagePath)}
+              srcSet480={useVariantHero ? (variant?.imagePath480 ?? null) : null}
               alt={variant ? `Foto ${product.title} ${variantLabel(variant.attributes)}` : `Foto ${product.title}`}
+              width={useVariantHero ? undefined : activePhoto?.width}
+              height={useVariantHero ? undefined : activePhoto?.height}
               className="h-72 w-full rounded-xl sm:h-96"
               eager
             />
           </Card>
+          {gallery.length > 1 ? (
+            <div role="group" aria-label="Galeri foto produk" className="flex flex-wrap gap-2">
+              {gallery.map((photo, index) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  aria-pressed={activePhoto?.id === photo.id}
+                  aria-label={`Foto ${index + 1} dari ${gallery.length}`}
+                  onClick={() => {
+                    setPhotoIndex(index);
+                    setPickedPhoto(true);
+                  }}
+                  className={`size-12 overflow-hidden rounded-lg border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 ${
+                    activePhoto?.id === photo.id ? "border-brand" : "border-slate-200 hover:border-slate-400"
+                  }`}
+                >
+                  <img src={photo.url} alt="" width={48} height={48} loading="lazy" className="size-full object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="space-y-3">
             <h1 className="text-3xl font-black tracking-tight text-ink sm:text-4xl">{product.title}</h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted">{product.description}</p>
@@ -142,7 +180,7 @@ export default function ProductPage({ id }: { id: string }) {
           <div className="space-y-4 border-t border-slate-200 pt-6">
             {product.variants.length > 1 ? (
               <Field id="variant" label="Pilih varian">
-                <Select id="variant" value={variantId} onChange={(event) => setVariantId(event.target.value)}>
+                <Select id="variant" value={variantId} onChange={(event) => { setChoseVariant(true); setVariantId(event.target.value); }}>
                   {product.variants.map((item) => (
                     <option key={item.id} value={item.id} disabled={item.stock < 1}>
                       {variantLabel(item.attributes) || item.sku} ({item.stock} tersedia)

@@ -15,6 +15,7 @@ export function useOperatorWorkspace(): Workspace {
 
 const BUYER_NEXT = /^\/(cart|checkout|orders|profile)(\/|$)/;
 const OPERATOR_NEXT = /^\/(team|admin)(\/|$)/;
+const ADMIN_NEXT = /^\/admin(\/|$)/;
 
 function internal(raw: string | null): string | null {
   if (!raw) return null;
@@ -29,9 +30,12 @@ export function safeNext(raw: string | null, fallback = "/orders"): string {
   return path && BUYER_NEXT.test(path) ? path : fallback;
 }
 
-export function operatorNext(raw: string | null): string {
+/** Tujuan operator baru ditentukan setelah server memverifikasi role. */
+export function operatorNext(raw: string | null, role: "staff" | "admin"): string {
   const path = internal(raw);
-  return path && OPERATOR_NEXT.test(path) ? path : "/team";
+  const allowed = path && OPERATOR_NEXT.test(path) ? path : null;
+  if (role === "admin") return allowed ?? "/admin";
+  return allowed && !ADMIN_NEXT.test(allowed) ? allowed : "/team/orders";
 }
 
 export function waNumber(phone: string): string {

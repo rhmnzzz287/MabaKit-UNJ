@@ -1,4 +1,4 @@
-import { type Ctx, type OperatorRow, audit, errorName, fail, json, readJsonLimited } from "./http";
+import { type Ctx, type OperatorRow, audit, errorName, fail, json, readBytesLimited, readJsonLimited } from "./http";
 import { imageInfo } from "./domain/image";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -48,10 +48,8 @@ export async function adminUploadPhoto(ctx: Ctx, operator: OperatorRow, productI
   if (!ctx.env.MEDIA) return fail("checkout_disabled");
   const type = (ctx.request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
   if (!TYPES.has(type)) return fail("invalid_payload", { field: "file" });
-  const declared = Number(ctx.request.headers.get("content-length") ?? "0");
-  if (!Number.isFinite(declared) || declared > MAX_BYTES) return fail("invalid_payload", { field: "file" });
-  const bytes = new Uint8Array(await ctx.request.arrayBuffer());
-  if (bytes.length === 0 || bytes.length > MAX_BYTES) return fail("invalid_payload", { field: "file" });
+  const bytes = await readBytesLimited(ctx.request, MAX_BYTES);
+  if (!bytes || bytes.length === 0) return fail("invalid_payload", { field: "file" });
   const info = imageInfo(bytes, type);
   if (!info || info.width < 1 || info.height < 1 || info.width * info.height > MAX_PIXELS) {
     return fail("invalid_payload", { field: "file" });
@@ -82,10 +80,17 @@ export async function adminUploadPhoto(ctx: Ctx, operator: OperatorRow, productI
       await ctx.env.MEDIA.delete(key);
       return fail("photo_limit");
     }
-    // Sampul selalu mengikuti foto pertama, termasuk menggantikan gambar lama produk seed.
-    await ctx.env.DB.prepare("UPDATE products SET image_path = ?, updated_at = ? WHERE id = ?")
-      .bind(`/media/${key}`, ctx.now, productId)
-      .run();
+    // Sampul selalu mengikuti foto pertama pada urutan galeri, bukan foto yang baru diunggah.
+    const cover = await ctx.env.DB.prepare(
+      "SELECT object_key FROM product_photos WHERE product_id = ? ORDER BY position, id LIMIT 1",
+    )
+      .bind(productId)
+      .first<{ object_key: string }>();
+    if (cover) {
+      await ctx.env.DB.prepare("UPDATE products SET image_path = ?, updated_at = ? WHERE id = ?")
+        .bind(`/media/${cover.object_key}`, ctx.now, productId)
+        .run();
+    }
     await audit(ctx, { actorId: operator.id, action: "photo_uploaded", entityType: "product", entityId: productId, metadata: { photoId: id } });
     return json({ photo: { id, url: `/media/${key}`, contentType: type, bytes: bytes.length, width: info.width, height: info.height, position } }, 201);
   } catch (error) {

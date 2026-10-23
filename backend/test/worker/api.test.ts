@@ -1180,6 +1180,30 @@ describe("admin katalog dan pengaturan", () => {
     expect(missing.status).toBe(404);
   });
 
+  test("admin mengaktifkan kembali staf yang dinonaktifkan", async () => {
+    const admin = await signInAs(ADMIN);
+    const revoked = await call("/api/admin/operators/usr-staff/revoke", mutate(admin));
+    expect(revoked.status).toBe(200);
+
+    const enabled = await call("/api/admin/operators/usr-staff/enable", mutate(admin));
+    expect(enabled.status).toBe(200);
+    expect(await enabled.json()).toEqual({ enabled: true, disabled: false });
+
+    const list = (await (await call("/api/admin/operators", { cookie: admin.cookie })).json()) as {
+      operators: { id: string; disabled: boolean }[];
+    };
+    expect(list.operators.find((operator) => operator.id === "usr-staff")?.disabled).toBe(false);
+
+    const staff = await signInAs(STAFF);
+    const summary = await call("/api/team/summary", { cookie: staff.cookie });
+    expect(summary.status).toBe(200);
+
+    const missing = await call("/api/admin/operators/usr-buyer/enable", mutate(admin));
+    expect(missing.status).toBe(404);
+    const adminTarget = await call("/api/admin/operators/usr-admin/enable", mutate(admin));
+    expect(adminTarget.status).toBe(403);
+  });
+
   test("katalog admin memuat produk, konfigurasi, dan alias", async () => {
     const admin = await signInAs(ADMIN);
     const response = await call("/api/admin/catalog", { cookie: admin.cookie });

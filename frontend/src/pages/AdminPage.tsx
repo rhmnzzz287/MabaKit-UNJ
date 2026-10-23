@@ -21,7 +21,10 @@ type ActionError = { message: string; field?: string };
 /** Koma desimal Indonesia diterima: "12,5" dan "12.5" sama-sama 1250 basis poin. */
 export function percentToBasisPoints(value: FormDataEntryValue | null): number {
   const text = String(value ?? "0").trim().replace(",", ".");
-  const percent = Number(text === "" ? "0" : text);
+  if (text === "") return 0;
+  // Hanya bilangan desimal biasa, maksimal dua angka di belakang koma. "1e1" dan "12.345" ditolak.
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return -1;
+  const percent = Number(text);
   if (!Number.isFinite(percent) || percent < 0 || percent > 100) return -1;
   return Math.round(percent * 100);
 }
@@ -739,7 +742,7 @@ function ProductCard({
           const discountBasisPoints = percentToBasisPoints(data.get("discountPercent"));
           void action.exec(async () => {
             if (discountBasisPoints < 0) {
-              throw new ApiError("invalid_payload", "Diskon harus angka 0 sampai 100.", 400, "discountPercent");
+              throw new ApiError("invalid_payload", "Diskon harus angka 0 sampai 100 dengan maksimal dua angka desimal.", 400, "discountPercent");
             }
             await patch(`/api/admin/products/${product.id}`, {
               title: String(data.get("title") ?? ""),
@@ -834,6 +837,7 @@ function ProductCard({
               ? "Harga paket diatur per fakultas di bagian Paket, jadi diskon persen hanya untuk produk satuan."
               : "0 sampai 100. Boleh pakai koma, misalnya 12,5. Isi 100 untuk gratis."
           }
+          error={fieldError(action, "discountPercent")}
         >
           <Input
             id={`discount-${product.id}`}
@@ -1681,6 +1685,19 @@ function OperatorRow({
         </div>
         {operator.role === "admin" || self ? (
           <p className="text-sm text-muted">Akun admin tidak dapat diubah dari sini.</p>
+        ) : operator.disabled ? (
+          <Button
+            variant="secondary"
+            disabled={action.busy}
+            onClick={() =>
+              void action.exec(async () => {
+                await post(`/api/admin/operators/${operator.id}/enable`);
+                return "Akun diaktifkan kembali. Staf dapat masuk dengan kata sandi yang sama.";
+              })
+            }
+          >
+            {action.busy ? "Mengaktifkan..." : "Aktifkan akun"}
+          </Button>
         ) : confirming ? (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-danger">Nonaktifkan akun dan cabut semua sesinya?</span>

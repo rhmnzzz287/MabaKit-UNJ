@@ -1,6 +1,8 @@
 # MabaKit: revisi portal login, dashboard admin, dan izin tim
 
-Status: DRAF untuk persetujuan owner. Dokumentasi saja, belum diimplementasikan.
+Status: DIPAKAI. Disetujui owner dan sudah diimplementasikan.
+Status implementasi (2026-10-23): selesai. Cookie/sesi terpisah per portal di `backend/src/session.ts` dan `backend/src/http.ts`; izin default-deny di `backend/src/permissions.ts`; CRUD tim dan KPI admin di `backend/src/admin-team.ts`, `backend/src/admin-catalog.ts` dan `backend/src/admin-export.ts`; `frontend/src/lib/auth-store.ts`, `frontend/src/lib/workspace.ts`, `frontend/src/pages/OperatorLoginPage.tsx`, `frontend/src/pages/TeamPage.tsx`, `frontend/src/pages/AdminPage.tsx`. Verifikasi: `backend/test/worker/*` dan `frontend/src/App.test.tsx`. Audit lanjutan: [audit end-to-end](2026-10-23-mabakit-end-to-end-audit.md).
+Riwayat: semula DRAF untuk persetujuan owner, dokumentasi saja, belum diimplementasikan.
 Tanggal: 2026-10-23.
 Baseline: [spec v2](2026-10-22-mabakit-business-website-v2-design.md), terutama bagian 6, 9, 10, 12 dan 13.
 
@@ -8,7 +10,7 @@ Baseline: [spec v2](2026-10-22-mabakit-business-website-v2-design.md), terutama 
 
 Pisahkan pengalaman pembeli dari operator, serta pengawasan admin dari pekerjaan tim. Admin mengawasi KPI, mengelola akun tim dan kewenangan. Tim memproses pesanan pembeli sesuai izin. Pembeli tidak dapat masuk menggunakan akun operator pada portal pembeli.
 
-Dokumen ini mengusulkan pengganti kontrak v2 untuk topik tersebut. Sampai disetujui, kontrak aktif tidak berubah. Sesudah disetujui, sinkronkan PRD, SCHEMA, DESIGN, RELEASE dan rencana implementasi sebelum mengubah kode. Fitur katalog/paket, larangan tas putih, ownership pesanan, transaksi percobaan, dan aturan stok v2 tetap berlaku.
+Dokumen ini menjadi pengganti kontrak v2 untuk topik tersebut dan sudah menggantikannya. PRD, SCHEMA, DESIGN, RELEASE dan rencana implementasi sudah disinkronkan, lalu kode diubah. Fitur katalog/paket, larangan tas putih, ownership pesanan, transaksi percobaan, dan aturan stok v2 tetap berlaku.
 
 ## 2. Pendekatan dan rekomendasi
 

@@ -73,6 +73,7 @@ const STATUS: Record<string, number> = {
   stock_below_reserved: 409,
   photo_limit: 409,
   rate_limited: 429,
+  free_limit: 429,
   checkout_disabled: 503,
   internal: 500,
 };
@@ -114,6 +115,7 @@ const MESSAGE: Record<string, string> = {
   not_ready_transition: "Pesanan harus sudah dibayar sebelum ditandai siap.",
   stock_below_reserved: "Stok fisik tidak boleh di bawah jumlah yang sudah direservasi.",
   rate_limited: "Terlalu banyak permintaan. Coba lagi sebentar.",
+  free_limit: "Batas 2 pesanan gratis per akun per jam tercapai. Coba lagi nanti.",
   checkout_disabled: "Checkout sedang ditutup.",
   internal: "Terjadi kesalahan di server.",
 };
@@ -143,12 +145,51 @@ export async function readJson(request: Request): Promise<Record<string, unknown
   }
 }
 
+/**
+ * Baca body sampai `max` byte. `content-length` di atas batas ditolak sebelum buffering;
+ * stream dibatalkan begitu melewati batas agar body besar tidak pernah penuh dimuat.
+ * Mengembalikan null bila melewati batas atau stream gagal dibaca.
+ */
+export async function readBytesLimited(request: Request, max: number): Promise<Uint8Array | null> {
+  const declared = request.headers.get("content-length");
+  if (declared !== null) {
+    const length = Number(declared);
+    if (!Number.isFinite(length) || length > max) return null;
+  }
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > max) {
+        await reader.cancel().catch(() => undefined);
+        return null;
+      }
+      chunks.push(value);
+    }
+  } catch {
+    await reader.cancel().catch(() => undefined);
+    return null;
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
 /** Body dibatasi 32 KB; dipakai endpoint yang menerima data pembeli. */
 export async function readJsonLimited(request: Request, max = 32_768): Promise<Record<string, unknown> | null> {
+  const bytes = await readBytesLimited(request, max);
+  if (!bytes) return null;
   try {
-    const text = await request.text();
-    if (text.length > max) return null;
-    const body = JSON.parse(text);
+    const body = JSON.parse(new TextDecoder().decode(bytes));
     return body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : null;
   } catch {
     return null;
@@ -291,6 +332,7 @@ export function errorName(error: unknown): string {
     "catalog_changed",
     "hold_limit",
     "rate_limited",
+    "free_limit",
     "not_ready_transition",
     "pickup_not_allowed",
     "review_exists",

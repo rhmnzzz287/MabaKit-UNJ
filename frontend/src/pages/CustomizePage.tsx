@@ -29,7 +29,7 @@ export default function CustomizePage({ id }: { id: string }) {
   const [facultyId, setFacultyId] = useState("");
   const [quote, setQuote] = useState<PackageQuote | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [state, setState] = useState<"loading" | "ready" | "error" | "missing">("loading");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
@@ -37,16 +37,25 @@ export default function CustomizePage({ id }: { id: string }) {
 
   useEffect(() => {
     let active = true;
+    setQuote(null);
+    setState("loading");
+    setError(null);
+    setNotice(null);
+    setChecked([]);
     get<CatalogResponse>("/api/catalog")
       .then((body) => {
         if (!active) return;
         setFaculties(body.faculties);
-        const preferred = body.faculties.find((faculty) =>
-          (body.packages.find((product) => product.id === id)?.facultyOptions ?? []).some(
-            (option) => option.facultyId === faculty.id,
-          ),
-        );
-        setFacultyId(preferred?.id ?? "");
+        const pack = body.packages.find((product) => product.id === id);
+        const options = pack?.facultyOptions ?? [];
+        const preferred = body.faculties.find((faculty) => options.some((option) => option.facultyId === faculty.id));
+        if (!pack || !preferred) {
+          setQuote(null);
+          setError(pack ? "Paket ini belum tersedia untuk fakultas mana pun." : "Paket tidak ditemukan di katalog.");
+          setState("missing");
+          return;
+        }
+        setFacultyId(preferred.id);
       })
       .catch((issue: unknown) => {
         if (!active) return;
@@ -83,7 +92,7 @@ export default function CustomizePage({ id }: { id: string }) {
   const maxQuantity = useMemo(() => Math.max(1, Math.min(99, quote?.stock ?? 1)), [quote]);
   const recalculating = state === "loading" || (quote !== null && quote.faculty.id !== facultyId);
 
-  if (state === "error" && !quote) {
+  if (!quote && state !== "loading") {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Sesuaikan paket</h1>

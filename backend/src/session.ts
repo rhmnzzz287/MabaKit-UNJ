@@ -7,7 +7,7 @@ import {
   fail,
   ipHash,
   randomToken,
-  readJson,
+  readJsonLimited,
   setCookie,
   sha256,
 } from "./http";
@@ -36,7 +36,7 @@ function parsePortal(value: unknown): Portal {
 }
 
 export async function createSession(ctx: Ctx): Promise<Response> {
-  const body = await readJson(ctx.request).catch(() => null);
+  const body = await readJsonLimited(ctx.request, 1024).catch(() => null);
   const portal = parsePortal(body?.portal);
   const token = randomToken(32);
   const csrf = randomToken(24);
