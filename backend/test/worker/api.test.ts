@@ -1385,6 +1385,23 @@ describe("ekspor penjualan", () => {
     expect(csvCell("=1+1")).toBe("'=1+1");
     expect(csvCell('a,"b"')).toBe('"a,""b"""');
   });
+
+  test("subtotal, diskon, dan total pada CSV memakai snapshot tagihan", async () => {
+    const admin = await signInAs(ADMIN);
+    const buyer = await signInAs(BUYER);
+    const patched = await call("/api/admin/products/p-topi", mutate(admin, { discountBasisPoints: 1250 }, "PATCH"));
+    expect(patched.status).toBe(200);
+    const order = await createOrder(buyer, {
+      idempotencyKey: "checkout-export-002",
+      items: [{ productId: "p-topi", variantId: "v-topi-feb", quantity: 2 }],
+    });
+    await call(`/api/demo/orders/${order.id}/check-payment`, mutate(buyer));
+
+    const body = await (await call("/api/admin/export/sales.csv", { cookie: admin.cookie })).text();
+    const row = body.split("\r\n").find((line) => line.includes(order.orderNumber));
+    // 2 x 35000 dasar, diskon 12,5 persen 8750, tagihan 61250.
+    expect(row?.endsWith(",70000,8750,61250")).toBe(true);
+  });
 });
 
 describe("galeri foto admin", () => {

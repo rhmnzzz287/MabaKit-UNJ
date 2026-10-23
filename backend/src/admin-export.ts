@@ -6,8 +6,8 @@ type Row = {
   paid_at: number;
   faculty_name: string | null;
   method: string;
+  subtotal_rp: number;
   total_rp: number;
-  amount_due_rp: number;
 };
 
 const HEADER = ["invoice", "pesanan", "dibayar_wib", "fakultas", "metode", "subtotal_rp", "diskon_rp", "total_rp"];
@@ -60,7 +60,10 @@ export async function adminExportSales(ctx: Ctx, _operator: OperatorRow): Promis
       bound.push(cursor.t, cursor.t, cursor.i);
     }
     const { results } = await ctx.env.DB.prepare(
-      `SELECT o.id, o.order_number, o.paid_at, o.total_rp, o.amount_due_rp,
+      // Subtotal dari snapshot item: orders.total_rp disimpan minimal 1 karena constraint lama.
+      `SELECT o.id, o.order_number, o.paid_at,
+              COALESCE((SELECT SUM(oi.base_unit_price_rp * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), 0) AS subtotal_rp,
+              o.amount_due_rp AS total_rp,
               i.invoice_number, f.name AS faculty_name, p.method
        FROM orders o
        LEFT JOIN invoices i ON i.order_id = o.id
@@ -80,9 +83,9 @@ export async function adminExportSales(ctx: Ctx, _operator: OperatorRow): Promis
           wib(row.paid_at),
           row.faculty_name,
           row.method,
+          row.subtotal_rp,
+          row.subtotal_rp - row.total_rp,
           row.total_rp,
-          row.total_rp - row.amount_due_rp,
-          row.amount_due_rp,
         ]
           .map(csvCell)
           .join(","),
