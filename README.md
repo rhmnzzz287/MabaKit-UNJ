@@ -1,6 +1,6 @@
 # MabaKit
 
-Toko perlengkapan PKKMB mahasiswa baru UNJ untuk demo presentasi dosen. Pembayaran simulasi, bukan uang nyata, dan belum dideploy.
+Toko perlengkapan PKKMB mahasiswa baru UNJ. Pembayaran simulasi, bukan uang nyata, dan belum dideploy.
 
 ## Struktur
 
