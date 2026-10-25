@@ -1,6 +1,6 @@
 # MabaKit
 
-Toko perlengkapan PKKMB mahasiswa baru UNJ. Pembayaran simulasi, bukan uang nyata, dan belum dideploy.
+Toko perlengkapan PKKMB mahasiswa baru UNJ. Pembayaran simulasi, bukan uang nyata. Prototype sudah berjalan di Cloudflare Workers + D1.
 
 ## Struktur
 
@@ -71,4 +71,4 @@ Biaya: satu baris D1 ditulis per permintaan `/api`, jadi batas 100.000 tulisan/h
 
 ## Status
 
-Demo lokal berjalan: beranda, katalog, profil sesi, keranjang, checkout dengan snapshot email, pembayaran simulasi, invoice dan pratinjau email, ulasan setelah serah terima, serta workspace tim privat `/team` untuk staf/admin. 87 test lulus. Bukti ada di [docs/RELEASE.md](docs/RELEASE.md). Deployment, gateway pembayaran nyata, dan keputusan produksi belum dikerjakan.
+Demo lokal berjalan: beranda, katalog, profil sesi, keranjang, checkout dengan snapshot email, pembayaran simulasi, invoice dan pratinjau email, ulasan setelah serah terima, serta workspace tim privat `/team` untuk staf/admin. 193 test lulus. Bukti ada di [docs/RELEASE.md](docs/RELEASE.md). Gateway pembayaran nyata dan keputusan produksi belum dikerjakan.
