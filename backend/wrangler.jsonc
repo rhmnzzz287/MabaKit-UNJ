@@ -10,12 +10,18 @@
     "run_worker_first": true
   },
   "vars": { "APP_MODE": "demo" },
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "mabakit-media" }],
+  // R2 sengaja tidak dipasang: prototype ini D1 + Static Assets saja.
+  // Mengaktifkan R2 butuh checkout langganan (kartu), jadi upload foto admin
+  // dimatikan. Kode menanganinya: admin-media.ts membalas checkout_disabled
+  // saat env.MEDIA kosong. Pasang kembali baris r2_buckets bila upload diperlukan.
+  // "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "mabakit-media" }],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mabakit-demo",
-      "database_id": "local-demo",
+      // Id lokal dipakai `wrangler dev --local`; `npm run deploy:setup` menggantinya
+      // dengan uuid D1 nyata dari akun Cloudflare.
+      "database_id": "f092da16-5534-4e51-8b37-2c1511cc3c43",
       "migrations_dir": "db/migrations"
     }
   ],
