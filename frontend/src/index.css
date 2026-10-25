@@ -16,6 +16,10 @@
   --radius-control: 12px;
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 8px 24px -12px rgb(15 23 42 / 0.18);
   --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.08), 0 16px 32px -16px rgb(15 23 42 / 0.28);
+
+  /* Semua transisi bawaan pakai ease-in-out supaya gerak antar-halaman seragam. */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 :root {
@@ -46,14 +50,8 @@ body {
 }
 
 @utility card-lift {
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-}
-
-/* Latar dekoratif hero, murni CSS supaya tidak menambah aset atau JS. */
-@utility hero-wash {
-  background-image:
-    radial-gradient(64rem 32rem at 12% -10%, #d1fae5 0%, transparent 60%),
-    radial-gradient(48rem 24rem at 92% 8%, #e0f2fe 0%, transparent 55%);
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

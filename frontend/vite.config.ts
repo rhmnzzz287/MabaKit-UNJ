@@ -10,4 +10,9 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
+  // API dijalankan terpisah (`npm run dev:worker` di :8787); tanpa proxy,
+  // fetch("/api/...") dari :5173 kena fallback SPA dan balik HTML.
+  server: {
+    proxy: { "/api": { target: "http://127.0.0.1:8787", changeOrigin: false } },
+  },
 });

@@ -21,7 +21,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fip",
@@ -42,7 +42,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fik",
@@ -63,7 +63,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fppsi",
@@ -84,7 +84,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-ft",
@@ -105,7 +105,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fis",
@@ -126,7 +126,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fmipa",
@@ -147,7 +147,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "slayer-fbs",
@@ -168,7 +168,7 @@
       ],
       "quality": 88,
       "status": "used",
-      "reason": "Belum dipetakan ke SKU aktif."
+      "reason": "Varian p-slayer per fakultas (v-slayer-<fac>) dan komponen paket fakultas."
     },
     {
       "slug": "topi-feb",
@@ -1174,6 +1174,210 @@
       "status": "used",
       "variantId": "v-kipas-fbs",
       "productId": "p-kipas"
+    },
+    {
+      "slug": "bundle-fip",
+      "faculty": "FIP",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": [
+        0,
+        0
+      ],
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "width": 960,
+      "height": 716,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fip-480.webp",
+        "bundle-fip-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-fbs",
+      "faculty": "FBS",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": [
+        0,
+        1
+      ],
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "width": 960,
+      "height": 716,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fbs-480.webp",
+        "bundle-fbs-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-fmipa",
+      "faculty": "FMIPA",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": [
+        1,
+        0
+      ],
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "width": 960,
+      "height": 718,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fmipa-480.webp",
+        "bundle-fmipa-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-fish",
+      "faculty": "FISH",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": [
+        1,
+        1
+      ],
+      "sourceWidth": 1024,
+      "sourceHeight": 765,
+      "width": 960,
+      "height": 718,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fish-480.webp",
+        "bundle-fish-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-ft",
+      "faculty": "FT",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": null,
+      "sourceWidth": 960,
+      "sourceHeight": 720,
+      "width": 960,
+      "height": 720,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-ft-480.webp",
+        "bundle-ft-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-fik",
+      "faculty": "FIK",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": null,
+      "sourceWidth": 960,
+      "sourceHeight": 720,
+      "width": 960,
+      "height": 720,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fik-480.webp",
+        "bundle-fik-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-feb",
+      "faculty": "FEB",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": null,
+      "sourceWidth": 960,
+      "sourceHeight": 720,
+      "width": 960,
+      "height": 720,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-feb-480.webp",
+        "bundle-feb-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
+    },
+    {
+      "slug": "bundle-fpsi",
+      "faculty": "FPSI",
+      "kind": "bundle",
+      "sourceFile": "komposisi",
+      "page": null,
+      "quadrant": null,
+      "sourceWidth": 960,
+      "sourceHeight": 720,
+      "width": 960,
+      "height": 720,
+      "widths": [
+        480,
+        960
+      ],
+      "files": [
+        "bundle-fpsi-480.webp",
+        "bundle-fpsi-960.webp"
+      ],
+      "quality": 88,
+      "status": "used",
+      "reason": "Komposisi 2x2 dari topi, kipas, slayer, dan kaus kaki fakultas yang sama.",
+      "index": null
     }
   ],
   "excluded": [
@@ -1226,6 +1430,6 @@
       "reason": "slayer segitiga putih FIKK, dikecualikan oleh aturan produk putih"
     }
   ],
-  "used": 25,
+  "used": 33,
   "unused": 30
 }

@@ -2,27 +2,47 @@ import { useEffect, useMemo, useState } from "react";
 import { get } from "../lib/api";
 import { rupiah } from "../lib/format";
 import type { CatalogResponse, Faculty, Product } from "../lib/types";
-import { Alert, Button, ButtonLink, Card, Link, PageHeader, Price, ProductPhoto, SectionTitle, Select, Spinner } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Link, PageHeader, PhotoCarousel, Price, SectionTitle, Select, Spinner } from "../components/ui";
+
+/** Foto varian produk satuan, tanpa duplikat: pembeli bisa lihat semua variasinya. */
+function variantPhotos(product: Product) {
+  const photos = product.variants.map((variant) => variant.imagePath).filter((photo): photo is string => Boolean(photo));
+  if (photos.length > 0) return [...new Set(photos)];
+  // Produk tanpa foto varian tetap dihitung berfoto selama punya foto utama,
+  // supaya tidak ikut turun ke bawah daftar (mis. Kipas setelah foto logo dibuang).
+  return product.imagePath ? [product.imagePath] : [];
+}
+
+/** Foto isi paket apa adanya: paket fakultas sudah punya foto komposit di depan. */
+function packagePhotos(product: Product) {
+  if (product.componentPhotos?.length) return product.componentPhotos;
+  return product.imagePath ? [product.imagePath] : [];
+}
+
+/** Produk tanpa foto ditaruh paling bawah supaya grid tetap rapi. */
+function photosFirst<T>(items: T[], photosOf: (item: T) => string[]) {
+  return items
+    .map((item, position) => ({ item, position, hasPhoto: photosOf(item).length > 0 ? 0 : 1 }))
+    .sort((left, right) => left.hasPhoto - right.hasPhoto || left.position - right.position)
+    .map((entry) => entry.item);
+}
 
 function PackageCard({ product, facultyId }: { product: Product; facultyId: string }) {
   const options = product.facultyOptions ?? [];
   const selected = options.find((option) => option.facultyId === facultyId);
   const stock = selected ? selected.stock : product.stock;
+  // Starter Kit adalah pintu masuk ke semua paket fakultas, bukan satu paket berisi barang.
+  const starter = product.id === "p-tier-starter";
+  const href = starter ? "/starter-kit" : `/packages/${product.id}/customize`;
   return (
-    <Card className="card-lift group flex h-full flex-col overflow-hidden hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg">
-      <ProductPhoto
-        src={product.imagePath}
-        alt={`Foto ${product.title}`}
-        className="h-44 w-full border-b border-slate-100"
-      />
+    <Card className="group flex h-full flex-col overflow-hidden transition-colors hover:border-slate-300">
+      <PhotoCarousel photos={packagePhotos(product)} alt={`Foto isi ${product.title}`} className="border-b border-slate-100" />
       <div className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-lg font-bold tracking-tight text-ink">
-            <Link to={`/packages/${product.id}/customize`}>
-              {product.title}
-            </Link>
+            <Link to={href}>{product.title}</Link>
           </h2>
-          <span className="shrink-0 rounded-full bg-brand-tint px-3 py-1 text-xs font-bold text-brand-dark">Paket</span>
+          <span className="shrink-0 rounded-md bg-brand-tint px-3 py-1 text-xs font-bold text-brand-dark">Paket</span>
         </div>
         <p className="text-sm leading-relaxed text-muted">{product.description}</p>
         <div className="mt-auto space-y-2">
@@ -40,25 +60,24 @@ function PackageCard({ product, facultyId }: { product: Product; facultyId: stri
             {stock > 0 ? "Siap dipesan" : "Stok habis"}
           </p>
         </div>
-        <ButtonLink to={`/packages/${product.id}/customize`}>Sesuaikan paket</ButtonLink>
+        <ButtonLink to={href}>{starter ? "Lihat paket semua fakultas" : "Sesuaikan paket"}</ButtonLink>
       </div>
     </Card>
   );
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const photos = variantPhotos(product);
   return (
-    <Card className="card-lift group flex h-full flex-col overflow-hidden hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg">
-      <ProductPhoto
-        src={product.imagePath}
+    <Card className="group flex h-full flex-col overflow-hidden transition-colors hover:border-slate-300">
+      <PhotoCarousel
+        photos={photos}
         alt={`Foto ${product.title}`}
-        className="h-44 w-full border-b border-slate-100"
+        className="border-b border-slate-100"
       />
       <div className="flex flex-1 flex-col gap-3 p-6">
         <h2 className="text-lg font-bold tracking-tight text-ink">
-          <Link to={`/products/${product.id}`}>
-            {product.title}
-          </Link>
+          <Link to={`/products/${product.id}`}>{product.title}</Link>
         </h2>
         <p className="text-sm leading-relaxed text-muted">{product.description}</p>
         <div className="mt-auto space-y-2">
@@ -102,21 +121,31 @@ export default function CatalogPage() {
   }, [reload]);
 
   const faculties: Faculty[] = data?.faculties ?? [];
+  // Produk satuan disaring lewat fakultas variannya, paket lewat fakultas asalnya.
+  // Produk tanpa fakultas (kaus kaki, gesper, rok) tetap tampil karena berlaku untuk semua.
   const filtered = useMemo(() => {
     if (!data) return [];
-    if (!facultyId) return data.products;
-    return data.products.filter((product) => product.variants.some((variant) => variant.faculties.includes(facultyId)));
+    const products = !facultyId
+      ? data.products
+      : data.products.filter(
+          (product) =>
+            product.variants.every((variant) => variant.faculties.length === 0) ||
+            product.variants.some((variant) => variant.faculties.includes(facultyId)),
+        );
+    return photosFirst(products, variantPhotos);
   }, [data, facultyId]);
 
-  const packages = (data?.packages ?? []).filter(
-    (product) => !facultyId || (product.facultyOptions ?? []).some((option) => option.facultyId === facultyId),
+  // Katalog hanya menjual 3 tier; paket per fakultas dikumpulkan di halaman Starter Kit.
+  const packages = useMemo(
+    () => photosFirst((data?.packages ?? []).filter((product) => !product.facultyId), packagePhotos),
+    [data],
   );
 
   return (
     <div className="space-y-12">
       <PageHeader
         title="Paket dan Produk"
-        description="Paket disusun per fakultas. Harga dan stok adalah data uji, bukan penawaran resmi kampus."
+        description="Tiga paket untuk semua fakultas. Harga dan stok adalah data uji, bukan penawaran resmi kampus."
       />
 
       {error ? (
@@ -135,7 +164,7 @@ export default function CatalogPage() {
             <SectionTitle
               id="paket-heading"
               title="Paket"
-              description="Isi paket mengikuti fakultas yang dipilih."
+              description="Berlaku untuk semua fakultas. Isi dan harga menyesuaikan fakultas yang dipilih."
               action={
                 <div className="w-full sm:w-72">
                   <label htmlFor="faculty-filter" className="mb-2 block text-sm font-semibold text-ink">
@@ -153,7 +182,7 @@ export default function CatalogPage() {
               }
             />
             {packages.length === 0 ? (
-              <Alert tone="warn">Belum ada paket yang dipublikasikan untuk pilihan ini.</Alert>
+              <Alert tone="warn">Belum ada paket yang dipublikasikan.</Alert>
             ) : (
               <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {packages.map((product) => (

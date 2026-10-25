@@ -16,6 +16,8 @@ export type FacultyOption = {
   facultyName: string;
   priceRp: number;
   stock: number;
+  /** Foto barang penyusun paket untuk fakultas ini. */
+  photos?: string[];
 };
 
 export type GalleryPhoto = {
@@ -39,6 +41,12 @@ export type Product = {
   stock: number;
   variants: Variant[];
   facultyOptions?: FacultyOption[];
+  /** Fakultas asal paket; null untuk paket buatan admin yang belum ditautkan. */
+  facultyId?: string | null;
+  /** Nama produk penyusun paket, tanpa duplikat. */
+  componentTitles?: string[];
+  /** Foto barang penyusun paket, dipakai grid foto kartu. */
+  componentPhotos?: string[];
 };
 
 export type Faculty = {

@@ -24,9 +24,6 @@ export default function CartPage() {
 
       {lines.length === 0 ? (
         <Card className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-          <span aria-hidden="true" className="grid size-14 place-items-center rounded-2xl bg-brand-tint text-2xl">
-            🛒
-          </span>
           <div className="space-y-2">
             <p className="text-lg font-semibold text-ink">Keranjang masih kosong</p>
             <p className="text-muted">Mulai dari paket fakultas atau produk satuan.</p>

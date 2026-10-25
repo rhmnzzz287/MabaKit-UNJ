@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { get } from "../lib/api";
 import type { CatalogResponse } from "../lib/types";
+import { rupiah } from "../lib/format";
 import { Alert, ButtonLink, Card, Link, Price, ProductPhoto, SectionTitle, Spinner } from "../components/ui";
 
 const STEPS = [
@@ -42,7 +43,9 @@ export default function HomePage() {
     };
   }, []);
 
-  const packages = (data?.packages ?? []).slice(0, 3);
+  const packages = data?.packages ?? [];
+  // Beranda menampilkan 3 tier saja; paket fakultas dikumpulkan di halaman Starter Kit.
+  const tiers = packages.filter((product) => !product.facultyId);
   const cheapest = packages.reduce<number | null>((lowest, item) => {
     const value = item.finalPriceRp ?? item.priceRp;
     return lowest === null || value < lowest ? value : lowest;
@@ -50,50 +53,60 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16">
-      <section className="hero-wash -mx-4 overflow-hidden rounded-b-3xl px-4 pb-12 pt-8 sm:-mx-8 sm:px-8">
-        <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-          <div className="space-y-6">
-            <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-ink sm:text-5xl">
-              Satu paket, semua kebutuhan ospek.
-            </h1>
-            <p className="max-w-xl text-lg leading-relaxed text-muted">
-              Belanja perlengkapan PKKMB satu per satu mudah ada yang terlewat. MabaKit menyusun komponennya per
-              fakultas, dengan isi, harga, dan stok yang bisa diperiksa sebelum checkout.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <ButtonLink to="/catalog">Lihat paket</ButtonLink>
-              <ButtonLink to="/about" variant="secondary">
-                Cara kerja MabaKit
-              </ButtonLink>
+      <section className="relative -mx-4 overflow-hidden rounded-b-3xl">
+        <img
+          src="/products/hero-beranda-960.webp"
+          srcSet="/products/hero-beranda-480.webp 480w, /products/hero-beranda-960.webp 960w"
+          sizes="100vw"
+          alt="Suasana PKKMB di kampus, mahasiswa baru berkumpul di satu area"
+          width={960}
+          height={640}
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 size-full object-cover"
+        />
+        {/* Gradien gelap dari kiri supaya teks putih tetap terbaca di atas foto. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(100deg,rgba(6,78,59,0.95)_0%,rgba(6,78,59,0.88)_45%,rgba(6,78,59,0.62)_72%,rgba(6,78,59,0.38)_100%)]"
+        />
+        <div className="relative px-4 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end lg:gap-16">
+            <div className="max-w-2xl space-y-6">
+              <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Satu paket, semua kebutuhan ospek.
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-emerald-50">
+                Belanja perlengkapan PKKMB satu per satu mudah ada yang terlewat. MabaKit menyusun komponennya per
+                fakultas, dengan isi, harga, dan stok yang bisa diperiksa sebelum checkout.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <ButtonLink to="/catalog" variant="secondary">
+                  Lihat paket
+                </ButtonLink>
+                <Link
+                  to="/about"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/60 px-6 font-semibold text-white hover:bg-white/10"
+                >
+                  Cara kerja MabaKit
+                </Link>
+              </div>
             </div>
-            <dl className="grid max-w-lg grid-cols-2 gap-x-6 gap-y-4 border-t border-emerald-200/70 pt-6 sm:grid-cols-3">
-              <div>
-                <dt className="text-sm text-muted">Paket siap pakai</dt>
-                <dd className="text-xl font-bold text-ink">{data ? packages.length : "-"}</dd>
+            {/* Angka ringkas jadi baris di ponsel, baris di kanan saat layar lebar. */}
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/30 pt-6 sm:grid-cols-3 lg:w-full lg:max-w-sm lg:grid-cols-1 lg:gap-0 lg:justify-self-end lg:divide-y lg:divide-white/20">
+              <div className="lg:flex lg:items-baseline lg:justify-between lg:py-3 lg:first:pt-0 lg:last:pb-0">
+                <dt className="text-sm text-emerald-100">Paket siap pakai</dt>
+                <dd className="text-xl font-bold text-white">{data ? packages.length : "-"}</dd>
               </div>
-              <div>
-                <dt className="text-sm text-muted">Fakultas</dt>
-                <dd className="text-xl font-bold text-ink">{data ? data.faculties.length : "-"}</dd>
+              <div className="lg:flex lg:items-baseline lg:justify-between lg:py-3 lg:first:pt-0 lg:last:pb-0">
+                <dt className="text-sm text-emerald-100">Fakultas</dt>
+                <dd className="text-xl font-bold text-white">{data ? data.faculties.length : "-"}</dd>
               </div>
-              <div>
-                <dt className="text-sm text-muted">Mulai dari</dt>
-                <dd className="text-xl font-bold text-ink">{cheapest === null ? "-" : <Price finalRp={cheapest} size="sm" />}</dd>
+              <div className="lg:flex lg:items-baseline lg:justify-between lg:py-3 lg:first:pt-0 lg:last:pb-0">
+                <dt className="text-sm text-emerald-100">Mulai dari</dt>
+                <dd className="text-xl font-bold text-white">{cheapest === null ? "-" : rupiah(cheapest)}</dd>
               </div>
             </dl>
-          </div>
-          <div className="relative">
-            <div className="card overflow-hidden p-2">
-              <ProductPhoto
-                src="/products/topi-feb-960.webp"
-                srcSet480="/products/topi-feb-480.webp"
-                alt="Topi PKKMB putih dengan label fakultas Ekonomi dan Bisnis"
-                className="h-64 w-full rounded-xl sm:h-96"
-                eager
-              />
-            </div>
-            <p className="absolute -bottom-4 left-4 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-ink shadow-lg ring-1 ring-slate-200">
-              Topi, kipas, kaus kaki, dan lainnya
-            </p>
           </div>
         </div>
       </section>
@@ -101,8 +114,8 @@ export default function HomePage() {
       <section aria-labelledby="paket-utama" className="space-y-6">
         <SectionTitle
           id="paket-utama"
-          title="Paket sesuai fakultas"
-          description="Setiap paket punya isi dan harga sendiri. Pilih fakultas untuk melihat rincian yang berlaku."
+          title="Paket"
+          description="Tiga paket untuk semua fakultas. Pilih fakultas untuk melihat rincian yang berlaku."
           action={
             <Link to="/catalog" className="text-sm font-semibold text-brand-dark">
               Semua paket dan produk
@@ -111,12 +124,17 @@ export default function HomePage() {
         />
         {error ? <Alert tone="error">{error}</Alert> : null}
         {!data && !error ? <Spinner label="Memuat paket" /> : null}
-        {data && data.packages.length === 0 ? <Alert tone="info">Belum ada paket yang dipublikasikan.</Alert> : null}
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {packages.map((product) => (
-            <li key={product.id} className="card card-lift group flex flex-col overflow-hidden hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg">
+        {data && tiers.length === 0 ? <Alert tone="info">Belum ada paket yang dipublikasikan.</Alert> : null}
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {tiers.map((product) => {
+            const options = product.facultyOptions ?? [];
+            const onlyFaculty = options.length === 1 ? options[0].facultyName : null;
+            const href = product.id === "p-tier-starter" ? "/starter-kit" : `/packages/${product.id}/customize`;
+            return (
+            <li key={product.id} className="card group flex flex-col overflow-hidden transition-colors hover:border-slate-300">
               <ProductPhoto
                 src={product.imagePath}
+                srcSet480={product.imagePath?.replace("-960.webp", "-480.webp")}
                 alt={`Paket ${product.title}`}
                 className="h-44 w-full border-b border-slate-100"
               />
@@ -129,30 +147,28 @@ export default function HomePage() {
                   discountBasisPoints={product.discountBasisPoints}
                 />
                 <p className="text-sm text-muted">
-                  {(product.facultyOptions ?? []).length} pilihan fakultas, mulai dari harga tersebut
+                  {onlyFaculty ?? `${options.length} pilihan fakultas`}
                 </p>
-                <ButtonLink to={`/packages/${product.id}/customize`} className="mt-1">
-                  Sesuaikan paket
+                <ButtonLink to={href} className="mt-1">
+                  {product.id === "p-tier-starter" ? "Lihat paket semua fakultas" : "Sesuaikan paket"}
                 </ButtonLink>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
 
       <section aria-labelledby="nilai" className="space-y-6">
         <SectionTitle id="nilai" title="Kenapa memesan lewat paket" description="Tiga hal yang membedakan belanja satuan dengan paket fakultas." />
-        <ul className="grid gap-6 md:grid-cols-3">
-          {VALUES.map((value, index) => (
-            <li key={value.title} className="card space-y-3 p-6">
-              <span className="grid size-10 place-items-center rounded-xl bg-brand-tint text-sm font-black text-brand-dark">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h3 className="text-lg font-bold text-ink">{value.title}</h3>
-              <p className="text-sm leading-relaxed text-muted">{value.body}</p>
-            </li>
+        <dl className="max-w-3xl divide-y divide-slate-200 border-y border-slate-200">
+          {VALUES.map((value) => (
+            <div key={value.title} className="grid gap-2 py-6 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:gap-8">
+              <dt className="text-lg font-bold tracking-tight text-ink">{value.title}</dt>
+              <dd className="text-sm leading-relaxed text-muted">{value.body}</dd>
+            </div>
           ))}
-        </ul>
+        </dl>
       </section>
 
       <section aria-labelledby="cara-pesan" className="card grid gap-8 p-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:p-10">
@@ -165,16 +181,14 @@ export default function HomePage() {
             Ada pertanyaan? Hubungi kami
           </Link>
         </div>
-        <ol className="space-y-6">
+        <ol className="space-y-6 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
           {STEPS.map((step, index) => (
-            <li key={step.title} className="flex gap-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-sm font-black text-white">
-                {index + 1}
-              </span>
-              <div className="space-y-1">
-                <p className="font-semibold text-ink">{step.title}</p>
-                <p className="text-sm text-muted">{step.body}</p>
-              </div>
+            <li key={step.title} className="border-t border-slate-300 pt-4 lg:border-slate-200">
+              <p className="font-semibold text-ink">
+                <span className="font-bold text-brand-dark">{index + 1}. </span>
+                {step.title}
+              </p>
+              <p className="mt-1 text-sm text-muted">{step.body}</p>
             </li>
           ))}
         </ol>

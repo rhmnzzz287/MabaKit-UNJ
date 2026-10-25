@@ -705,6 +705,7 @@ function ProductCard({
   refresh: () => Promise<void>;
 }) {
   const action = useAction(onAuthError, refresh);
+  const [armed, setArmed] = useState(false);
 
   return (
     <li className="space-y-4 card p-4">
@@ -716,18 +717,37 @@ function ProductCard({
             {product.active ? "aktif" : "nonaktif"}
           </p>
         </div>
-        <Button
-          variant={product.active ? "danger" : "secondary"}
-          disabled={action.busy}
-          onClick={() =>
-            void action.exec(async () => {
-              await patch(`/api/admin/products/${product.id}`, { active: !product.active });
-              return product.active ? "Produk dinonaktifkan." : "Produk diaktifkan.";
-            })
-          }
-        >
-          {product.active ? "Nonaktifkan" : "Aktifkan"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={product.active ? "danger" : "secondary"}
+            disabled={action.busy}
+            onClick={() =>
+              void action.exec(async () => {
+                await patch(`/api/admin/products/${product.id}`, { active: !product.active });
+                return product.active ? "Produk dinonaktifkan." : "Produk diaktifkan.";
+              })
+            }
+          >
+            {product.active ? "Nonaktifkan" : "Aktifkan"}
+          </Button>
+          <Button
+            variant="danger"
+            disabled={action.busy}
+            onClick={() => {
+              // Dua klik: hapus permanen, jadi jangan sekali klik.
+              if (!armed) {
+                setArmed(true);
+                return;
+              }
+              void action.exec(async () => {
+                await del(`/api/admin/products/${product.id}`);
+                return "Produk dihapus permanen.";
+              });
+            }}
+          >
+            {armed ? "Yakin hapus permanen?" : "Hapus produk"}
+          </Button>
+        </div>
       </div>
       <Feedback action={action} />
 

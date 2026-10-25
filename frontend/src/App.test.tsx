@@ -400,7 +400,7 @@ describe("alur belanja demo v2", () => {
     await user.type(screen.getByLabelText("Kata sandi"), "buyermabakit123");
     await user.click(screen.getByRole("button", { name: "Masuk" }));
 
-    expect(await screen.findByRole("link", { name: "Akun" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Profil" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Masuk" })).not.toBeInTheDocument();
     await waitFor(() => expect(window.location.pathname).toBe("/cart"));
   });
@@ -549,5 +549,53 @@ describe("penggantian fakultas aman di keranjang", () => {
 
     releaseFt(json(ftQuote));
     expect(await screen.findByRole("button", { name: "Tambah paket ke keranjang" })).toBeEnabled();
+  });
+});
+
+describe("halaman Starter Kit", () => {
+  const paketFakultas = (id: string, facultyId: string, title: string) => ({
+    id,
+    kind: "bundle" as const,
+    title,
+    description: `Isi ${title}.`,
+    imagePath: null,
+    priceRp: 95000,
+    stock: 5,
+    variants: [],
+    facultyId,
+    componentTitles: ["Topi Fakultas", "Slayer"],
+    facultyOptions: [{ facultyId, facultyName: "Fakultas Teknik", priceRp: 95000, stock: 5 }],
+  });
+
+  test("mengumpulkan semua paket fakultas dan tidak menampilkan tier", async () => {
+    const starterCatalog: CatalogResponse = {
+      faculties: catalog.faculties,
+      packages: [
+        paketFakultas("p-paket-ft", "fac-ft", "Paket FT"),
+        paketFakultas("p-paket-feb", "fac-feb", "Paket FEB"),
+        {
+          id: "p-tier-hemat",
+          kind: "bundle",
+          title: "Paket Hemat",
+          description: "Slayer dan name tag.",
+          imagePath: null,
+          priceRp: 30000,
+          stock: 5,
+          variants: [],
+          facultyId: null,
+          componentTitles: ["Slayer", "Name Tag"],
+          facultyOptions: [{ facultyId: "fac-ft", facultyName: "Fakultas Teknik", priceRp: 30000, stock: 5 }],
+        },
+      ],
+      products: [product],
+    };
+    vi.stubGlobal("fetch", routes((url) => (url === "/api/catalog" ? json(starterCatalog) : null)));
+    window.history.replaceState({}, "", "/starter-kit");
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Paket FT" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Paket FEB" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Paket Hemat" })).toBeNull();
   });
 });

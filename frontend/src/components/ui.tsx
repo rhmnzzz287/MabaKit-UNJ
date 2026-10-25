@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, type ReactNode } from "react";
+import { cloneElement, isValidElement, useEffect, useState, type ReactNode } from "react";
 import { navigate } from "../lib/router";
 import { photoSize } from "../lib/photo-size";
 import { statusLabel } from "../lib/format";
@@ -203,7 +203,7 @@ export function PageHeader({ title, description, actions }: { title: string; des
   return (
     <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        <h1 className="text-3xl font-black tracking-tight text-ink sm:text-4xl">{title}</h1>
         {description ? <p className="max-w-2xl text-muted">{description}</p> : null}
       </div>
       {actions}
@@ -269,8 +269,160 @@ export function ProductPhoto({
   );
 }
 
-export function Spinner({ label = "Memuat" }: { label?: string }) {
+/**
+ * Carousel foto isi: bergeser sendiri tiap 4 detik, berhenti saat kursor/fokus di dalamnya,
+ * dan bisa digeser manual lewat tombol kiri/kanan atau titik navigasi.
+ * Dipakai kartu paket dan kartu produk supaya pembeli bisa meninjau semua foto barang.
+ */
+export function PhotoCarousel({
+  photos,
+  alt,
+  className = "",
+  eager = false,
+}: {
+  photos: string[];
+  alt: string;
+  className?: string;
+  eager?: boolean;
+}) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const total = photos.length;
+  // Foto bisa berubah saat fakultas diganti, jadi indeks lama bisa menunjuk sel kosong.
+  const active = total > 0 ? Math.min(index, total - 1) : 0;
+
+  useEffect(() => {
+    if (total < 2 || paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setIndex((value) => (value + 1) % total), 4000);
+    return () => window.clearInterval(timer);
+  }, [total, paused]);
+
+  if (total === 0) return <ProductPhoto src={null} alt={alt} className={className} />;
+  if (total === 1) {
+    return (
+      <ProductPhoto
+        src={photos[0]}
+        srcSet480={photos[0].endsWith("-960.webp") ? photos[0].replace("-960.webp", "-480.webp") : undefined}
+        alt={alt}
+        className={className}
+        eager={eager}
+      />
+    );
+  }
+
+  const step = (delta: number) => {
+    setIndex((value) => (value + delta + total) % total);
+    setPaused(true);
+  };
+
   return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      role="group"
+      aria-label={alt}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
+      <ProductPhoto
+        src={photos[active]}
+        srcSet480={photos[active].endsWith("-960.webp") ? photos[active].replace("-960.webp", "-480.webp") : undefined}
+        alt={`${alt}, foto ${active + 1} dari ${total}`}
+        className="aspect-[4/3] w-full"
+        eager={eager}
+      />
+      <button
+        type="button"
+        onClick={() => step(-1)}
+        aria-label="Foto sebelumnya"
+        className="absolute left-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white/90 text-ink shadow-sm transition hover:bg-white"
+      >
+        <span aria-hidden="true">‹</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => step(1)}
+        aria-label="Foto berikutnya"
+        className="absolute right-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white/90 text-ink shadow-sm transition hover:bg-white"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
+      <ul aria-label={`Navigasi foto ${alt}`} className="absolute inset-x-0 bottom-0 flex flex-wrap justify-center">
+        {photos.map((photo, position) => (
+          <li key={photo}>
+            <button
+              type="button"
+              onClick={() => {
+                setIndex(position);
+                setPaused(true);
+              }}
+              aria-label={`Foto ${position + 1}`}
+              aria-current={position === active ? "true" : undefined}
+              className="grid size-12 place-items-center"
+            >
+              <span
+                aria-hidden="true"
+                className={`block size-2 rounded-full border border-white/70 transition ${position === active ? "bg-brand" : "bg-white/80"}`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Grid foto isi (maksimal 4, 2x2): semua foto langsung terlihat tanpa perlu digeser.
+ * Dipakai kartu paket fakultas di halaman Starter Kit.
+ */
+export function PhotoGrid({
+  photos,
+  alt,
+  className = "",
+  eager = false,
+}: {
+  photos: string[];
+  alt: string;
+  className?: string;
+  eager?: boolean;
+}) {
+  const shown = photos.slice(0, 4);
+  const source480 = (src: string) => (src.endsWith("-960.webp") ? src.replace("-960.webp", "-480.webp") : undefined);
+
+  if (shown.length === 0) return <ProductPhoto src={null} alt={alt} className={`aspect-[4/3] w-full ${className}`} />;
+  if (shown.length === 1) {
+    return (
+      <ProductPhoto
+        src={shown[0]}
+        srcSet480={source480(shown[0])}
+        alt={alt}
+        className={`aspect-[4/3] w-full ${className}`}
+        eager={eager}
+      />
+    );
+  }
+
+  return (
+    <ul aria-label={alt} className={`grid grid-cols-2 gap-px bg-slate-100 ${className}`}>
+      {shown.map((photo, position) => (
+        <li key={photo} className="aspect-[4/3] overflow-hidden bg-white">
+          <ProductPhoto
+            src={photo}
+            srcSet480={source480(photo)}
+            alt={`${alt}, foto ${position + 1} dari ${shown.length}`}
+            className="size-full"
+            eager={eager && position === 0}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function Spinner({ label = "Memuat" }: { label?: string }) {  return (
     <p className="flex items-center justify-center gap-3 py-12 text-muted" role="status">
       <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-brand" />
       {label}...
@@ -287,7 +439,7 @@ export function SectionTitle({ id, title, description, action }: { id?: string; 
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="space-y-2">
-        <h2 id={id} className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
+        <h2 id={id} className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
           {title}
         </h2>
         {description ? <p className="max-w-2xl text-muted">{description}</p> : null}

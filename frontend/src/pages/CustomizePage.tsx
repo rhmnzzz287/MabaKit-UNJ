@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, get } from "../lib/api";
 import { addToCart, replaceLine } from "../lib/cart";
 import { variantLabel } from "../lib/format";
@@ -33,6 +33,8 @@ export default function CustomizePage({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
+  const [offered, setOffered] = useState<string[]>([]);
+  const facultyRef = useRef(new URLSearchParams(window.location.search).get("faculty") ?? "");
   const replaceKey = new URLSearchParams(window.location.search).get("replace");
 
   useEffect(() => {
@@ -42,12 +44,16 @@ export default function CustomizePage({ id }: { id: string }) {
     setError(null);
     setNotice(null);
     setChecked([]);
+    // Kosongkan pilihan dulu: fakultas paket sebelumnya belum tentu ada di paket baru,
+    // dan quote dengan fakultas lama akan ditolak server (409).
+    setFacultyId("");
     get<CatalogResponse>("/api/catalog")
       .then((body) => {
         if (!active) return;
         setFaculties(body.faculties);
         const pack = body.packages.find((product) => product.id === id);
         const options = pack?.facultyOptions ?? [];
+        setOffered(options.map((option) => option.facultyId));
         const preferred = body.faculties.find((faculty) => options.some((option) => option.facultyId === faculty.id));
         if (!pack || !preferred) {
           setQuote(null);
@@ -55,7 +61,7 @@ export default function CustomizePage({ id }: { id: string }) {
           setState("missing");
           return;
         }
-        setFacultyId(preferred.id);
+        setFacultyId(options.some((option) => option.facultyId === facultyRef.current) ? facultyRef.current : preferred.id);
       })
       .catch((issue: unknown) => {
         if (!active) return;
@@ -131,23 +137,22 @@ export default function CustomizePage({ id }: { id: string }) {
                 id="faculty"
                 value={facultyId}
                 onChange={(event) => {
+                  // Ganti fakultas langsung berlaku; tidak ada dialog konfirmasi.
                   const next = event.target.value;
-                  if (quote && next !== facultyId) {
-                    const confirmed = window.confirm(
-                      `Ganti fakultas ke ${faculties.find((faculty) => faculty.id === next)?.name ?? "pilihan baru"}? Isi paket, foto, harga, dan stok akan dihitung ulang.`,
-                    );
-                    if (!confirmed) return;
-                  }
                   setFacultyId(next);
+                  facultyRef.current = next;
                   setNotice(null);
                 }}
               >
                 <option value="">Pilih fakultas</option>
-                {faculties.map((faculty) => (
-                  <option key={faculty.id} value={faculty.id}>
-                    {faculty.name}
-                  </option>
-                ))}
+                {faculties.map((faculty) => {
+                  const isOffered = offered.includes(faculty.id);
+                  return (
+                    <option key={faculty.id} value={faculty.id} disabled={!isOffered}>
+                      {isOffered ? faculty.name : `${faculty.name} (belum tersedia)`}
+                    </option>
+                  );
+                })}
               </Select>
             </Field>
             <p className="text-sm text-muted">Keranjang tidak otomatis diperbarui saat fakultas diganti.</p>
@@ -160,7 +165,7 @@ export default function CustomizePage({ id }: { id: string }) {
             <Card className="overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-6">
                 <h2 className="text-xl font-bold tracking-tight text-ink">Isi paket untuk {quote.faculty.name}</h2>
-                <span className="rounded-full bg-brand-tint px-3 py-1 text-xs font-bold text-brand-dark">
+                <span className="rounded-md bg-brand-tint px-3 py-1 text-xs font-bold text-brand-dark">
                   {quote.components.length} komponen
                 </span>
               </div>
@@ -177,23 +182,23 @@ export default function CustomizePage({ id }: { id: string }) {
                     <div className="min-w-0 flex-1 space-y-1">
                       <p className="font-semibold text-ink">{component.title}</p>
                       <p className="text-sm text-muted">{variantLabel(component.attributes) || component.sku}</p>
-                      <p className="text-sm text-muted">
+                      <div className="text-sm text-muted">
                         {component.quantity} unit x <Price finalRp={component.unitPriceRp} size="sm" />
-                      </p>
+                      </div>
                     </div>
-                    <p className="font-bold text-ink">
+                    <div className="font-bold text-ink">
                       <Price finalRp={component.lineTotalRp} size="sm" />
-                    </p>
+                    </div>
                   </li>
                 ))}
               </ul>
               <div className="space-y-2 bg-slate-50 p-6">
-                <p className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted">Total satuan</span>
                   <span className="font-semibold text-ink">
                     <Price finalRp={quote.unitTotalRp} size="sm" />
                   </span>
-                </p>
+                </div>
                 {quote.savingsRp > 0 ? (
                   <p className="flex justify-between text-sm text-brand-dark">
                     <span>Selisih paket</span>

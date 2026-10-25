@@ -7,6 +7,7 @@ import { useOperatorWorkspace, useWorkspace } from "./lib/workspace";
 import { refreshAuth, useAuthRevalidation } from "./lib/auth-store";
 import HomePage from "./pages/HomePage";
 import CatalogPage from "./pages/CatalogPage";
+import StarterKitPage from "./pages/StarterKitPage";
 import ProductPage from "./pages/ProductPage";
 import CustomizePage from "./pages/CustomizePage";
 import CartPage from "./pages/CartPage";
@@ -77,7 +78,7 @@ function NavLinks({
             Pesanan Saya
           </Link>
           <Link to="/profile" className={item("/profile")}>
-            Akun
+            Profil
           </Link>
         </>
       ) : (
@@ -89,8 +90,8 @@ function NavLinks({
         </Link>
       )}
       {operatorRole ? (
-        <Link to="/team" className={item("/team", "border border-line")}>
-          Workspace tim
+        <Link to={operatorRole === "admin" ? "/admin/ringkasan" : "/team"} className={item(operatorRole === "admin" ? "/admin" : "/team", "border border-line")}>
+          {operatorRole === "admin" ? "Panel admin" : "Workspace tim"}
         </Link>
       ) : null}
     </>
@@ -102,6 +103,7 @@ function Routes({ path }: { path: string }) {
 
   if (parts.length === 0) return <HomePage />;
   if (parts[0] === "catalog") return <CatalogPage />;
+  if (parts[0] === "starter-kit") return <StarterKitPage />;
   if (parts[0] === "products" && parts[1]) return <ProductPage id={parts[1]} />;
   if (parts[0] === "packages" && parts[1] && parts[2] === "customize") return <CustomizePage id={parts[1]} />;
   if (parts[0] === "cart") return <CartPage />;
@@ -166,7 +168,7 @@ export default function App() {
       "/cart": "Keranjang",
       "/checkout": "Checkout",
       "/orders": "Pesanan Saya",
-      "/profile": "Akun",
+      "/profile": "Profil",
       "/login": "Masuk",
       "/register": "Daftar",
       "/about": "Tentang Kami",

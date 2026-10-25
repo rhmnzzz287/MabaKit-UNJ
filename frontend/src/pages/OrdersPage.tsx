@@ -212,6 +212,9 @@ export function OrderDetailPage({ id }: { id: string }) {
   if (error) return <Alert tone="error">{error}</Alert>;
   if (!order) return <Spinner label="Memuat pesanan" />;
 
+  // Simpan ke variabel lokal supaya penyempitan tipe tetap berlaku di dalam callback.
+  const review = order.review;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -292,15 +295,22 @@ export function OrderDetailPage({ id }: { id: string }) {
             </Card>
           ) : null}
 
-          {order.review ? (
+          {review ? (
             <Card className="space-y-2 p-6">
               <h2 className="text-lg font-bold tracking-tight text-ink">Ulasan Anda</h2>
-              <p aria-label={`Rating ${order.review.rating} dari 5`} className="text-lg text-amber-500">
-                {"★".repeat(order.review.rating)}
-                {"☆".repeat(5 - order.review.rating)}
+              <p aria-label={`Rating ${review.rating} dari 5`} className="flex items-center gap-2 text-sm text-muted">
+                <span aria-hidden="true" className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((step) => (
+                    <span
+                      key={step}
+                      className={`h-1.5 w-6 rounded-full ${step <= review.rating ? "bg-brand" : "bg-slate-200"}`}
+                    />
+                  ))}
+                </span>
+                <span>{review.rating} dari 5</span>
               </p>
-              <p className="text-ink">{order.review.comment}</p>
-              <p className="text-sm text-muted">{dateTime(order.review.createdAt)} WIB, ulasan demo</p>
+              <p className="text-ink">{review.comment}</p>
+              <p className="text-sm text-muted">{dateTime(review.createdAt)} WIB, ulasan demo</p>
             </Card>
           ) : order.reviewEligible ? (
             <OrderReviewForm

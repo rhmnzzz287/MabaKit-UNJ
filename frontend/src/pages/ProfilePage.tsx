@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { ApiError, get, patch, post } from "../lib/api";
 import { navigate } from "../lib/router";
 import type { CatalogResponse, Profile } from "../lib/types";
-import { useWorkspace } from "../lib/workspace";
+import { useOperatorWorkspace, useWorkspace } from "../lib/workspace";
 import { Alert, Button, Card, Field, Input, Link, PageHeader, Select, Spinner } from "../components/ui";
 
 export default function ProfilePage() {
   const workspace = useWorkspace();
+  const operator = useOperatorWorkspace();
+  const operatorRole = operator.state === "ready" && (operator.role === "staff" || operator.role === "admin") ? operator.role : null;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [faculties, setFaculties] = useState<CatalogResponse["faculties"]>([]);
   const [name, setName] = useState("");
@@ -80,7 +82,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Akun saya"
+        title="Profil saya"
         description="Data ini menjadi isian awal checkout berikutnya. Pesanan yang sudah dibuat tetap memakai snapshot kontaknya."
       />
       {error ? <Alert tone="error">{error}</Alert> : null}
@@ -163,6 +165,22 @@ export default function ProfilePage() {
             <Link to="/contact" className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint">
               Hubungi kami
             </Link>
+            {/* Portal operator punya sesi sendiri, jadi pembeli yang sudah masuk tetap bisa masuk sebagai tim. */}
+            {operatorRole ? (
+              <Link
+                to={operatorRole === "admin" ? "/admin/ringkasan" : "/team"}
+                className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint"
+              >
+                {operatorRole === "admin" ? "Panel admin" : "Workspace tim"}
+              </Link>
+            ) : (
+              <Link
+                to="/operator/login?next=%2Fteam"
+                className="block min-h-12 rounded-xl px-3 py-3 font-medium text-brand-dark hover:bg-brand-tint"
+              >
+                Masuk sebagai operator
+              </Link>
+            )}
           </Card>
           <Alert tone="info">
             Akun demo. Jangan memakai kata sandi yang juga dipakai di layanan lain.
