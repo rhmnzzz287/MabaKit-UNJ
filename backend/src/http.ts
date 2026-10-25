@@ -72,6 +72,7 @@ const STATUS: Record<string, number> = {
   not_ready_transition: 409,
   stock_below_reserved: 409,
   photo_limit: 409,
+  product_in_use: 409,
   rate_limited: 429,
   free_limit: 429,
   checkout_disabled: 503,
@@ -91,6 +92,7 @@ const MESSAGE: Record<string, string> = {
   invalid_key: "Kunci idempotensi tidak valid.",
   invalid_method: "Metode pembayaran tidak dikenali.",
   package_unavailable: "Paket belum tersedia untuk fakultas ini.",
+  product_in_use: "Produk ini sudah dipakai pesanan atau komponen paket, jadi tidak bisa dihapus. Nonaktifkan saja.",
   white_bag_not_sellable: "Tas putih atau natural tidak dijual pada versi ini.",
   package_not_publishable: "Paket belum lengkap untuk dipublikasikan.",
   faculty_required: "Pilih fakultas terlebih dahulu.",
@@ -365,6 +367,11 @@ export async function audit(
       ctx.now,
     )
     .run();
+}
+
+/** Buang jendela rate limit yang sudah lewat satu jam. Tanpa ini tabel tumbuh tanpa batas. */
+export async function pruneRateLimits(ctx: Ctx): Promise<void> {
+  await ctx.env.DB.prepare("DELETE FROM rate_limits WHERE window_start < ?").bind(ctx.now - 3_600_000).run();
 }
 
 /** Melepas reservasi draft yang lewat 30 menit. Trigger DB yang mengembalikan stok sekali. */

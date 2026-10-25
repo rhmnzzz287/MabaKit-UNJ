@@ -207,7 +207,7 @@ describe("B04 versi konfigurasi paket", () => {
 
     const created = await call(
       "/api/checkout/create",
-      mutate(buyer, checkoutBody({ items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }] })),
+      mutate(buyer, checkoutBody({ items: [{ productId: "p-paket-fip", facultyId: "fac-fip", quantity: 1 }] })),
     );
     expect(created.status).toBe(201);
     const orderId = ((await created.json()) as { order: { id: string } }).order.id;
@@ -221,18 +221,18 @@ describe("B04 versi konfigurasi paket", () => {
     expect(captured.bundle_config_version).toBe(captured.current_version);
 
     const saved = await call(
-      "/api/admin/packages/p-paket-hemat/configs/fac-fip",
+      "/api/admin/packages/p-paket-fip/configs/fac-fip",
       mutate(admin, { priceRp: 32000, published: true, components: [{ variantId: "v-kauskaki", quantity: 1 }] }, "PUT"),
     );
     expect(saved.status).toBe(200);
-    const current = db.raw().prepare("SELECT version FROM bundle_configs WHERE id = 'cfg-hemat-fip'").get() as {
+    const current = db.raw().prepare("SELECT version FROM bundle_configs WHERE id = 'cfg-p-paket-fip-fac-fip'").get() as {
       version: number;
     };
     expect(current.version).toBe(captured.current_version + 1);
 
     // Simulasikan checkout yang membaca versi lama lalu commit setelah admin menyimpan konfigurasi baru.
     const productVersion = (
-      db.raw().prepare("SELECT version FROM products WHERE id = 'p-paket-hemat'").get() as { version: number }
+      db.raw().prepare("SELECT version FROM products WHERE id = 'p-paket-fip'").get() as { version: number }
     ).version;
     db.raw().exec(`
       INSERT INTO demo_sessions (id, user_id, token_hash, csrf_hash, client_key_hash, created_at, expires_at)
@@ -253,7 +253,7 @@ describe("B04 versi konfigurasi paket", () => {
           sql: `INSERT INTO order_items (id, order_id, product_id, variant_id, title_snapshot, attributes_snapshot,
                   catalog_version, variant_version, bundle_config_version, quantity, unit_price_rp, line_total_rp,
                   base_unit_price_rp, discount_basis_points, charged_unit_price_rp, charged_line_total_rp)
-                VALUES ('oi-stale', 'ord-stale', 'p-paket-hemat', NULL, 'Paket', '{}', ?, NULL, ?, 1, ?, ?, ?, 0, ?, ?)`,
+                VALUES ('oi-stale', 'ord-stale', 'p-paket-fip', NULL, 'Paket', '{}', ?, NULL, ?, 1, ?, ?, ?, 0, ?, ?)`,
           params: [productVersion, captured.bundle_config_version, stalePrice, stalePrice, stalePrice, stalePrice, stalePrice],
         },
       ]),

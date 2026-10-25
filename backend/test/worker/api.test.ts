@@ -261,7 +261,14 @@ describe("katalog publik", () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
       faculties: { id: string; name: string; aliases: string[] }[];
-      packages: { id: string; priceRp: number; variants: unknown[]; facultyOptions: { facultyId: string }[] }[];
+      packages: {
+        id: string;
+        priceRp: number;
+        variants: unknown[];
+        facultyId: string | null;
+        componentTitles: string[];
+        facultyOptions: { facultyId: string }[];
+      }[];
       products: { id: string; kind: string; priceRp: number; variants: { id: string; faculties: string[] }[] }[];
     };
     expect(body.faculties).toHaveLength(8);
@@ -269,18 +276,63 @@ describe("katalog publik", () => {
       expect.arrayContaining(["FIK", "FIKK"]),
     );
     expect(body.products.map((product) => product.id).sort()).toEqual(
-      ["p-gesper", "p-kauskaki", "p-kipas", "p-rok", "p-slayer", "p-topi"].sort(),
+      [
+        "p-bendera",
+        "p-bordir",
+        "p-dasi",
+        "p-gesper",
+        "p-kauskaki",
+        "p-kemeja",
+        "p-kipas",
+        "p-lanyard",
+        "p-nametag",
+        "p-notebook",
+        "p-rok",
+        "p-slayer",
+        "p-topi",
+      ].sort(),
     );
     expect(body.packages.map((item) => item.id).sort()).toEqual(
-      ["p-paket-hemat", "p-paket-praktis", "p-paket-starter"].sort(),
+      [
+        "p-paket-fip",
+        "p-paket-fbs",
+        "p-paket-fmipa",
+        "p-paket-fish",
+        "p-paket-ft",
+        "p-paket-fik",
+        "p-paket-feb",
+        "p-paket-fpsi",
+        "p-tier-hemat",
+        "p-tier-praktis",
+        "p-tier-starter",
+      ].sort(),
     );
     const topi = body.products.find((product) => product.id === "p-topi");
     expect(topi?.priceRp).toBe(35000);
     expect(topi?.variants).toHaveLength(8);
     expect(topi?.variants.find((variant) => variant.id === "v-topi-ft")?.faculties).toEqual(["fac-ft"]);
-    const hemat = body.packages.find((item) => item.id === "p-paket-hemat");
-    expect(hemat).toMatchObject({ priceRp: 30000, variants: [] });
-    expect(hemat?.facultyOptions).toHaveLength(8);
+    const paketFt = body.packages.find((item) => item.id === "p-paket-ft");
+    expect(paketFt).toMatchObject({ priceRp: 95000, variants: [] });
+    // Filter katalog memakai fakultas asal paket, bukan daftar config yang selalu 8.
+    expect(paketFt?.facultyId).toBe("fac-ft");
+    expect(
+      body.packages
+        .filter((paket) => paket.id.startsWith("p-paket-"))
+        .every((paket) => paket.facultyId === paket.id.replace("p-paket-", "fac-")),
+    ).toBe(true);
+    // Tier paket netral fakultas: tetap muncul untuk fakultas mana pun.
+    expect(body.packages.filter((paket) => paket.id.startsWith("p-tier-")).every((paket) => paket.facultyId === null)).toBe(true);
+    // Isi paket ikut terkirim supaya kartu katalog bisa menampilkan daftar barangnya.
+    const hemat = body.packages.find((paket) => paket.id === "p-tier-hemat");
+    expect(hemat?.componentTitles).toEqual(expect.arrayContaining(["Slayer", "Name Tag"]));
+    expect(paketFt?.componentTitles).toEqual(expect.arrayContaining(["Topi Fakultas", "Kipas Fakultas"]));
+    expect(paketFt?.facultyOptions).toHaveLength(8);
+    // Semua paket harus siap untuk fakultas mana pun, supaya pembeli bisa ganti fakultas tanpa error.
+    for (const paket of body.packages) {
+      expect(paket.facultyOptions.map((option) => option.facultyId).sort()).toEqual(
+        body.faculties.map((faculty) => faculty.id).sort(),
+      );
+    }
   });
 
   test("produk yang dikecualikan tidak pernah muncul di katalog", async () => {
@@ -307,7 +359,7 @@ describe("katalog publik", () => {
 
 describe("quote paket fakultas", () => {
   test("quote menghitung harga, komponen, dan stok dari server", async () => {
-    const response = await call("/api/packages/p-paket-hemat/quote?faculty=fac-ft");
+    const response = await call("/api/packages/p-paket-ft/quote?faculty=fac-ft");
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
       package: { id: string };
@@ -319,22 +371,27 @@ describe("quote paket fakultas", () => {
       stock: number;
       available: boolean;
     };
-    expect(body.package.id).toBe("p-paket-hemat");
+    expect(body.package.id).toBe("p-paket-ft");
     expect(body.faculty).toMatchObject({ id: "fac-ft", name: "Fakultas Teknik" });
-    expect(body.components.map((component) => component.variantId).sort()).toEqual(["v-kauskaki", "v-kipas-ft"]);
-    expect(body.priceRp).toBe(30000);
-    expect(body.unitTotalRp).toBe(30000);
+    expect(body.components.map((component) => component.variantId).sort()).toEqual([
+      "v-kauskaki",
+      "v-kipas-ft",
+      "v-slayer-ft",
+      "v-topi-ft",
+    ]);
+    expect(body.priceRp).toBe(95000);
+    expect(body.unitTotalRp).toBe(95000);
     expect(body.savingsRp).toBe(0);
-    expect(body.stock).toBe(20);
+    expect(body.stock).toBe(8);
     expect(body.available).toBe(true);
   });
 
   test("quote menolak permintaan tanpa fakultas dan fakultas tanpa konfigurasi", async () => {
-    const missing = await call("/api/packages/p-paket-hemat/quote");
+    const missing = await call("/api/packages/p-paket-ft/quote");
     expect(missing.status).toBe(400);
     expect(await missing.json()).toMatchObject({ error: "faculty_required" });
 
-    const unavailable = await call("/api/packages/p-paket-hemat/quote?faculty=fac-tidak-ada");
+    const unavailable = await call("/api/packages/p-paket-ft/quote?faculty=fac-tidak-ada");
     expect(unavailable.status).toBe(409);
     expect(await unavailable.json()).toMatchObject({ error: "package_unavailable" });
 
@@ -345,13 +402,13 @@ describe("quote paket fakultas", () => {
   test("quote menghitung sisa stok dari reservasi berjalan", async () => {
     const session = await signInAs(BUYER);
     await createOrder(session, {
-      items: [{ productId: "p-paket-hemat", facultyId: "fac-ft", quantity: 3 }],
+      items: [{ productId: "p-paket-ft", facultyId: "fac-ft", quantity: 3 }],
     });
-    const body = (await (await call("/api/packages/p-paket-hemat/quote?faculty=fac-ft")).json()) as {
+    const body = (await (await call("/api/packages/p-paket-ft/quote?faculty=fac-ft")).json()) as {
       stock: number;
       available: boolean;
     };
-    expect(body.stock).toBe(17);
+    expect(body.stock).toBe(5);
     expect(body.available).toBe(true);
   });
 });
@@ -399,12 +456,17 @@ describe("checkout", () => {
   test("checkout paket memakai fakultas pilihan dan menyimpan komponen", async () => {
     const session = await signInAs(BUYER);
     const order = await createOrder(session, {
-      items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }],
+      items: [{ productId: "p-paket-fip", facultyId: "fac-fip", quantity: 1 }],
     });
-    expect(order.totalRp).toBe(30000);
+    expect(order.totalRp).toBe(95000);
     expect(order.facultyId).toBe("fac-fip");
     expect(order.items[0].attributes).toEqual({ fakultas: "Fakultas Ilmu Pendidikan", fakultasId: "fac-fip" });
-    expect(order.items[0].components.map((component) => component.sku).sort()).toEqual(["KAUS-01", "KIPAS-FIP"]);
+    expect(order.items[0].components.map((component) => component.sku).sort()).toEqual([
+      "KAUS-01",
+      "KIPAS-FIP",
+      "SLAYER-FIP",
+      "TOPI-FIP",
+    ]);
     expect(stockOf("v-kipas-fip").stock_reserved).toBe(1);
     expect(stockOf("v-kauskaki").stock_reserved).toBe(1);
   });
@@ -412,18 +474,18 @@ describe("checkout", () => {
   test("checkout paket ditolak bila satu komponen tidak layak (B01)", async () => {
     const session = await signInAs(BUYER);
     const ok = await createOrder(session, {
-      items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }],
+      items: [{ productId: "p-paket-fip", facultyId: "fac-fip", quantity: 1 }],
     });
-    expect(ok.totalRp).toBe(30000);
+    expect(ok.totalRp).toBe(95000);
 
     db.raw().exec("UPDATE variants SET active = 0 WHERE id = 'v-kipas-fip'");
     const blocked = await call(
       "/api/checkout/create",
-      mutate(session, checkoutBody({ idempotencyKey: "checkout-key-000002", items: [{ productId: "p-paket-hemat", facultyId: "fac-fip", quantity: 1 }] })),
+      mutate(session, checkoutBody({ idempotencyKey: "checkout-key-000002", items: [{ productId: "p-paket-fip", facultyId: "fac-fip", quantity: 1 }] })),
     );
     expect(blocked.status).toBe(409);
     expect(await blocked.json()).toMatchObject({ error: "catalog_changed" });
-    expect((await call("/api/packages/p-paket-hemat/quote?faculty=fac-fip")).status).toBe(409); // quote juga ikut ditolak
+    expect((await call("/api/packages/p-paket-fip/quote?faculty=fac-fip")).status).toBe(409); // quote juga ikut ditolak
     expect(db.raw().prepare("SELECT COUNT(*) AS n FROM orders").get()).toEqual({ n: 1 });
     const rejectedStock = db.raw().prepare("SELECT stock_reserved, stock_on_hand FROM variants WHERE id = 'v-kipas-fip'").get() as {
       stock_reserved: number;
@@ -436,23 +498,23 @@ describe("checkout", () => {
   test("konfigurasi paket seed dapat disimpan ulang dengan ID existing (B02)", async () => {
     const admin = await signInAs(ADMIN);
     const saved = await call(
-      "/api/admin/packages/p-paket-hemat/configs/fac-fbs",
+      "/api/admin/packages/p-paket-fbs/configs/fac-fbs",
       mutate(admin, { priceRp: 42000, published: true, components: [{ variantId: "v-kauskaki", quantity: 2 }] }, "PUT"),
     );
     expect(saved.status).toBe(200);
     expect(await saved.json()).toMatchObject({
-      config: { id: "cfg-hemat-fbs", priceRp: 42000, published: true, components: [{ variantId: "v-kauskaki", quantity: 2 }] },
+      config: { id: "cfg-p-paket-fbs-fac-fbs", priceRp: 42000, published: true, components: [{ variantId: "v-kauskaki", quantity: 2 }] },
     });
-    const row = db.raw().prepare("SELECT price_rp, published FROM bundle_configs WHERE id = 'cfg-hemat-fbs'").get() as {
+    const row = db.raw().prepare("SELECT price_rp, published FROM bundle_configs WHERE id = 'cfg-p-paket-fbs-fac-fbs'").get() as {
       price_rp: number;
       published: number;
     };
     expect(row).toMatchObject({ price_rp: 42000, published: 1 });
     expect(
-      db.raw().prepare("SELECT variant_id, quantity FROM bundle_config_components WHERE config_id = 'cfg-hemat-fbs'").all(),
+      db.raw().prepare("SELECT variant_id, quantity FROM bundle_config_components WHERE config_id = 'cfg-p-paket-fbs-fac-fbs'").all(),
     ).toEqual([{ variant_id: "v-kauskaki", quantity: 2 }]);
 
-    const quote = (await (await call("/api/packages/p-paket-hemat/quote?faculty=fac-fbs")).json()) as { priceRp: number };
+    const quote = (await (await call("/api/packages/p-paket-fbs/quote?faculty=fac-fbs")).json()) as { priceRp: number };
     expect(quote.priceRp).toBe(42000);
   });
 
@@ -472,7 +534,7 @@ describe("checkout", () => {
       "/api/checkout/create",
       mutate(
         session,
-        checkoutBody({ items: [{ productId: "p-paket-hemat", variantId: "v-kauskaki", quantity: 1 }] }),
+        checkoutBody({ items: [{ productId: "p-paket-ft", variantId: "v-kauskaki", quantity: 1 }] }),
       ),
     );
     expect(packageWithVariant.status).toBe(400);
@@ -480,7 +542,7 @@ describe("checkout", () => {
 
     const packageWithoutFaculty = await call(
       "/api/checkout/create",
-      mutate(session, checkoutBody({ items: [{ productId: "p-paket-hemat", quantity: 1 }] })),
+      mutate(session, checkoutBody({ items: [{ productId: "p-paket-ft", quantity: 1 }] })),
     );
     expect(packageWithoutFaculty.status).toBe(409);
     expect(await packageWithoutFaculty.json()).toMatchObject({ error: "catalog_changed" });
@@ -1050,7 +1112,7 @@ describe("admin katalog dan pengaturan", () => {
     expect(await badSku.json()).toMatchObject({ error: "invalid_payload" });
 
     const onBundle = await call(
-      "/api/admin/products/p-paket-hemat/variants",
+      "/api/admin/products/p-paket-ft/variants",
       mutate(admin, { sku: "BUNDLE-01", priceRp: 10000, stockOnHand: 1, attributes: {}, active: true }),
     );
     expect(onBundle.status).toBe(400);
@@ -1112,7 +1174,7 @@ describe("admin katalog dan pengaturan", () => {
   test("paket tidak bisa dipublikasikan dengan varian nonaktif", async () => {
     const admin = await signInAs(ADMIN);
     const response = await call(
-      "/api/admin/packages/p-paket-hemat/configs/fac-ft",
+      "/api/admin/packages/p-paket-ft/configs/fac-ft",
       mutate(admin, { priceRp: 20000, published: true, components: [{ variantId: "v-goodie", quantity: 1 }] }, "PUT"),
     );
     expect(response.status).toBe(409);
@@ -1219,12 +1281,13 @@ describe("admin katalog dan pengaturan", () => {
     };
     const goodie = body.products.find((product) => product.id === "p-goodie");
     expect(goodie?.active).toBe(false);
-    const hemat = body.products.find((product) => product.id === "p-paket-hemat");
-    expect(hemat?.configs).toHaveLength(8);
-    expect(hemat?.configs.find((config) => config.facultyId === "fac-ft")).toMatchObject({
-      published: true,
-      components: [{ variantId: "v-kipas-ft", quantity: 1 }, { variantId: "v-kauskaki", quantity: 1 }],
-    });
+    const paketFt = body.products.find((product) => product.id === "p-paket-ft");
+    expect(paketFt?.configs).toHaveLength(8);
+    const ftConfig = paketFt?.configs.find((config) => config.facultyId === "fac-ft");
+    expect(ftConfig).toMatchObject({ published: true });
+    expect(ftConfig?.components.map((component) => component.variantId).sort()).toEqual(
+      ["v-topi-ft", "v-kipas-ft", "v-slayer-ft", "v-kauskaki"].sort(),
+    );
     expect(body.faculties.find((faculty) => faculty.id === "fac-fik")?.aliases).toEqual(
       expect.arrayContaining(["FIK", "FIKK"]),
     );
@@ -1598,9 +1661,43 @@ describe("perbaikan audit review", () => {
     return row.image_path ?? "";
   }
 
+  test("admin bisa menghapus produk yang belum pernah dipakai", async () => {
+    const admin = await signInAs(ADMIN);
+    const created = await call(
+      "/api/admin/products",
+      mutate(admin, { kind: "single", title: "Produk Uji Hapus", description: "Sementara." }),
+    );
+    expect(created.status).toBe(201);
+    const { product } = (await created.json()) as { product: { id: string } };
+    const variant = await call(
+      `/api/admin/products/${product.id}/variants`,
+      mutate(admin, { sku: "UJI-01", priceRp: 15000, stockOnHand: 3, attributes: { warna: "navy" } }),
+    );
+    expect(variant.status).toBe(201);
+
+    const removed = await call(`/api/admin/products/${product.id}`, mutate(admin, {}, "DELETE"));
+    expect(removed.status).toBe(200);
+    expect(await removed.json()).toMatchObject({ deleted: true });
+    expect(db.raw().prepare("SELECT COUNT(*) AS n FROM products WHERE id = ?").get(product.id)).toEqual({ n: 0 });
+    expect(db.raw().prepare("SELECT COUNT(*) AS n FROM variants WHERE product_id = ?").get(product.id)).toEqual({ n: 0 });
+  });
+
+  test("produk yang sudah dipakai pesanan tidak bisa dihapus, dan staf tidak boleh menghapus", async () => {
+    const admin = await signInAs(ADMIN);
+    const inUse = await call("/api/admin/products/p-topi", mutate(admin, {}, "DELETE"));
+    expect(inUse.status).toBe(409);
+    expect(await inUse.json()).toMatchObject({ error: "product_in_use" });
+    expect(db.raw().prepare("SELECT COUNT(*) AS n FROM products WHERE id = 'p-topi'").get()).toEqual({ n: 1 });
+
+    const staff = await signInAs(STAFF);
+    const denied = await call("/api/admin/products/p-goodie", mutate(staff, {}, "DELETE"));
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toMatchObject({ error: "forbidden" });
+  });
+
   test("diskon paket ditolak, bukan disimpan tanpa efek", async () => {
     const admin = await signInAs(ADMIN);
-    const response = await call("/api/admin/products/p-paket-starter", mutate(admin, { discountBasisPoints: 2000 }, "PATCH"));
+    const response = await call("/api/admin/products/p-paket-ft", mutate(admin, { discountBasisPoints: 2000 }, "PATCH"));
     expect(response.status).toBe(400);
     expect(((await response.json()) as { field?: string }).field).toBe("discountBasisPoints");
   });

@@ -6,6 +6,7 @@ import {
   errorName,
   fail,
   ipHash,
+  pruneRateLimits,
   randomToken,
   readJsonLimited,
   setCookie,
@@ -57,8 +58,14 @@ export async function createSession(ctx: Ctx): Promise<Response> {
   return sessionResponse(ctx, { csrfToken: csrf, portal }, 201, portal, token, csrf);
 }
 
-export async function allowAttempt(ctx: Ctx, scope: string, key: string, limit = 10): Promise<boolean> {
-  const windowStart = Math.floor(ctx.now / 300_000) * 300_000;
+export async function allowAttempt(
+  ctx: Ctx,
+  scope: string,
+  key: string,
+  limit = 10,
+  windowMs = 300_000,
+): Promise<boolean> {
+  const windowStart = Math.floor(ctx.now / windowMs) * windowMs;
   const row = await ctx.env.DB.prepare(
     `INSERT INTO rate_limits (scope, actor_key_hash, window_start, count) VALUES (?, ?, ?, 1)
      ON CONFLICT (scope, actor_key_hash, window_start) DO UPDATE SET count = count + 1
@@ -66,6 +73,8 @@ export async function allowAttempt(ctx: Ctx, scope: string, key: string, limit =
   )
     .bind(scope, key, windowStart)
     .first<{ count: number }>();
+  // Bersih-bersih jarang saja: satu DELETE per ~100 percobaan cukup untuk menjaga tabel.
+  if (Math.random() < 0.01) await pruneRateLimits(ctx);
   return (row?.count ?? 0) <= limit;
 }
 

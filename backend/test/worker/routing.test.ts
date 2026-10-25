@@ -20,10 +20,31 @@ function env(db: D1Database, assetBody = "<html>spa</html>"): Env {
 
 describe("routing Worker", () => {
   test("API tak dikenal menghasilkan JSON 404, bukan SPA", async () => {
-    const res = await worker.fetch(new Request(`${ORIGIN}/api/nope`), env({} as D1Database));
+    // DB sungguhan: pagar rate limit per IP jalan sebelum rute, jadi butuh tabelnya.
+    const db = new TestD1();
+    const res = await worker.fetch(new Request(`${ORIGIN}/api/nope`), env(db as unknown as D1Database));
     expect(res.status).toBe(404);
     expect(res.headers.get("content-type")).toContain("application/json");
     expect(await res.json()).toMatchObject({ error: "not_found" });
+  });
+
+  test("pagar /api membatasi 120 permintaan per IP per menit", async () => {
+    const db = new TestD1();
+    const call = makeCall(env(db as unknown as D1Database));
+    const ip = { "cf-connecting-ip": "203.0.113.9" };
+
+    for (let i = 0; i < 120; i += 1) {
+      const res = await call("/api/health", { headers: ip });
+      expect(res.status).toBe(200);
+    }
+
+    const blocked = await call("/api/health", { headers: ip });
+    expect(blocked.status).toBe(429);
+    expect(await blocked.json()).toMatchObject({ error: "rate_limited" });
+
+    // IP lain tidak ikut kena.
+    const other = await call("/api/health", { headers: { "cf-connecting-ip": "203.0.113.10" } });
+    expect(other.status).toBe(200);
   });
 
   test("route UI diteruskan ke static assets", async () => {

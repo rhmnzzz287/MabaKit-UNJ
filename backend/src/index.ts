@@ -4,6 +4,7 @@ import {
   adminCatalog,
   adminCreateProduct,
   adminCreateVariant,
+  adminDeleteProduct,
   adminSavePackageConfig,
   adminUpdateProduct,
   adminUpdateVariant,
@@ -23,6 +24,7 @@ import {
   type Ctx,
   type Env,
   fail,
+  ipHash,
   json,
   loadOperator,
   loadSession,
@@ -34,9 +36,12 @@ import { checkPayment, emailPreview, getOrder, invoice, listOrders } from "./ord
 import { guardPage } from "./pages";
 import { getProfile, saveProfile } from "./profile";
 import { createReview, listReviews } from "./reviews";
-import { createSession } from "./session";
+import { allowAttempt, createSession } from "./session";
 import { staffReady } from "./staff";
 import { teamComplete, teamOrderDetail, teamOrders, teamSummary } from "./team";
+
+/** Batas kasar per IP per menit untuk seluruh /api/*. Satu page load hanya 1-3 permintaan. */
+const API_LIMIT_PER_MINUTE = 120;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -57,6 +62,12 @@ export default {
       return guarded ?? env.ASSETS.fetch(request);
     }
     if (url.pathname.startsWith("/api/demo/") && env.APP_MODE !== "demo") return fail("not_found");
+
+    // Pagar per IP untuk seluruh /api/*: menahan scraping dan burst sebelum masuk rute.
+    // Endpoint sensitif (login, register, export, buat staf) tetap punya batas sendiri yang lebih ketat.
+    if (!(await allowAttempt(ctx, "api", await ipHash(ctx), API_LIMIT_PER_MINUTE, 60_000))) {
+      return fail("rate_limited");
+    }
 
     const parts = url.pathname.split("/").filter(Boolean);
     const method = request.method.toUpperCase();
@@ -233,6 +244,7 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
     (rest[0] === "catalog" && !rest[1] && method === "GET") ||
     (rest[0] === "products" && !rest[1] && method === "POST") ||
     (rest[0] === "products" && rest[1] && !rest[2] && method === "PATCH") ||
+    (rest[0] === "products" && rest[1] && !rest[2] && method === "DELETE") ||
     (rest[0] === "products" && rest[1] && rest[2] === "variants" && method === "POST") ||
     (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "GET") ||
     (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "POST") ||
@@ -274,6 +286,10 @@ async function adminRoute(ctx: Ctx, rest: string[], method: string): Promise<Res
   if (rest[0] === "products" && rest[1] && method === "PATCH") {
     const blocked = await requireMutation(ctx, session);
     return blocked ?? adminUpdateProduct(ctx, operator, rest[1]);
+  }
+  if (rest[0] === "products" && rest[1] && !rest[2] && method === "DELETE") {
+    const blocked = await requireMutation(ctx, session);
+    return blocked ?? adminDeleteProduct(ctx, operator, rest[1]);
   }
   if (rest[0] === "products" && rest[1] && rest[2] === "photos" && !rest[3] && method === "GET") {
     return adminPhotos(ctx, rest[1]);

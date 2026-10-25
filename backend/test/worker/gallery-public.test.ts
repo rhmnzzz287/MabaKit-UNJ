@@ -85,7 +85,7 @@ describe("galeri foto publik", () => {
     expect(hidden.status).toBe(404);
     expect(JSON.stringify(await (await call("/api/catalog")).json())).not.toContain("products/goodie.jpg");
 
-    const paket = await call("/api/catalog/p-paket-hemat");
+    const paket = await call("/api/catalog/p-paket-ft");
     expect(paket.status).toBe(200);
     const body = (await paket.json()) as { product: { priceRp: number; photos?: GalleryPhoto[] } };
     expect(body.product).not.toHaveProperty("photos");

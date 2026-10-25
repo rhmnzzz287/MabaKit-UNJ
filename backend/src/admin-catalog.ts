@@ -190,6 +190,47 @@ export async function adminUpdateProduct(ctx: Ctx, operator: OperatorRow, id: st
   return json({ updated: true });
 }
 
+/** Hapus produk beserta varian, foto, dan komponennya. Riwayat pesanan tidak boleh rusak, jadi produk yang sudah terpakai ditolak. */
+export async function adminDeleteProduct(ctx: Ctx, operator: OperatorRow, id: string): Promise<Response> {
+  const product = await ctx.env.DB.prepare("SELECT id, kind FROM products WHERE id = ?")
+    .bind(id)
+    .first<{ id: string; kind: string }>();
+  if (!product) return fail("not_found");
+
+  const used = await ctx.env.DB.prepare(
+    `SELECT (SELECT COUNT(*) FROM order_items WHERE product_id = ?) AS orders,
+            (SELECT COUNT(*) FROM bundle_config_components WHERE variant_id IN (SELECT id FROM variants WHERE product_id = ?)) AS components`,
+  )
+    .bind(id, id)
+    .first<{ orders: number; components: number }>();
+  if ((used?.orders ?? 0) > 0 || (used?.components ?? 0) > 0) return fail("product_in_use");
+
+  const { results: photos } = await ctx.env.DB.prepare("SELECT object_key FROM product_photos WHERE product_id = ?")
+    .bind(id)
+    .all<{ object_key: string }>();
+
+  await ctx.env.DB.batch([
+    ctx.env.DB.prepare(
+      "DELETE FROM bundle_config_components WHERE config_id IN (SELECT id FROM bundle_configs WHERE bundle_product_id = ?)",
+    ).bind(id),
+    ctx.env.DB.prepare("DELETE FROM bundle_configs WHERE bundle_product_id = ?").bind(id),
+    ctx.env.DB.prepare("DELETE FROM product_photos WHERE product_id = ?").bind(id),
+    ctx.env.DB.prepare("DELETE FROM spec_checklists WHERE product_id = ?").bind(id),
+    ctx.env.DB.prepare("DELETE FROM variants WHERE product_id = ?").bind(id),
+    ctx.env.DB.prepare("DELETE FROM products WHERE id = ?").bind(id),
+  ]);
+  for (const photo of photos) await ctx.env.MEDIA?.delete(photo.object_key).catch(() => undefined);
+
+  await audit(ctx, {
+    actorId: operator.id,
+    action: "product_deleted",
+    entityType: "product",
+    entityId: id,
+    metadata: { kind: product.kind, photos: photos.length },
+  });
+  return json({ deleted: true });
+}
+
 export async function adminCreateVariant(ctx: Ctx, operator: OperatorRow, productId: string): Promise<Response> {
   const body = await readJsonLimited(ctx.request);
   const product = await ctx.env.DB.prepare("SELECT id, kind FROM products WHERE id = ?")

@@ -11,6 +11,7 @@ type ProductRow = {
   bundle_price_rp: number | null;
   discount_basis_points: number;
   version: number;
+  faculty_id: string | null;
 };
 type VariantRow = {
   id: string;
@@ -63,7 +64,12 @@ export type CatalogProduct = {
   priceRp: number;
   stock: number;
   variants: CatalogVariant[];
-  facultyOptions?: { facultyId: string; facultyName: string; priceRp: number; stock: number }[];
+  facultyId?: string | null;
+  facultyOptions?: { facultyId: string; facultyName: string; priceRp: number; stock: number; photos?: string[] }[];
+  /** Nama produk penyusun paket, tanpa duplikat. Dipakai kartu katalog untuk menampilkan isi paket. */
+  componentTitles?: string[];
+  /** Foto barang penyusun paket untuk fakultas paket itu, dipakai grid foto kartu paket. */
+  componentPhotos?: string[];
 };
 
 export type QuoteComponent = {
@@ -85,7 +91,7 @@ export function available(variant: VariantRow): number {
 async function loadCatalog(ctx: Ctx) {
   await releaseExpired(ctx);
   const { results: products } = await ctx.env.DB.prepare(
-    `SELECT id, kind, title, description, image_path, bundle_price_rp, discount_basis_points, version
+    `SELECT id, kind, title, description, image_path, bundle_price_rp, discount_basis_points, version, faculty_id
      FROM products WHERE active = 1 ORDER BY kind DESC, title`,
   ).all<ProductRow>();
   const { results: variants } = await ctx.env.DB.prepare(
@@ -111,6 +117,7 @@ async function loadCatalog(ctx: Ctx) {
 export async function catalog(ctx: Ctx): Promise<Response> {
   const { products, variants, variantFaculties, configs, photos } = await loadCatalog(ctx);
   const byId = new Map(variants.map((variant) => [variant.id, variant]));
+  const titleByProduct = new Map(products.map((product) => [product.id, product.title]));
   const photosByProduct = new Map<string, CatalogPhoto[]>();
   for (const photo of photos) {
     const list = photosByProduct.get(photo.product_id) ?? [];
@@ -182,19 +189,54 @@ export async function catalog(ctx: Ctx): Promise<Response> {
       return { facultyId: config.faculty_id, facultyName: config.faculty_name, priceRp: config.price_rp, stock };
     });
 
+    // Foto per fakultas: satu foto per jenis barang, urut nama barang supaya stabil antar-request.
+    // Paket fakultas hanya punya satu config, tier netral punya satu config per fakultas.
+    const photosByConfig = new Map(
+      ownConfigs.map((config) => {
+        const byTitle = new Map<string, string>();
+        for (const part of parts) {
+          if (part.config_id !== config.id) continue;
+          const variant = byId.get(part.variant_id);
+          if (!variant) continue;
+          const photo = parseAttributes(variant.attributes).imagePath;
+          if (!photo) continue;
+          const title = titleByProduct.get(variant.product_id) ?? "";
+          if (!byTitle.has(title)) byTitle.set(title, photo);
+        }
+        return [config.id, [...byTitle.entries()].sort((left, right) => left[0].localeCompare(right[0])).map((entry) => entry[1])];
+      }),
+    );
+
+    // Foto paket = foto barang pada config fakultas paket itu sendiri, bukan seluruh 8 config.
+    const showcase = ownConfigs.find((config) => config.faculty_id === product.faculty_id) ?? ownConfigs[0];
+    const componentPhotos = photosByConfig.get(showcase.id) ?? [];
+    const optionsWithPhotos = options.map((option, index) => ({ ...option, photos: photosByConfig.get(ownConfigs[index].id) ?? [] }));
+    // Foto resmi paket jadi foto pertama, lalu barang penyusunnya.
+    const photos = product.image_path ? [product.image_path, ...componentPhotos.filter((photo) => photo !== product.image_path)] : componentPhotos;
+
     items.push({
       id: product.id,
       kind: "bundle",
       title: product.title,
       description: product.description,
-      imagePath: product.image_path,
+      // Paket tanpa foto sendiri meminjam foto barang pertamanya, supaya kartu tidak kosong.
+      imagePath: product.image_path ?? componentPhotos[0] ?? null,
       basePriceRp: Math.min(...options.map((option) => option.priceRp)),
       discountBasisPoints: 0,
       finalPriceRp: Math.min(...options.map((option) => option.priceRp)),
       priceRp: Math.min(...options.map((option) => option.priceRp)),
       stock: Math.max(...options.map((option) => option.stock)),
       variants: [],
-      facultyOptions: options,
+      facultyId: product.faculty_id,
+      facultyOptions: optionsWithPhotos,
+      componentPhotos: photos,
+      componentTitles: [
+        ...new Set(
+          parts
+            .map((part) => titleByProduct.get(byId.get(part.variant_id)?.product_id ?? "") ?? "")
+            .filter(Boolean),
+        ),
+      ],
     });
   }
 
